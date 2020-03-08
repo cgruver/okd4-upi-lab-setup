@@ -1,0 +1,6 @@
+#!ipxe
+
+kernel %%INSTALL_URL%%/fcos/vmlinuz ip=%%IP_01%%::%%LAB_GATEWAY%:%%LAB_NETMASK%%:%%HOSTNAME%%.%%LAB_DOMAIN%%:eth0:none ip=%%IP_02%%:::%%LAB_NETMASK%%::eth1:none nameserver=%%LAB_NAMESERVER%% rd.neednet=1 coreos.inst=yes coreos.inst.install_dev=sda coreos.inst.image_url=%%INSTALL_URL%%/fcos/install.xz coreos.inst.ignition_url=%%INSTALL_URL%%/fcos/ignition/%%OKD_ROLE%%.ign coreos.inst.platform_id=qemu console=ttyS0,115200n8
+initrd %%INSTALL_URL%%/fcos/initrd
+
+boot

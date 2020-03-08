@@ -36,7 +36,7 @@ done
 cd ${OKD4_LAB_PATH}
 
 mkdir -p ${OKD4_LAB_PATH}/okd-release-tmp
-cd ${OKD4_LAB_PATH}/okd4-lab/okd-release-tmp
+cd ${OKD4_LAB_PATH}/okd-release-tmp
 oc adm release extract --command='openshift-install' ${OKD_RELEASE}
 oc adm release extract --command='oc' ${OKD_RELEASE}
 mv -f openshift-install ~/bin
@@ -80,14 +80,23 @@ do
   var=$(ssh root@${HOST_NODE}.${LAB_DOMAIN} "virsh -q domiflist ${HOSTNAME} | grep br0")
   NET_MAC=$(echo ${var} | cut -d" " -f5)
   
+  for i in $(ssh root@${LAB_GATEWAY} "uci show dhcp | grep -w host | grep name")
+  do
+    name=$(echo $i | cut -d"'" -f2)
+    index=$(echo $i | cut -d"." -f1,2)
+    if [ ${name} == ${HOSTNAME} ]
+    then
+      echo "Removing existing DHCP Reservation for ${HOSTNAME}"
+      ssh root@${LAB_GATEWAY} "uci delete ${index} && uci commit dhcp"
+    fi
+  done
+  echo "Create DHCP Reservation for ${HOSTNAME}"
+  ssh root@${LAB_GATEWAY} "uci add dhcp host && uci set dhcp.@host[-1].name=\"${HOSTNAME}\" && uci set dhcp.@host[-1].mac=\"${NET_MAC}\" && uci set dhcp.@host[-1].ip=\"${IP_01}\" && uci set dhcp.@host[-1].leasetime=\"1m\" && uci commit dhcp"
+
   sed "s|%%INSTALL_URL%%|${INSTALL_URL}|g" ${OKD4_LAB_PATH}/ipxe_templates/fcos-okd4.ipxe > ${OKD4_LAB_PATH}/ipxe-work-dir/${NET_MAC//:/-}.ipxe
-  sed -i "s|%%IP_01%%|${IP_01}|g" ${OKD4_LAB_PATH}/ipxe-work-dir/${NET_MAC//:/-}.ipxe
-  sed -i "s|%%LAB_GATEWAY%%|${LAB_GATEWAY}|g" ${OKD4_LAB_PATH}/ipxe-work-dir/${NET_MAC//:/-}.ipxe
   sed -i "s|%%LAB_NETMASK%%|${LAB_NETMASK}|g" ${OKD4_LAB_PATH}/ipxe-work-dir/${NET_MAC//:/-}.ipxe
-  sed -i "s|%%HOSTNAME%%|${HOSTNAME}|g" ${OKD4_LAB_PATH}/ipxe-work-dir/${NET_MAC//:/-}.ipxe
   sed -i "s|%%LAB_DOMAIN%%|${LAB_DOMAIN}|g" ${OKD4_LAB_PATH}/ipxe-work-dir/${NET_MAC//:/-}.ipxe
   sed -i "s|%%IP_02%%|${IP_02}|g" ${OKD4_LAB_PATH}/ipxe-work-dir/${NET_MAC//:/-}.ipxe
-  sed -i "s|%%LAB_NAMESERVER%%|${LAB_NAMESERVER}|g" ${OKD4_LAB_PATH}/ipxe-work-dir/${NET_MAC//:/-}.ipxe
   if [ ${ROLE} == "BOOTSTRAP" ]
   then
     sed -i "s|%%OKD_ROLE%%|bootstrap|g" ${OKD4_LAB_PATH}/ipxe-work-dir/${NET_MAC//:/-}.ipxe
@@ -102,4 +111,5 @@ do
   vbmc add --username admin --password password --port ${VBMC_PORT} --address ${INSTALL_HOST_IP} --libvirt-uri qemu+ssh://root@${HOST_NODE}.${LAB_DOMAIN}/system ${HOSTNAME}
   vbmc start ${HOSTNAME}
 done
+ssh root@${LAB_GATEWAY} "/etc/init.d/dnsmasq restart && /etc/init.d/odhcpd restart"
 rm -rf ${OKD4_LAB_PATH}/ipxe-work-dir
