@@ -1,0 +1,74 @@
+mkdir -p /root/.ssh
+chmod 700 /root/.ssh
+let i=1
+while [ $i -le 10 ]
+do
+	curl -o /root/.ssh/authorized_keys %%INSTALL_URL%%/postinstall/authorized_keys
+	if [ $? -eq 0 ]
+	then
+		break
+	else
+		let i=i+1
+	fi 
+	sleep 2
+done
+if [ ! -f /root/.ssh/authorized_keys ]
+then
+	echo "Failed to copy /root/.ssh/authorized_keys Control Plane Server!  FirstBoot has not run!" > /root/FirstBootFailed
+	exit
+fi
+
+chmod 600 /root/.ssh/authorized_keys
+
+yum -y install iscsi-initiator-utils libvirt libvirt-devel libvirt-daemon-kvm qemu-kvm jq golang-bin gcc-c++ golang docker zip krb5-devel bsdtar bc createrepo libassuan-devel
+yum -y update
+
+echo "InitiatorName=iqn.$(hostname)" > /etc/iscsi/initiatorname.iscsi
+
+cat <<EOF >> /etc/libvirt/libvirtd.conf
+listen_tls = 0
+listen_tcp = 1
+auth_tcp="none"
+tcp_port = "16509"
+EOF
+
+cat <<EOF >> /etc/sysconfig/libvirtd
+LIBVIRTD_ARGS="--listen"
+EOF
+
+systemctl enable --now libvirtd
+
+mkdir /VirtualMachines
+virsh pool-destroy default
+virsh pool-undefine default
+virsh pool-define-as --name default --type dir --target /VirtualMachines
+virsh pool-autostart default
+virsh pool-start default
+
+cat <<EOF > /etc/NetworkManager/conf.d/openshift.conf
+[main]
+dns=dnsmasq
+EOF
+
+cat <<EOF > /etc/NetworkManager/dnsmasq.d/openshift.conf
+server=/crc.testing/192.168.126.1
+address=/apps-crc.testing/192.168.126.11
+EOF
+
+systemctl reload NetworkManager
+
+firewall-cmd --add-rich-rule "rule service name="libvirt" reject" --permanent
+firewall-cmd --zone=dmz --change-interface=virbr0 --permanent
+firewall-cmd --zone=dmz --change-interface=tt0 --permanent
+firewall-cmd --zone=dmz --add-service=libvirt --permanent
+firewall-cmd --reload
+
+
+rm -f /etc/sysconfig/selinux
+mv /root/selinux /etc/sysconfig/selinux
+
+/bin/cat /etc/crontab | /bin/grep -v firstboot > /etc/crontab.tmp
+/bin/rm -f /etc/crontab
+/bin/mv /etc/crontab.tmp /etc/crontab
+rm -f $0
+shutdown -r now

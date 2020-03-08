@@ -1,0 +1,56 @@
+mkdir -p /root/.ssh
+chmod 700 /root/.ssh
+let i=1
+while [ $i -le 10 ]
+do
+	curl -o /root/.ssh/authorized_keys %%INSTALL_URL%%/postinstall/authorized_keys
+	if [ $? -eq 0 ]
+	then
+		break
+	else
+		let i=i+1
+	fi 
+	sleep 2
+done
+if [ ! -f /root/.ssh/authorized_keys ]
+then
+	echo "Failed to copy /root/.ssh/authorized_keys from Control Plane Server!  FirstBoot has not run!" > /root/FirstBootFailed
+	exit
+fi
+
+chmod 600 /root/.ssh/authorized_keys
+
+yum -y update
+yum -y install wget git net-tools bind-utils bridge-utils bash-completion kexec-tools sos psacct python-rhsm-certificates nfs-utils MariaDB-server MariaDB-client galera-4 policycoreutils-python iscsi-initiator-utils
+
+echo "InitiatorName=iqn.$(hostname)" > /etc/iscsi/initiatorname.iscsi
+
+firewall-cmd --add-service=mysql --permanent
+firewall-cmd --add-port=3306/tcp --permanent
+firewall-cmd --add-port=4567/tcp --permanent
+firewall-cmd --add-port=4567/udp --permanent
+firewall-cmd --add-port=4568/tcp --permanent
+firewall-cmd --add-port=4444/tcp --permanent
+firewall-cmd --reload
+
+systemctl start mariadb
+mysql --user=root <<EOF
+DELETE FROM mysql.user WHERE User='';
+DELETE FROM mysql.user WHERE User='root' AND Host NOT IN ('localhost', '127.0.0.1', '::1');
+DROP DATABASE IF EXISTS test;
+DELETE FROM mysql.db WHERE Db='test' OR Db='test\\_%';
+FLUSH PRIVILEGES;
+EOF
+
+systemctl stop mariadb
+systemctl disable mariadb
+
+curl -o /etc/my.cnf.d/server.cnf %%INSTALL_URL%%/postinstall/mariadb-server.cnf
+
+mv /root/selinux /etc/sysconfig/selinux
+
+/bin/cat /etc/crontab | /bin/grep -v firstboot > /etc/crontab.tmp
+/bin/rm -f /etc/crontab
+/bin/mv /etc/crontab.tmp /etc/crontab
+rm -f $0
+shutdown -r now

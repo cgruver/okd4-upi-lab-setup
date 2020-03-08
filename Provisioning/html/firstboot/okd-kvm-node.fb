@@ -1,0 +1,47 @@
+mkdir -p /root/.ssh
+chmod 700 /root/.ssh
+let i=1
+while [ $i -le 10 ]
+do
+	curl -o /root/.ssh/authorized_keys %%INSTALL_URL%%/postinstall/authorized_keys
+	if [ $? -eq 0 ]
+	then
+		break
+	else
+		let i=i+1
+	fi 
+	sleep 2
+done
+if [ ! -f /root/.ssh/authorized_keys ]
+then
+	echo "Failed to copy /root/.ssh/authorized_keys from Control Plane Server!  FirstBoot has not run!" > /root/FirstBootFailed
+	exit
+fi
+
+chmod 600 /root/.ssh/authorized_keys
+
+yum -y install wget git net-tools bind-utils bridge-utils bash-completion kexec-tools sos psacct docker python-rhsm-certificates glusterfs-fuse nfs-utils iscsi-initiator-utils
+setsebool -P virt_sandbox_use_fusefs on
+curl -o /etc/sysconfig/docker-storage-setup %%INSTALL_URL%%/postinstall/docker-storage-setup
+docker-storage-setup
+systemctl enable docker
+yum -y update
+
+echo "InitiatorName=iqn.$(hostname)" > /etc/iscsi/initiatorname.iscsi
+
+openssl s_client -showcerts -servername registry.access.redhat.com -connect registry.access.redhat.com:443 </dev/null 2>/dev/null | openssl x509 -text > /etc/rhsm/ca/redhat-uep.pem
+openssl s_client -showcerts -connect nexus.%%LAB_DOMAIN%%:5000 </dev/null 2>/dev/null|openssl x509 -outform PEM > /etc/pki/ca-trust/source/anchors/nexus.%%LAB_DOMAIN%%.crt
+mkdir -p "/etc/docker/certs.d/nexus.%%LAB_DOMAIN%%:5000"
+openssl s_client -showcerts -connect nexus.%%LAB_DOMAIN%%:5000 </dev/null 2>/dev/null|openssl x509 -outform PEM > "/etc/docker/certs.d/nexus.%%LAB_DOMAIN%%:5000/ca.crt"
+update-ca-trust
+
+systemctl disable firewalld
+systemctl stop firewalld
+
+mv /root/selinux /etc/sysconfig/selinux
+
+/bin/cat /etc/crontab | /bin/grep -v firstboot > /etc/crontab.tmp
+/bin/rm -f /etc/crontab
+/bin/mv /etc/crontab.tmp /etc/crontab
+rm -f $0
+shutdown -r now
