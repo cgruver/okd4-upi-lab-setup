@@ -1,5 +1,0 @@
-STORAGE_DRIVER=overlay2
-DEVS=/dev/sdb
-VG=docker-vg
-SETUP_LVM_THIN_POOL=yes
-DATA_SIZE="100%FREE"
