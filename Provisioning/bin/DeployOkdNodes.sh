@@ -30,22 +30,40 @@ case $i in
     LAB_NAMESERVER="${i#*=}"
     shift # past argument with no value
     ;;
+    -m|--mirror)
+    USE_MIRROR=true
+    shift
+    ;;
+    -p|--pull-release)
+    PULL_RELEASE=true
+    shift
+    ;;
     *)
           # unknown option
     ;;
 esac
 done
 
+
 # Pull the OKD release tooling identified by ${OKD_RELEASE}.  i.e. OKD_RELEASE=registry.svc.ci.openshift.org/origin/release:4.4.0-0.okd-2020-03-03-170958
-cd ${OKD4_LAB_PATH}
-mkdir -p ${OKD4_LAB_PATH}/okd-release-tmp
-cd ${OKD4_LAB_PATH}/okd-release-tmp
-oc adm release extract --command='openshift-install' ${OKD_RELEASE}
-oc adm release extract --command='oc' ${OKD_RELEASE}
-mv -f openshift-install ~/bin
-mv -f oc ~/bin
-cd ..
-rm -rf okd-release-tmp
+if [ ${PULL_RELEASE} == "true" ]
+then
+  ssh root@${LAB_NAMESERVER} 'sed -i "s|registry.svc.ci.openshift.org|;registry.svc.ci.openshift.org|g" /etc/named/zones/db.sinkhole && systemctl restart named'
+  cd ${OKD4_LAB_PATH}
+  mkdir -p ${OKD4_LAB_PATH}/okd-release-tmp
+  cd ${OKD4_LAB_PATH}/okd-release-tmp
+  oc adm release extract --command='openshift-install' ${OKD_RELEASE}
+  oc adm release extract --command='oc' ${OKD_RELEASE}
+  mv -f openshift-install ~/bin
+  mv -f oc ~/bin
+  cd ..
+  rm -rf okd-release-tmp
+fi
+if [ ${USE_MIRROR} == "true" ]
+then
+  ssh root@${LAB_NAMESERVER} 'sed -i "s|; registry.svc.ci.openshift.org|registry.svc.ci.openshift.org|g" /etc/named/zones/db.sinkhole && systemctl resatart named'
+fi
+
 # Create and deploy ignition files
 rm -rf ${OKD4_LAB_PATH}/okd4-install-dir
 mkdir ${OKD4_LAB_PATH}/okd4-install-dir
@@ -63,8 +81,9 @@ do
 	CPU=$(echo ${VARS} | cut -d',' -f4)
 	ROOT_VOL=$(echo ${VARS} | cut -d',' -f5)
 	DATA_VOL=$(echo ${VARS} | cut -d',' -f6)
-  ROLE=$(echo ${VARS} | cut -d',' -f7)
-  VBMC_PORT=$(echo ${VARS} | cut -d',' -f8)
+  NICS=$(echo ${VARS} | cut -d',' -f7)
+  ROLE=$(echo ${VARS} | cut -d',' -f8)
+  VBMC_PORT=$(echo ${VARS} | cut -d',' -f9)
 
   DISK_LIST="--disk size=${ROOT_VOL},path=/VirtualMachines/${HOSTNAME}/rootvol,bus=sata"
   ARGS="--cpu host-passthrough,match=exact"
@@ -81,18 +100,23 @@ do
 
   # Create the VM
   ssh root@${HOST_NODE}.${LAB_DOMAIN} "mkdir -p /VirtualMachines/${HOSTNAME}"
-  ssh root@${HOST_NODE}.${LAB_DOMAIN} "virt-install --print-xml 1 --name ${HOSTNAME} --memory ${MEMORY} --vcpus ${CPU} --boot=hd,network,menu=on,useserial=on ${DISK_LIST} --network bridge=br0 --network bridge=br1 --graphics none --noautoconsole --os-variant centos7.0 ${ARGS} > /VirtualMachines/${HOSTNAME}.xml"
+  if [ ${NICS} == "2" ]
+  then
+    ssh root@${HOST_NODE}.${LAB_DOMAIN} "virt-install --print-xml 1 --name ${HOSTNAME} --memory ${MEMORY} --vcpus ${CPU} --boot=hd,network,menu=on,useserial=on ${DISK_LIST} --network bridge=br0 --network bridge=br1 --graphics none --noautoconsole --os-variant centos7.0 ${ARGS} > /VirtualMachines/${HOSTNAME}.xml"
+  elif [ ${NICS} == "1" ]
+    ssh root@${HOST_NODE}.${LAB_DOMAIN} "virt-install --print-xml 1 --name ${HOSTNAME} --memory ${MEMORY} --vcpus ${CPU} --boot=hd,network,menu=on,useserial=on ${DISK_LIST} --network bridge=br0 --graphics none --noautoconsole --os-variant centos7.0 ${ARGS} > /VirtualMachines/${HOSTNAME}.xml"
+  fi
   ssh root@${HOST_NODE}.${LAB_DOMAIN} "virsh define /VirtualMachines/${HOSTNAME}.xml"
 
   # Get the MAC address for eth0 in the new VM  
   var=$(ssh root@${HOST_NODE}.${LAB_DOMAIN} "virsh -q domiflist ${HOSTNAME} | grep br0")
   NET_MAC=$(echo ${var} | cut -d" " -f5)
   # Delete any existing DHCP reservations for this host
-  for i in $(ssh root@${LAB_GATEWAY} "uci show dhcp | grep -w host | grep name")
+  for i in $(ssh root@${LAB_GATEWAY} "uci show dhcp | grep -w host | grep ip")
   do
-    name=$(echo $i | cut -d"'" -f2)
+    ip=$(echo $i | cut -d"'" -f2)
     index=$(echo $i | cut -d"." -f1,2)
-    if [ ${name} == ${HOSTNAME} ]
+    if [ ${ip} == ${IP_01} ]
     then
       echo "Removing existing DHCP Reservation for ${HOSTNAME}"
       ssh root@${LAB_GATEWAY} "uci delete ${index} && uci commit dhcp"
@@ -102,11 +126,37 @@ do
   echo "Create DHCP Reservation for ${HOSTNAME}"
   ssh root@${LAB_GATEWAY} "uci add dhcp host && uci set dhcp.@host[-1].name=\"${HOSTNAME}\" && uci set dhcp.@host[-1].mac=\"${NET_MAC}\" && uci set dhcp.@host[-1].ip=\"${IP_01}\" && uci set dhcp.@host[-1].leasetime=\"1m\" && uci commit dhcp"
 
+  if [ ${NICS} == "2" ]
+  then
+    # Get the MAC address for eth1 in the new VM  
+    var=$(ssh root@${HOST_NODE}.${LAB_DOMAIN} "virsh -q domiflist ${HOSTNAME} | grep br1")
+    NET_MAC_2=$(echo ${var} | cut -d" " -f5)
+    # Delete any existing DHCP reservations for this host
+    for i in $(ssh root@${DHCP_2} "uci show dhcp | grep -w host | grep ip")
+    do
+      ip=$(echo $i | cut -d"'" -f2)
+      index=$(echo $i | cut -d"." -f1,2)
+      if [ ${ip} == ${IP_02} ]
+      then
+        echo "Removing existing DHCP Reservation for ${IP_02}"
+        ssh root@${DHCP_2} "uci delete ${index} && uci commit dhcp"
+      fi
+    done
+    # Create a DHCP reservation for eth0
+    echo "Create DHCP Reservation for ${IP_02}"
+    ssh root@${DHCP_2} "uci add dhcp host && uci set dhcp.@host[-1].mac=\"${NET_MAC_2}\" && uci set dhcp.@host[-1].ip=\"${IP_02}\" && uci set dhcp.@host[-1].leasetime=\"1m\" && uci commit dhcp"
+  fi
+  
   # Create and deploy the iPXE boot file for this VM
-  sed "s|%%INSTALL_URL%%|${INSTALL_URL}|g" ${OKD4_LAB_PATH}/ipxe-templates/fcos-okd4.ipxe > ${OKD4_LAB_PATH}/ipxe-work-dir/${NET_MAC//:/-}.ipxe
+  if [ ${NICS} == "2" ]
+  then
+    sed "s|%%INSTALL_URL%%|${INSTALL_URL}|g" ${OKD4_LAB_PATH}/ipxe-templates/fcos-okd4-dualnic.ipxe > ${OKD4_LAB_PATH}/ipxe-work-dir/${NET_MAC//:/-}.ipxe
+    sed -i "s|%%IP_02%%|${IP_02}|g" ${OKD4_LAB_PATH}/ipxe-work-dir/${NET_MAC//:/-}.ipxe
+  elif [ ${NICS} == "1" ]
+    sed "s|%%INSTALL_URL%%|${INSTALL_URL}|g" ${OKD4_LAB_PATH}/ipxe-templates/fcos-okd4.ipxe > ${OKD4_LAB_PATH}/ipxe-work-dir/${NET_MAC//:/-}.ipxe
+  fi
   sed -i "s|%%LAB_NETMASK%%|${LAB_NETMASK}|g" ${OKD4_LAB_PATH}/ipxe-work-dir/${NET_MAC//:/-}.ipxe
   sed -i "s|%%LAB_DOMAIN%%|${LAB_DOMAIN}|g" ${OKD4_LAB_PATH}/ipxe-work-dir/${NET_MAC//:/-}.ipxe
-  sed -i "s|%%IP_02%%|${IP_02}|g" ${OKD4_LAB_PATH}/ipxe-work-dir/${NET_MAC//:/-}.ipxe
   if [ ${ROLE} == "BOOTSTRAP" ]
   then
     sed -i "s|%%OKD_ROLE%%|bootstrap|g" ${OKD4_LAB_PATH}/ipxe-work-dir/${NET_MAC//:/-}.ipxe

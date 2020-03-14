@@ -17,21 +17,39 @@ for VARS in $(cat ${INVENTORY} | grep -v "#")
 do
   HOST_NODE=$(echo ${VARS} | cut -d',' -f1)
   HOSTNAME=$(echo ${VARS} | cut -d',' -f2)
+  NICS=$(echo ${VARS} | cut -d',' -f7)
+
   var=$(ssh root@${HOST_NODE}.${LAB_DOMAIN} "virsh -q domiflist ${HOSTNAME} | grep br0")
   NET_MAC=$(echo ${var} | cut -d" " -f5)
 
   # Remove the DHCP reservation
-  for i in $(ssh root@${LAB_GATEWAY} "uci show dhcp | grep -w host | grep name")
+  for i in $(ssh root@${LAB_GATEWAY} "uci show dhcp | grep -w host | grep mac")
   do
-    name=$(echo $i | cut -d"'" -f2)
+    mac=$(echo $i | cut -d"'" -f2)
     index=$(echo $i | cut -d"." -f1,2)
-    if [ ${name} == ${HOSTNAME} ]
+    if [ ${mac} == ${NET_MAC} ]
     then
       echo "Removing existing DHCP Reservation for ${HOSTNAME}"
       ssh root@${LAB_GATEWAY} "uci delete ${index} && uci commit dhcp"
     fi
   done
 
+  if [ ${NICS} == "2" ]
+  then
+    var=$(ssh root@${HOST_NODE}.${LAB_DOMAIN} "virsh -q domiflist ${HOSTNAME} | grep br1")
+    NET_MAC_2=$(echo ${var} | cut -d" " -f5)
+    # Remove the DHCP reservation
+    for i in $(ssh root@${LAB_GATEWAY} "uci show dhcp | grep -w host | grep mac")
+    do
+      mac=$(echo $i | cut -d"'" -f2)
+      index=$(echo $i | cut -d"." -f1,2)
+      if [ ${mac} == ${NET_MAC_2} ]
+      then
+        echo "Removing existing DHCP Reservation for ${NET_MAC_2}"
+        ssh root@${LAB_GATEWAY} "uci delete ${index} && uci commit dhcp"
+      fi
+    done
+  fi
   # Remove the iPXE boot file
   ssh root@${LAB_GATEWAY} "rm -f /data/tftpboot/ipxe/${NET_MAC//:/-}.ipxe"
 
@@ -45,3 +63,5 @@ do
 done
 # Restart DHCP to make changes effective
 ssh root@${LAB_GATEWAY} "/etc/init.d/dnsmasq restart && /etc/init.d/odhcpd restart"
+# Restore DNS access to registry.svc.ci.openshift.org
+ssh root@${LAB_NAMESERVER} 'sed -i "s|registry.svc.ci.openshift.org|;registry.svc.ci.openshift.org|g" /etc/named/zones/db.sinkhole && systemctl restart named'

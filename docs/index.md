@@ -75,6 +75,7 @@ uci commit dhcp
     REPO_HOST=ocp-controller01                # Your Control Plane server
     REPO_PATH=/usr/share/nginx/html/repos     # The path to the repos served by Nginx on your control plane
     OKD4_LAB_PATH=~/okd4-lab
+    DHCP_2=10.11.12.1
 
 mkdir -p ~/bin/lab_bin
 
@@ -93,6 +94,7 @@ export REPO_URL=http://${REPO_HOST}.${LAB_DOMAIN}
 export INSTALL_URL=http://${INSTALL_HOST_IP}/install
 export REPO_PATH=${REPO_PATH}
 export OKD4_LAB_PATH=${OKD4_LAB_PATH}
+export DHCP_2=${DHCP_2}
 EOF
 
 
