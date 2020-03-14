@@ -2,6 +2,8 @@
 
 # This script will set up the infrastructure to deploy an OKD 4.X cluster
 # Follow the documentation at https://github.com/cgruver/okd4-UPI-Lab-Setup
+PULL_RELEASE=false
+USE_MIRROR=false
 
 for i in "$@"
 do
@@ -45,15 +47,15 @@ esac
 done
 
 
-# Pull the OKD release tooling identified by ${OKD_RELEASE}.  i.e. OKD_RELEASE=registry.svc.ci.openshift.org/origin/release:4.4.0-0.okd-2020-03-03-170958
+# Pull the OKD release tooling identified by ${OKD_REGISTRY}:${OKD_RELEASE}.  i.e. OKD_REGISTRY=registry.svc.ci.openshift.org/origin/release, OKD_RELEASE=4.4.0-0.okd-2020-03-03-170958
 if [ ${PULL_RELEASE} == "true" ]
 then
   ssh root@${LAB_NAMESERVER} 'sed -i "s|registry.svc.ci.openshift.org|;registry.svc.ci.openshift.org|g" /etc/named/zones/db.sinkhole && systemctl restart named'
   cd ${OKD4_LAB_PATH}
   mkdir -p ${OKD4_LAB_PATH}/okd-release-tmp
   cd ${OKD4_LAB_PATH}/okd-release-tmp
-  oc adm release extract --command='openshift-install' ${OKD_RELEASE}
-  oc adm release extract --command='oc' ${OKD_RELEASE}
+  oc adm release extract --command='openshift-install' ${OKD_REGISTRY}:${OKD_RELEASE}
+  oc adm release extract --command='oc' ${OKD_REGISTRY}:${OKD_RELEASE}
   mv -f openshift-install ~/bin
   mv -f oc ~/bin
   cd ..
@@ -61,7 +63,7 @@ then
 fi
 if [ ${USE_MIRROR} == "true" ]
 then
-  ssh root@${LAB_NAMESERVER} 'sed -i "s|; registry.svc.ci.openshift.org|registry.svc.ci.openshift.org|g" /etc/named/zones/db.sinkhole && systemctl resatart named'
+  ssh root@${LAB_NAMESERVER} 'sed -i "s|; registry.svc.ci.openshift.org|registry.svc.ci.openshift.org|g" /etc/named/zones/db.sinkhole && systemctl restart named'
 fi
 
 # Create and deploy ignition files
@@ -104,6 +106,7 @@ do
   then
     ssh root@${HOST_NODE}.${LAB_DOMAIN} "virt-install --print-xml 1 --name ${HOSTNAME} --memory ${MEMORY} --vcpus ${CPU} --boot=hd,network,menu=on,useserial=on ${DISK_LIST} --network bridge=br0 --network bridge=br1 --graphics none --noautoconsole --os-variant centos7.0 ${ARGS} > /VirtualMachines/${HOSTNAME}.xml"
   elif [ ${NICS} == "1" ]
+  then
     ssh root@${HOST_NODE}.${LAB_DOMAIN} "virt-install --print-xml 1 --name ${HOSTNAME} --memory ${MEMORY} --vcpus ${CPU} --boot=hd,network,menu=on,useserial=on ${DISK_LIST} --network bridge=br0 --graphics none --noautoconsole --os-variant centos7.0 ${ARGS} > /VirtualMachines/${HOSTNAME}.xml"
   fi
   ssh root@${HOST_NODE}.${LAB_DOMAIN} "virsh define /VirtualMachines/${HOSTNAME}.xml"
@@ -153,6 +156,7 @@ do
     sed "s|%%INSTALL_URL%%|${INSTALL_URL}|g" ${OKD4_LAB_PATH}/ipxe-templates/fcos-okd4-dualnic.ipxe > ${OKD4_LAB_PATH}/ipxe-work-dir/${NET_MAC//:/-}.ipxe
     sed -i "s|%%IP_02%%|${IP_02}|g" ${OKD4_LAB_PATH}/ipxe-work-dir/${NET_MAC//:/-}.ipxe
   elif [ ${NICS} == "1" ]
+  then
     sed "s|%%INSTALL_URL%%|${INSTALL_URL}|g" ${OKD4_LAB_PATH}/ipxe-templates/fcos-okd4.ipxe > ${OKD4_LAB_PATH}/ipxe-work-dir/${NET_MAC//:/-}.ipxe
   fi
   sed -i "s|%%LAB_NETMASK%%|${LAB_NETMASK}|g" ${OKD4_LAB_PATH}/ipxe-work-dir/${NET_MAC//:/-}.ipxe
