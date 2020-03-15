@@ -87,6 +87,7 @@ export LAB_DOMAIN=${LAB_DOMAIN}
 export LAB_NAMESERVER=${LAB_NAMESERVER}
 export LAB_NETMASK=${LAB_NETMASK}
 export LAB_GATEWAY=${LAB_GATEWAY}
+export DHCP_2=${DHCP_2}
 export REPO_HOST=${REPO_HOST}
 export INSTALL_HOST_IP=${INSTALL_HOST_IP}
 export INSTALL_ROOT=${INSTALL_ROOT}
@@ -94,7 +95,9 @@ export REPO_URL=http://${REPO_HOST}.${LAB_DOMAIN}
 export INSTALL_URL=http://${INSTALL_HOST_IP}/install
 export REPO_PATH=${REPO_PATH}
 export OKD4_LAB_PATH=${OKD4_LAB_PATH}
-export DHCP_2=${DHCP_2}
+export OKD_REGISTRY=registry.svc.ci.openshift.org/origin/release
+export LOCAL_REGISTRY=nexus.oscluster.clgcom.org:5002/origin
+export LOCAL_SECRET_JSON=${OKD4_LAB_PATH}/pull-secret.json
 EOF
 
 

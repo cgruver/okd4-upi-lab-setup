@@ -39,14 +39,14 @@ do
     var=$(ssh root@${HOST_NODE}.${LAB_DOMAIN} "virsh -q domiflist ${HOSTNAME} | grep br1")
     NET_MAC_2=$(echo ${var} | cut -d" " -f5)
     # Remove the DHCP reservation
-    for i in $(ssh root@${LAB_GATEWAY} "uci show dhcp | grep -w host | grep mac")
+    for i in $(ssh root@${DHCP_2} "uci show dhcp | grep -w host | grep mac")
     do
       mac=$(echo $i | cut -d"'" -f2)
       index=$(echo $i | cut -d"." -f1,2)
       if [ ${mac} == ${NET_MAC_2} ]
       then
         echo "Removing existing DHCP Reservation for ${NET_MAC_2}"
-        ssh root@${LAB_GATEWAY} "uci delete ${index} && uci commit dhcp"
+        ssh root@${DHCP_2} "uci delete ${index} && uci commit dhcp"
       fi
     done
   fi
