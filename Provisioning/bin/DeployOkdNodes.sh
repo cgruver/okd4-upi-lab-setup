@@ -183,7 +183,7 @@ done
 # Restart the DHCP server to make the DHCP reservations active
 echo "Restarting DHCP on ${LAB_GATEWAY}"
 ssh root@${LAB_GATEWAY} "/etc/init.d/dnsmasq restart && /etc/init.d/odhcpd restart"
-if [ RESTART_DHCP_2 == "true" ]
+if [ ${RESTART_DHCP_2} == "true" ]
 then
   echo "Restarting DHCP on ${DHCP_2}"
   ssh root@${DHCP_2} "/etc/init.d/dnsmasq restart && /etc/init.d/odhcpd restart"
