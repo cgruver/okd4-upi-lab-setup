@@ -1,4 +1,5 @@
 #!/bin/bash
+RESTART_DHCP_2=false
 
 for i in "$@"
 do
@@ -36,6 +37,7 @@ do
 
   if [ ${NICS} == "2" ]
   then
+    RESTART_DHCP_2=true
     var=$(ssh root@${HOST_NODE}.${LAB_DOMAIN} "virsh -q domiflist ${HOSTNAME} | grep br1")
     NET_MAC_2=$(echo ${var} | cut -d" " -f5)
     # Remove the DHCP reservation
@@ -63,5 +65,9 @@ do
 done
 # Restart DHCP to make changes effective
 ssh root@${LAB_GATEWAY} "/etc/init.d/dnsmasq restart && /etc/init.d/odhcpd restart"
+if [ RESTART_DHCP_2 == "true" ]
+then
+  ssh root@${DHCP_2} "/etc/init.d/dnsmasq restart && /etc/init.d/odhcpd restart"
+fi
 # Restore DNS access to registry.svc.ci.openshift.org
 ssh root@${LAB_NAMESERVER} 'sed -i "s|registry.svc.ci.openshift.org|;registry.svc.ci.openshift.org|g" /etc/named/zones/db.sinkhole && systemctl restart named'
