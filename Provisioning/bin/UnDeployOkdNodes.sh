@@ -72,4 +72,4 @@ then
   ssh root@${DHCP_2} "/etc/init.d/dnsmasq restart && /etc/init.d/odhcpd restart"
 fi
 # Restore DNS access to registry.svc.ci.openshift.org
-ssh root@${LAB_NAMESERVER} 'sed -i "s|registry.svc.ci.openshift.org|;registry.svc.ci.openshift.org|g" /etc/named/zones/db.sinkhole && systemctl restart named'
+ssh root@${LAB_NAMESERVER} 'sed -i "s|registry.svc.ci.openshift.org|;sinkhole|g" /etc/named/zones/db.sinkhole && systemctl restart named'

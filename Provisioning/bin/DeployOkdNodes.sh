@@ -51,7 +51,7 @@ done
 # Pull the OKD release tooling identified by ${OKD_REGISTRY}:${OKD_RELEASE}.  i.e. OKD_REGISTRY=registry.svc.ci.openshift.org/origin/release, OKD_RELEASE=4.4.0-0.okd-2020-03-03-170958
 if [ ${PULL_RELEASE} == "true" ]
 then
-  ssh root@${LAB_NAMESERVER} 'sed -i "s|registry.svc.ci.openshift.org|;registry.svc.ci.openshift.org|g" /etc/named/zones/db.sinkhole && systemctl restart named'
+  ssh root@${LAB_NAMESERVER} 'sed -i "s|registry.svc.ci.openshift.org|;sinkhole|g" /etc/named/zones/db.sinkhole && systemctl restart named'
   cd ${OKD4_LAB_PATH}
   mkdir -p ${OKD4_LAB_PATH}/okd-release-tmp
   cd ${OKD4_LAB_PATH}/okd-release-tmp
@@ -64,7 +64,7 @@ then
 fi
 if [ ${USE_MIRROR} == "true" ]
 then
-  ssh root@${LAB_NAMESERVER} 'sed -i "s|; registry.svc.ci.openshift.org|registry.svc.ci.openshift.org|g" /etc/named/zones/db.sinkhole && systemctl restart named'
+  ssh root@${LAB_NAMESERVER} 'sed -i "s|;sinkhole|registry.svc.ci.openshift.org|g" /etc/named/zones/db.sinkhole && systemctl restart named'
 fi
 
 # Create and deploy ignition files
