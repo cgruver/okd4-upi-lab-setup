@@ -4,6 +4,7 @@
 # Follow the documentation at https://github.com/cgruver/okd4-UPI-Lab-Setup
 PULL_RELEASE=false
 USE_MIRROR=false
+RESTART_DHCP_2=false
 
 for i in "$@"
 do
@@ -104,6 +105,7 @@ do
   ssh root@${HOST_NODE}.${LAB_DOMAIN} "mkdir -p /VirtualMachines/${HOSTNAME}"
   if [ ${NICS} == "2" ]
   then
+    RESTART_DHCP_2=true
     ssh root@${HOST_NODE}.${LAB_DOMAIN} "virt-install --print-xml 1 --name ${HOSTNAME} --memory ${MEMORY} --vcpus ${CPU} --boot=hd,network,menu=on,useserial=on ${DISK_LIST} --network bridge=br0 --network bridge=br1 --graphics none --noautoconsole --os-variant centos7.0 ${ARGS} > /VirtualMachines/${HOSTNAME}.xml"
   elif [ ${NICS} == "1" ]
   then
@@ -179,7 +181,12 @@ do
 done
 
 # Restart the DHCP server to make the DHCP reservations active
+echo "Restarting DHCP on ${LAB_GATEWAY}"
 ssh root@${LAB_GATEWAY} "/etc/init.d/dnsmasq restart && /etc/init.d/odhcpd restart"
-
+if [ RESTART_DHCP_2 == "true" ]
+then
+  echo "Restarting DHCP on ${DHCP_2}"
+  ssh root@${DHCP_2} "/etc/init.d/dnsmasq restart && /etc/init.d/odhcpd restart"
+fi
 # Clean up
 rm -rf ${OKD4_LAB_PATH}/ipxe-work-dir

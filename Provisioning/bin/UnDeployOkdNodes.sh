@@ -64,9 +64,11 @@ do
   vbmc delete ${HOSTNAME}
 done
 # Restart DHCP to make changes effective
+echo "Restarting DHCP on ${LAB_GATEWAY}"
 ssh root@${LAB_GATEWAY} "/etc/init.d/dnsmasq restart && /etc/init.d/odhcpd restart"
 if [ RESTART_DHCP_2 == "true" ]
 then
+  echo "Restarting DHCP on ${DHCP_2}"
   ssh root@${DHCP_2} "/etc/init.d/dnsmasq restart && /etc/init.d/odhcpd restart"
 fi
 # Restore DNS access to registry.svc.ci.openshift.org
