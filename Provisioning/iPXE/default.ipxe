@@ -1,6 +1,6 @@
 #!ipxe
 
-kernel %%INSTALL_URL%%/centos/vmlinuz ip=dhcp inst.ks=%%INSTALL_URL%%/kickstart/kvm-host.ks inst.repo=%%INSTALL_URL%%/centos
-initrd %%INSTALL_URL%%/centos/initrd.img
+kernel %%INSTALL_URL%%/centos/isolinux/vmlinuz ip=dhcp inst.ks=%%INSTALL_URL%%/kickstart/kvm-host.ks inst.repo=%%INSTALL_URL%%/centos
+initrd %%INSTALL_URL%%/centos/isolinux/initrd.img
 
 boot
