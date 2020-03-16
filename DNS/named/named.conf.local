@@ -1,4 +1,4 @@
-zone "your.domain.org" {
+zone "%%LAB_DOMAIN%%" {
     type master;
     file "/etc/named/zones/db.%%LAB_DOMAIN%%"; # zone file path
 };
