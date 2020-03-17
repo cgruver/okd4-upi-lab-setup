@@ -4,7 +4,11 @@
 # Follow the documentation at https://github.com/cgruver/okd4-UPI-Lab-Setup
 PULL_RELEASE=false
 USE_MIRROR=false
+RESTART_DHCP_1=false
 RESTART_DHCP_2=false
+IP_CONFIG_1=""
+IP_CONFIG_2=""
+IP_CONFIG=""
 
 for i in "$@"
 do
@@ -39,6 +43,14 @@ case $i in
     ;;
     -p|--pull-release)
     PULL_RELEASE=true
+    shift
+    ;;
+    -d1|--dhcp-nic1)
+    DHCP_1=true
+    shift
+    ;;
+    -d2|--dhcp-nic2)
+    DHCP_2=true
     shift
     ;;
     *)
@@ -101,38 +113,47 @@ do
   # IP address for eth1 is the same as eth0 with the third octet incremented by 1.  i.e. eth0=10.10.10.10, eth1=10.10.11.10
   IP_02="${O_1}.${O_2}.${O_3}.${O_4}"
 
-  # Create the VM
-  ssh root@${HOST_NODE}.${LAB_DOMAIN} "mkdir -p /VirtualMachines/${HOSTNAME}"
   if [ ${NICS} == "2" ]
   then
-    RESTART_DHCP_2=true
-    ssh root@${HOST_NODE}.${LAB_DOMAIN} "virt-install --print-xml 1 --name ${HOSTNAME} --memory ${MEMORY} --vcpus ${CPU} --boot=hd,network,menu=on,useserial=on ${DISK_LIST} --network bridge=br0 --network bridge=br1 --graphics none --noautoconsole --os-variant centos7.0 ${ARGS} > /VirtualMachines/${HOSTNAME}.xml"
-  elif [ ${NICS} == "1" ]
-  then
-    ssh root@${HOST_NODE}.${LAB_DOMAIN} "virt-install --print-xml 1 --name ${HOSTNAME} --memory ${MEMORY} --vcpus ${CPU} --boot=hd,network,menu=on,useserial=on ${DISK_LIST} --network bridge=br0 --graphics none --noautoconsole --os-variant centos7.0 ${ARGS} > /VirtualMachines/${HOSTNAME}.xml"
+    NET_DEVICE="--network bridge=br0 --network bridge=br1"
+  else
+    NET_DEVICE="--network bridge=br0"
   fi
+
+  # Create the VM
+  ssh root@${HOST_NODE}.${LAB_DOMAIN} "mkdir -p /VirtualMachines/${HOSTNAME}"
+  ssh root@${HOST_NODE}.${LAB_DOMAIN} "virt-install --print-xml 1 --name ${HOSTNAME} --memory ${MEMORY} --vcpus ${CPU} --boot=hd,network,menu=on,useserial=on ${DISK_LIST} ${NET_DEVICE} --graphics none --noautoconsole --os-variant centos7.0 ${ARGS} > /VirtualMachines/${HOSTNAME}.xml"
   ssh root@${HOST_NODE}.${LAB_DOMAIN} "virsh define /VirtualMachines/${HOSTNAME}.xml"
 
   # Get the MAC address for eth0 in the new VM  
   var=$(ssh root@${HOST_NODE}.${LAB_DOMAIN} "virsh -q domiflist ${HOSTNAME} | grep br0")
   NET_MAC=$(echo ${var} | cut -d" " -f5)
-  # Delete any existing DHCP reservations for this host
-  for i in $(ssh root@${LAB_GATEWAY} "uci show dhcp | grep -w host | grep ip")
-  do
-    ip=$(echo $i | cut -d"'" -f2)
-    index=$(echo $i | cut -d"." -f1,2)
-    if [ ${ip} == ${IP_01} ]
-    then
-      echo "Removing existing DHCP Reservation for ${HOSTNAME}"
-      ssh root@${LAB_GATEWAY} "uci delete ${index} && uci commit dhcp"
-    fi
-  done
-  # Create a DHCP reservation for eth0
-  echo "Create DHCP Reservation for ${HOSTNAME}"
-  ssh root@${LAB_GATEWAY} "uci add dhcp host && uci set dhcp.@host[-1].name=\"${HOSTNAME}\" && uci set dhcp.@host[-1].mac=\"${NET_MAC}\" && uci set dhcp.@host[-1].ip=\"${IP_01}\" && uci set dhcp.@host[-1].leasetime=\"1m\" && uci commit dhcp"
-
-  if [ ${NICS} == "2" ]
+  if [ ${DHCP_1} == "true" ]
   then
+    IP_CONFIG_1="ip=:::::eth0:dhcp"
+    RESTART_DHCP_1=true
+    # Delete any existing DHCP reservations for this host
+    for i in $(ssh root@${LAB_GATEWAY} "uci show dhcp | grep -w host | grep ip")
+    do
+      ip=$(echo $i | cut -d"'" -f2)
+      index=$(echo $i | cut -d"." -f1,2)
+      if [ ${ip} == ${IP_01} ]
+      then
+        echo "Removing existing DHCP Reservation for ${HOSTNAME}"
+        ssh root@${LAB_GATEWAY} "uci delete ${index} && uci commit dhcp"
+      fi
+    done
+    # Create a DHCP reservation for eth0
+    echo "Create DHCP Reservation for ${HOSTNAME}"
+    ssh root@${LAB_GATEWAY} "uci add dhcp host && uci set dhcp.@host[-1].name=\"${HOSTNAME}\" && uci set dhcp.@host[-1].mac=\"${NET_MAC}\" && uci set dhcp.@host[-1].ip=\"${IP_01}\" && uci set dhcp.@host[-1].leasetime=\"1m\" && uci commit dhcp"
+  else
+    IP_CONFIG_1="ip=${IP_01}::${LAB_GATEWAY}:${LAB_NETMASK}:${HOSTNAME}.${LAB_DOMAIN}:eth0:none"
+  fi
+
+  if [ ${DHCP_2} == "true" ] && [ ${NICS} == "2" ]
+  then
+    IP_CONFIG_2="ip=:::::eth1:dhcp"
+    RESTART_DHCP_2=true
     # Get the MAC address for eth1 in the new VM  
     var=$(ssh root@${HOST_NODE}.${LAB_DOMAIN} "virsh -q domiflist ${HOSTNAME} | grep br1")
     NET_MAC_2=$(echo ${var} | cut -d" " -f5)
@@ -150,19 +171,14 @@ do
     # Create a DHCP reservation for eth0
     echo "Create DHCP Reservation for ${IP_02}"
     ssh root@${DHCP_2} "uci add dhcp host && uci set dhcp.@host[-1].mac=\"${NET_MAC_2}\" && uci set dhcp.@host[-1].ip=\"${IP_02}\" && uci set dhcp.@host[-1].leasetime=\"1m\" && uci commit dhcp"
+  elif [ ${NICS} == "2" ]
+    IP_CONFIG_2="ip=${IP_02}:::${LAB_NETMASK}::eth1:none"
   fi
-  
+  IP_CONFIG="${IP_CONFIG_1} ${IP_CONFIG_2} nameserver=${LAB_NAMESERVER}"
+
   # Create and deploy the iPXE boot file for this VM
-  if [ ${NICS} == "2" ]
-  then
-    sed "s|%%INSTALL_URL%%|${INSTALL_URL}|g" ${OKD4_LAB_PATH}/ipxe-templates/fcos-okd4-dualnic.ipxe > ${OKD4_LAB_PATH}/ipxe-work-dir/${NET_MAC//:/-}.ipxe
-    sed -i "s|%%IP_02%%|${IP_02}|g" ${OKD4_LAB_PATH}/ipxe-work-dir/${NET_MAC//:/-}.ipxe
-  elif [ ${NICS} == "1" ]
-  then
-    sed "s|%%INSTALL_URL%%|${INSTALL_URL}|g" ${OKD4_LAB_PATH}/ipxe-templates/fcos-okd4.ipxe > ${OKD4_LAB_PATH}/ipxe-work-dir/${NET_MAC//:/-}.ipxe
-  fi
-  sed -i "s|%%LAB_NETMASK%%|${LAB_NETMASK}|g" ${OKD4_LAB_PATH}/ipxe-work-dir/${NET_MAC//:/-}.ipxe
-  sed -i "s|%%LAB_DOMAIN%%|${LAB_DOMAIN}|g" ${OKD4_LAB_PATH}/ipxe-work-dir/${NET_MAC//:/-}.ipxe
+  sed "s|%%INSTALL_URL%%|${INSTALL_URL}|g" ${OKD4_LAB_PATH}/ipxe-templates/fcos-okd4.ipxe > ${OKD4_LAB_PATH}/ipxe-work-dir/${NET_MAC//:/-}.ipxe
+  sed -i "s|%%IP_CONFIG%%|${IP_CONFIG}|g" ${OKD4_LAB_PATH}/ipxe-work-dir/${NET_MAC//:/-}.ipxe
   if [ ${ROLE} == "BOOTSTRAP" ]
   then
     sed -i "s|%%OKD_ROLE%%|bootstrap|g" ${OKD4_LAB_PATH}/ipxe-work-dir/${NET_MAC//:/-}.ipxe
@@ -181,8 +197,11 @@ do
 done
 
 # Restart the DHCP server to make the DHCP reservations active
-echo "Restarting DHCP on ${LAB_GATEWAY}"
-ssh root@${LAB_GATEWAY} "/etc/init.d/dnsmasq restart && /etc/init.d/odhcpd restart"
+if [ ${RESTART_DHCP_1} == "true" ]
+then
+  echo "Restarting DHCP on ${LAB_GATEWAY}"
+  ssh root@${LAB_GATEWAY} "/etc/init.d/dnsmasq restart && /etc/init.d/odhcpd restart"
+fi
 if [ ${RESTART_DHCP_2} == "true" ]
 then
   echo "Restarting DHCP on ${DHCP_2}"
