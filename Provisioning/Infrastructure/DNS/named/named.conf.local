@@ -1,9 +1,0 @@
-zone "%%LAB_DOMAIN%%" {
-    type master;
-    file "/etc/named/zones/db.%%LAB_DOMAIN%%"; # zone file for your domain.
-};
-
-zone "11.10.10.in-addr.arpa" {
-    type master;
-    file "/etc/named/zones/db.10.10.11";  # zone file for reverse lookup in the 10.10.11.0/24 subnet
-};
