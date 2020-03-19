@@ -1,8 +1,8 @@
 ## Setting up Sonatype Nexus
 
-We are now going to install [Sonatype Nexus](https://www.sonatype.com/nexus-repository-oss).  The Nexus will be used for our external container repository, as well as serving as an artifact repository for maven, npm, or any other application development repositories that you might need.
+We are now going to install [Sonatype Nexus](https://www.sonatype.com/nexus-repository-oss).  The Nexus will be used for our external container registry, as well as serving as an artifact repository for maven, npm, or any other application development repositories that you might need.
 
-Nexus requires Java, so let's install that now:
+Nexus requires Java, so let's install that now if it was not installed during the initial system build:
 
     yum -y install java-1.8.0-openjdk.x86_64
 
