@@ -36,4 +36,4 @@ Now, step through each of the tasks below:
 3. [Sonatype Nexus Setup](Nexus_Config.md)
 4. Optional: [Setting Up PXE](CP_PXE_Setup.md)  Do this if you did not set up your router for [PXE](GL-AR750S-Ext.md).
 
-When you are done configuring your control plane server, continue on to [setting up guest VMs](Provisioning_Hosts.md).
+
