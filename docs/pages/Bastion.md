@@ -24,16 +24,74 @@ Install some added packages:
     enabled=1
     EOF
 
-    yum -y install wget git net-tools bind bind-utils bash-completion nfs-utils rsync ipmitool python3-pip yum-utils qemu-kvm libvirt libvirt-python libguestfs-tools virt-install iscsi-initiator-utils createrepo docker libassuan-devel java-1.8.0-openjdk.x86_64
+    yum -y install wget git net-tools bind bind-utils bash-completion nfs-utils rsync ipmitool python3-pip yum-utils qemu-kvm libvirt libvirt-python libguestfs-tools virt-install iscsi-initiator-utils createrepo docker libassuan-devel java-1.8.0-openjdk.x86_64 epel-release
 
     systemctl enable --now docker
     systemctl enable --now libvirtd
+
+Next, we need to set up some environment variables that we will use to set up the rest of the lab.  You need to make some decisions at this point, and fill in the following information, and then set temporary variables for each:
+
+| Variable | Example Value | Description |
+| --- | --- | --- |
+| `LAB_DOMAIN` | `your.domain.org` | The domain that you want for your lab.  This will be part of your DNS setup |
+| `LAB_NAMESERVER` | `10.10.11.10` | The IP address of your bastion host. |
+| `LAB_NETMASK` | `255.255.255.0` | The netmask of your router |
+| `LAB_GATEWAY` | `10.10.11.1` | The IP address of your router |
+| `INSTALL_HOST_IP` | `10.10.11.10` | The IP address of your bastion host. |
+| `INSTALL_ROOT` | `/usr/share/nginx/html/install` | The directory that will hold CentOS install images |
+| `REPO_HOST` | `bastion` | The bastion hostname |
+| `REPO_PATH` | `/usr/share/nginx/html/repos` | The directory that will hold an RPM repository mirror |
+| `OKD4_LAB_PATH` | `~/okd4-lab` | The path from which we will build our OKD4 cluster |
+| `DHCP_2` | `10.11.12.1` | (Optional) If you are running a dual-nic setup and need a DHCP server on that network |
+| `OKD_REGISTRY` | `registry.svc.ci.openshift.org/origin/release` | This is where we will get our OKD 4 images from to populate our local mirror |
+| `LOCAL_REGISTRY` | `nexus.${LAB_DOMAIN}:5001/origin` | The URL that we will use for our local mirror of the OKD registry images | 
+| `LOCAL_SECRET_JSON` | `${OKD4_LAB_PATH}/pull-secret.json` | The path to the pull secret that we will need for mirroring OKD images |
+
+When you have selected values for the variables.  Set them in the shell like this: 
+
+    LAB_DOMAIN=your.domain.org
+    LAB_NAMESERVER=10.10.11.10
+    LAB_NETMASK=255.255.255.0
+    LAB_GATEWAY=10.10.11.1
+    INSTALL_HOST_IP=10.10.11.1
+    INSTALL_ROOT=/usr/share/nginx/html/install
+    REPO_HOST=ocp-controller01
+    REPO_PATH=/usr/share/nginx/html/repos
+    OKD4_LAB_PATH=~/okd4-lab
+    DHCP_2=10.11.12.1
+    LOCAL_REGISTRY=nexus.${LAB_DOMAIN}:5001/origin
+
+Now, let's create a utility script that will persist these values for us:
+
+    mkdir -p ~/bin/lab_bin
+
+    cat <<EOF > ~/bin/lab_bin/setLabEnv.sh
+    #!/bin/bash
+
+    export PATH=${PATH}:~/bin/lab_bin
+    export LAB_DOMAIN=${LAB_DOMAIN}
+    export LAB_NAMESERVER=${LAB_NAMESERVER}
+    export LAB_NETMASK=${LAB_NETMASK}
+    export LAB_GATEWAY=${LAB_GATEWAY}
+    export DHCP_2=${DHCP_2}
+    export REPO_HOST=${REPO_HOST}
+    export INSTALL_HOST_IP=${INSTALL_HOST_IP}
+    export INSTALL_ROOT=${INSTALL_ROOT}
+    export REPO_URL=http://${REPO_HOST}.${LAB_DOMAIN}
+    export INSTALL_URL=http://${INSTALL_HOST_IP}/install
+    export REPO_PATH=${REPO_PATH}
+    export OKD4_LAB_PATH=${OKD4_LAB_PATH}
+    export OKD_REGISTRY=registry.svc.ci.openshift.org/origin/release
+    export LOCAL_REGISTRY=${LOCAL_REGISTRY}
+    export LOCAL_SECRET_JSON=${OKD4_LAB_PATH}/pull-secret.json
+    EOF
+
+The last step is to execute this script on login:
+
+
 
 Now, step through each of the tasks below:
 
 1. [DNS Setup](DNS_Config.md)
 2. [Nginx Setup & RPM Repo sync](Nginx_Config.md)
 3. [Sonatype Nexus Setup](Nexus_Config.md)
-4. Optional: [Setting Up PXE](CP_PXE_Setup.md)  Do this if you did not set up your router for [PXE](GL-AR750S-Ext.md).
-
-

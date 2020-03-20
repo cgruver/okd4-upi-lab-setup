@@ -83,4 +83,4 @@ Your MacBook should now query your new DNS server for entries in your new domain
 
 ### On to the next...
 
-Now that we have DNS configured, continue on to [Nginx Setup](Nginx_Config.md), or return to the [Control Plane](Control_Plane.md)
+Now that we have DNS configured, continue on to [Nginx Setup](Nginx_Config.md), or return to the [Bastion Setup](Bastion.md)
