@@ -1,5 +1,7 @@
 ## Building an OpenShift - OKD 4.X Lab, Soup to Nuts
 
+# WIP - This documentation is incomplete.  Check back often.
+
 ### Equipment for your lab
 
 You will need at least one physical server for your lab.  More is obviously better, but also more expensive.  I have built my lab around the small form-factor NUC systems that Intel builds.  My favorite is the [NUC6i7KYK](https://ark.intel.com/content/www/us/en/ark/products/89187/intel-nuc-kit-nuc6i7kyk.html).  This little guy is about the size of a VHS video tape, remember those... ;-)
@@ -26,38 +28,24 @@ My home lab has grown to be almost embarrassing...  but, what can I say, except 
 
 For your own lab, I would recommend starting with the following:
 
-* 1 x NUC8i3BEK - For your Control Plane and development server
+* 1 x NUC8i3BEK - For your Bastion host and development server
     * 32GB RAM
     * 500GB M.2 SATA SSD
-* 1 x NUC6i7KYK - For your Hypervisor
+* 1 x NUC10i7FNK - For your Hypervisor (I have several NUC6i7KYK, so that is what you see pictured below)
     * 64GB RAM
     * 1TB M.2 SATA SSD
 * 1 x GL.iNet GL-AR750S-Ext - For your router
 
 ![Picture of my Mini Lab setup.](pages/images/MiniLab.jpeg)
 
-A minimal setup like this will cost a little less than a 13" MacBook Pro with 16GB of RAM.  For that outlay you get 6 CPU cores (12 virtual CPUs), 96GB of RAM, and a really cool travel router!
+A minimal setup like this will cost a little less than a 13" MacBook Pro with 16GB of RAM.  For that outlay you get 8 CPU cores (16 virtual CPUs), 96GB of RAM, and a really cool travel router!
 
 Check prices at [Amazon.com](https://www.amazon.com) and [B&H Photo Video](https://www.bhphotovideo.com).  I get most of my gear from those two outlets.
 
 Once you have acquired the necessary gear, it's time to start setting it all up.
 
-# WIP:
-
-
-
-```
-yum -y install ipmitool
-
-pip3.6 install virtualbmc
-
-mkdir -p /data/tftpboot/ipxe/templates
-
-uci set dhcp.@dnsmasq[0].enable_tftp=1
-uci set dhcp.@dnsmasq[0].tftp_root=/mnt/sda1/tftpboot
-uci set dhcp.@dnsmasq[0].dhcp_boot=boot.ipxe
-uci add_list dhcp.lan.dhcp_option="6,10.11.11.10,8.8.8.8,8.8.4.4"
-uci commit dhcp
-/etc/init.d/dnsmasq restart
-
-```
+1. [Bastion Host](pages/Bastion.md)
+1. [Router Setuo](pages/GL-AR750S-Ext.md)
+1. [DNS Setup](pages/DNS_Config.md)
+1. [Nginx Setup & RPM Repo sync](pages/Nginx_Config.md)
+1. [Sonatype Nexus Setup](pages/Nexus_Config.md)

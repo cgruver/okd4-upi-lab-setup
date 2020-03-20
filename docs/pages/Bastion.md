@@ -26,8 +26,9 @@ Install some added packages:
 
     yum -y install wget git net-tools bind bind-utils bash-completion nfs-utils rsync ipmitool python3-pip yum-utils qemu-kvm libvirt libvirt-python libguestfs-tools virt-install iscsi-initiator-utils createrepo docker libassuan-devel java-1.8.0-openjdk.x86_64 epel-release
 
-    systemctl enable --now docker
-    systemctl enable --now libvirtd
+    pip3.6 install virtualbmc
+    systemctl enable 
+    systemctl enable 
 
 Next, we need to set up some environment variables that we will use to set up the rest of the lab.  You need to make some decisions at this point, and fill in the following information, and then set temporary variables for each:
 
@@ -88,10 +89,18 @@ Now, let's create a utility script that will persist these values for us:
 
 The last step is to execute this script on login:
 
+    chmod 750 ~/bin/lab_bin/setLabEnv.sh
+    echo ". /root/bin/lab_bin/setLabEnv.sh" >> ~/.bashrc
 
+Now is a good time to reboot the bastion host:
 
-Now, step through each of the tasks below:
+    shutdown -r now
 
+Log back in and you should see all of the environment variables that we just set in the output of an `env` command.
+
+Now we are ready to set everything up for OKD cluster builds, step through each of the tasks below:
+
+1. [Router Setuo](GL-AR750S-Ext.md)
 1. [DNS Setup](DNS_Config.md)
-2. [Nginx Setup & RPM Repo sync](Nginx_Config.md)
-3. [Sonatype Nexus Setup](Nexus_Config.md)
+1. [Nginx Setup & RPM Repo sync](Nginx_Config.md)
+1. [Sonatype Nexus Setup](Nexus_Config.md)
