@@ -35,13 +35,24 @@ In the example file, there are some entries to take note of:
 
      __Remove or add entries to these files as needed for your setup.__
   
-1. There is one wildcard record that OKD needs:
+1. There is one wildcard record that OKD needs: __`okd4` is the name of the cluster.__
   
         *.apps.okd4.your.domain.org
    
      The "apps" record will be for all of the applications that you deploy into your OKD cluster.
 
      This wildcard A record needs to point to the entry point for your OKD cluster.  If you build a cluster with three master nodes like we are doing here, you will need a load balancer in front of the cluster.  In this case, your wildcard A records will point to the IP address of your load balancer.  Never fear, I will show you how to deploy an HA-Proxy load balancer.  
+
+1. There are two A records for the Kubernetes API, internal & external.  In this case, the same load balancer is handling both.  So, they both point to the IP address of the load balancer.  __Again, `okd4` is the name of the cluster.__
+
+       api.okd4.your.domain.org.        IN      A      10.10.11.50
+       api-int.okd4.your.domain.org.    IN      A      10.10.11.50
+
+1. There are three SRV records for the etcd hosts.
+
+       _etcd-server-ssl._tcp.okd4.your.domain.org    86400     IN    SRV     0    10    2380    etcd-0.okd4.your.domain.org.
+       _etcd-server-ssl._tcp.okd4.your.domain.org    86400     IN    SRV     0    10    2380    etcd-1.okd4.your.domain.org.
+       _etcd-server-ssl._tcp.okd4.%%LAB_DOMAIN%%    86400     IN    SRV     0    10    2380    etcd-2.okd4.your.domain.org.
 
 When you have completed all of your configuration changes, you can test the configuration with the following command:
 

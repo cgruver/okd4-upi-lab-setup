@@ -28,7 +28,6 @@ okd4-worker-0.%%LAB_DOMAIN%%.   IN      A      10.10.11.70
 okd4-worker-0.%%LAB_DOMAIN%%.   IN      A      10.10.11.71
 okd4-worker-0.%%LAB_DOMAIN%%.   IN      A      10.10.11.72
 
-; OpenShift internal cluster IPs - SRV records
 _etcd-server-ssl._tcp.okd4.%%LAB_DOMAIN%%    86400     IN    SRV     0    10    2380    etcd-0.okd4.%%LAB_DOMAIN%%.
 _etcd-server-ssl._tcp.okd4.%%LAB_DOMAIN%%    86400     IN    SRV     0    10    2380    etcd-1.okd4.%%LAB_DOMAIN%%.
 _etcd-server-ssl._tcp.okd4.%%LAB_DOMAIN%%    86400     IN    SRV     0    10    2380    etcd-2.okd4.%%LAB_DOMAIN%%.
