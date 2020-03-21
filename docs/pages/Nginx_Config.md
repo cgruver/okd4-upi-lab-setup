@@ -71,3 +71,5 @@ Finally, let's get the Fedora CoreOS images pulled and staged for OKD cluster no
        curl -o initrd https://builds.coreos.fedoraproject.org/prod/streams/stable/builds/${FCOS_VER}/x86_64/fedora-coreos-${FCOS_VER}-live-initramfs.x86_64.img
        curl -o install.xz https://builds.coreos.fedoraproject.org/prod/streams/stable/builds/${FCOS_VER}/x86_64/fedora-coreos-${FCOS_VER}-metal.x86_64.raw.xz
        curl -o install.xz.sig https://builds.coreos.fedoraproject.org/prod/streams/stable/builds/${FCOS_VER}/x86_64/fedora-coreos-${FCOS_VER}-metal.x86_64.raw.xz.sig
+
+Now, continue on to set up your Nexus: [Sonatype Nexus Setup](Nexus_Config.md)

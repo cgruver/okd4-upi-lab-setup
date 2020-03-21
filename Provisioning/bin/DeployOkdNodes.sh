@@ -110,7 +110,7 @@ do
   let O_3=$(echo ${IP_01} | cut -d'.' -f3)
   let O_4=$(echo ${IP_01} | cut -d'.' -f4)
   let O_3=${O_3}+1
-  # IP address for eth1 is the same as eth0 with the third octet incremented by 1.  i.e. eth0=10.10.10.10, eth1=10.10.11.10
+  # IP address for eth1 is the same as eth0 with the third octet incremented by 1.  i.e. eth0=10.11.11.10, eth1=10.11.12.10
   IP_02="${O_1}.${O_2}.${O_3}.${O_4}"
 
   if [ ${NICS} == "2" ]

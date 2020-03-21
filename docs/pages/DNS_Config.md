@@ -4,11 +4,11 @@ This tutorial includes pre-configured files for you to modify for your specific 
 
     /etc/named.conf
     /etc/named/named.conf.local
-    /etc/named/zones/db.10.10.11
+    /etc/named/zones/db.10.11.11
     /etc/named/zones/db.your.domain.org
     /etc/named/zones/db.sinkhole
 
-__If you set up your lab router on the 10.10.11/24 network.  Then you can use the example DNS files as they are for this exercise.__
+__If you set up your lab router on the 10.11.11/24 network.  Then you can use the example DNS files as they are for this exercise.__
 
 Do the following, from the root of this project:
 
@@ -18,10 +18,10 @@ Do the following, from the root of this project:
     mv /etc/named/zones/db.your.domain.org /etc/named/zones/db.${LAB_DOMAIN} # Don't substitute your.domain.org in this line
     sed -i "s|%%LAB_DOMAIN%%|${LAB_DOMAIN}|g" /etc/named/named.conf.local
     sed -i "s|%%LAB_DOMAIN%%|${LAB_DOMAIN}|g" /etc/named/zones/db.${LAB_DOMAIN}
-    sed -i "s|%%LAB_DOMAIN%%|${LAB_DOMAIN}|g" /etc/named/zones/db.10.10.11
+    sed -i "s|%%LAB_DOMAIN%%|${LAB_DOMAIN}|g" /etc/named/zones/db.10.11.11
     sed -i "s|%%LAB_DOMAIN%%|${LAB_DOMAIN}|g" /etc/named/zones/db.sinkhole
 
-Now let's talk about this configuration, starting with the A records, (forward lookup zone).  If you did not use the 10.10.11/24 network as illustrated, then rename the file, `/etc/named/zones/db.your.domain.org`, to reflect your local domain.  Then edit it to reflect the appropriate A records for your setup.
+Now let's talk about this configuration, starting with the A records, (forward lookup zone).  If you did not use the 10.11.11/24 network as illustrated, then rename the file, `/etc/named/zones/db.your.domain.org`, to reflect your local domain.  Then edit it to reflect the appropriate A records for your setup.
 
 In the example file, there are some entries to take note of:
 
@@ -75,7 +75,7 @@ __If you are using a MacBook for your workstation, you can enable DNS resolution
 
 Name the file `your.domain.com` after the domain that you created for your lab.  Enter something like this example, modified for your DNS server's IP:
 
-    nameserver 10.10.11.10
+    nameserver 10.11.11.10
 
 Save the file.
 
@@ -83,4 +83,4 @@ Your MacBook should now query your new DNS server for entries in your new domain
 
 ### On to the next...
 
-Now that we have DNS configured, continue on to [Nginx Setup](Nginx_Config.md), or return to the [Bastion Setup](Bastion.md)
+Now that we have DNS configured, continue on to [Nginx Setup](Nginx_Config.md).

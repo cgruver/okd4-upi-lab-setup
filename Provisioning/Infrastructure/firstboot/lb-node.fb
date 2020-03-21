@@ -1,0 +1,48 @@
+mkdir -p /root/.ssh
+chmod 700 /root/.ssh
+let i=1
+while [ $i -le 10 ]
+do
+	curl -o /root/.ssh/authorized_keys %%INSTALL_URL%%/postinstall/authorized_keys
+	if [ $? -eq 0 ]
+	then
+		break
+	else
+		let i=i+1
+	fi 
+	sleep 2
+done
+if [ ! -f /root/.ssh/authorized_keys ]
+then
+	echo "Failed to copy /root/.ssh/authorized_keys from Control Plane Server!  FirstBoot has not run!" > /root/FirstBootFailed
+	exit
+fi
+
+chmod 600 /root/.ssh/authorized_keys
+
+curl -o /etc/chrony.conf %%INSTALL_URL%%/postinstall/chrony.conf
+
+yum -y install net-tools bind-utils bridge-utils bash-completion kexec-tools haproxy
+curl -o /etc/haproxy/haproxy.cfg %%INSTALL_URL%%/postinstall/haproxy.cfg
+yum -y update
+
+firewall-cmd --add-port=80/tcp --permanent
+firewall-cmd --add-port=8080/tcp --permanent
+firewall-cmd --add-port=443/tcp --permanent
+firewall-cmd --add-port=6443/tcp --permanent
+firewall-cmd --add-port=22623/tcp --permanent
+firewall-cmd --reload
+
+setenforce 0
+systemctl start haproxy
+systemctl enable haproxy
+grep haproxy /var/log/audit/audit.log | audit2allow -M haproxy
+semodule -i haproxy.pp
+
+mv /root/selinux /etc/sysconfig/selinux
+
+/bin/cat /etc/crontab | /bin/grep -v firstboot > /etc/crontab.tmp
+/bin/rm -f /etc/crontab
+/bin/mv /etc/crontab.tmp /etc/crontab
+rm -f $0
+shutdown -r now

@@ -10,9 +10,40 @@ The bastion host serves:
 
 I recommend using a bare-metal host for your Bastion.  It will also run the load-balancer VM and Bootstrap VM for your cluster.  I am using a [NUC8i3BEK](https://ark.intel.com/content/www/us/en/ark/products/126149/intel-nuc-kit-nuc8i3bek.html) with 32GB of RAM for my Bastion host. The little box with 32GB of RAM is perfect for this purpose, and also very portable for throwing in a bag to take my dev environment with me.  My OpenShift build environment is also installed on the Bastion host.
 
-You need to start with a minimal CentOS 7 install.
+You need to start with a minimal CentOS 7 install. (__This tutorial assumes that you are comfortable installing a Linux OS.__)
 
     wget https://buildlogs.centos.org/rolling/7/isos/x86_64/CentOS-7-x86_64-Minimal.iso
+
+I use [balenaEtcher](https://www.balena.io/etcher/) to create a bootable USB key from a CentOS ISO ISO.
+
+You will have to attach monitor, mouse, and keyboard to your NUC for the install.  After the install, these machines will be headless.  So, no need for a complicated KVM setup...  The other, older meaning of KVM...  not confusing at all.
+
+### Install CentOS:
+
+* Network:
+    * Configure the network interface with a fixed IP address, `10.11.11.10` if you are following this guide exactly.
+    * Set the system hostname to `bastion`
+* Storage:
+    * Allocate 50GB for the `/` filesystem
+    * Do not create a `/home` filesystem (no users on this system)
+    * Allocate the remaining disk space for the VM guest filesystem
+        * I put my KVM guests in `/VirtualMachines` 
+
+After the installation completes, ensure that you can ssh to your host.
+
+    ssh root@10.11.11.10
+
+Create an SSH key pair on your workstation, if you don't already have one:
+
+    ssh-keygen  # Take all the defaults
+
+Enable password-less SSH:
+
+    ssh-copy-id root@10.11.11.10
+
+Shutdown the host and disconnect the keyboard, mouse, and display.  Your host is now headless.  
+
+### __Power the host back on, and continue the Bastion host set up.__
 
 Install some added packages:
 
@@ -35,10 +66,10 @@ Next, we need to set up some environment variables that we will use to set up th
 | Variable | Example Value | Description |
 | --- | --- | --- |
 | `LAB_DOMAIN` | `your.domain.org` | The domain that you want for your lab.  This will be part of your DNS setup |
-| `LAB_NAMESERVER` | `10.10.11.10` | The IP address of your bastion host. |
+| `LAB_NAMESERVER` | `10.11.11.10` | The IP address of your bastion host. |
 | `LAB_NETMASK` | `255.255.255.0` | The netmask of your router |
-| `LAB_GATEWAY` | `10.10.11.1` | The IP address of your router |
-| `INSTALL_HOST_IP` | `10.10.11.10` | The IP address of your bastion host. |
+| `LAB_GATEWAY` | `10.11.11.1` | The IP address of your router |
+| `INSTALL_HOST_IP` | `10.11.11.10` | The IP address of your bastion host. |
 | `INSTALL_ROOT` | `/usr/share/nginx/html/install` | The directory that will hold CentOS install images |
 | `REPO_HOST` | `bastion` | The bastion hostname |
 | `REPO_PATH` | `/usr/share/nginx/html/repos` | The directory that will hold an RPM repository mirror |
@@ -51,10 +82,10 @@ Next, we need to set up some environment variables that we will use to set up th
 When you have selected values for the variables.  Set them in the shell like this: 
 
     LAB_DOMAIN=your.domain.org
-    LAB_NAMESERVER=10.10.11.10
+    LAB_NAMESERVER=10.11.11.10
     LAB_NETMASK=255.255.255.0
-    LAB_GATEWAY=10.10.11.1
-    INSTALL_HOST_IP=10.10.11.1
+    LAB_GATEWAY=10.11.11.1
+    INSTALL_HOST_IP=10.11.11.1
     INSTALL_ROOT=/usr/share/nginx/html/install
     REPO_HOST=ocp-controller01
     REPO_PATH=/usr/share/nginx/html/repos
@@ -87,10 +118,14 @@ Now, let's create a utility script that will persist these values for us:
     export LOCAL_SECRET_JSON=${OKD4_LAB_PATH}/pull-secret.json
     EOF
 
-The last step is to execute this script on login:
+The next step is to configure bash to execute this script on login:
 
     chmod 750 ~/bin/lab_bin/setLabEnv.sh
     echo ". /root/bin/lab_bin/setLabEnv.sh" >> ~/.bashrc
+
+Finally, enable this host to be a time server for the rest of your lab: (adjust the network value if you are using a different IP range)
+
+    echo "allow 10.11.11.0/24" >> /etc/chrony.conf
 
 Now is a good time to reboot the bastion host:
 
@@ -98,9 +133,11 @@ Now is a good time to reboot the bastion host:
 
 Log back in and you should see all of the environment variables that we just set in the output of an `env` command.
 
-Now we are ready to set everything up for OKD cluster builds, step through each of the tasks below:
+Finally, create an SSH key pair: (Take the defaults for all of the prompts, don't set a key password)
 
-1. [Router Setuo](GL-AR750S-Ext.md)
-1. [DNS Setup](DNS_Config.md)
-1. [Nginx Setup & RPM Repo sync](Nginx_Config.md)
-1. [Sonatype Nexus Setup](Nexus_Config.md)
+    ssh-keygen
+    <Enter>
+    <Enter>
+    <Enter>
+
+Now we are ready to set up our router: [Router Setup](GL-AR750S-Ext.md)
