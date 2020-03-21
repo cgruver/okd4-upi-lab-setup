@@ -2,7 +2,7 @@
 
 If you are using the GL-AR750S-Ext, you will need a Micro SD card that is formatted with an EXT file-system.  The GL-MV1000 has on-board storage that is sufficient for this configuration.
 
-__GL-AR750S-Ext:__
+__GL-AR750S-Ext:__ From a linux host, insert the micro SD card, and run the following:
 
     mkfs.ext4 /dev/sdc1 <replace with the device representing your sdcard>
 
@@ -10,7 +10,7 @@ Insert the SD card into the router.  It will mount at `/mnt/sda1`, or `/mnt/sda`
 
 You will need to enable root ssh access to your router.  The best way to do this is by adding an SSH key.  Don't allow password access over ssh.  We already created an SSH key for our Bastion host, so we'll use that.  If you want to enable SSH access from your workstation as well, then follow the same instructions to create/add that key as well.  We will also set the router IP address to `10.11.11.1`
 
-1. Login to your router with a browser: `https://<router IP>`
+1. Login to your router with a browser: `https://<Initial Router IP>`
 1. Expand the `MORE SETTINGS` menu on the left, and select `LAN IP`
 1. Fill in the following:
 
@@ -61,5 +61,27 @@ Now we will enable TFTP and iPXE:
 
 With the router configured, it's now time to copy over the files for iPXE.
 
+This project has some files already prepared for you.  They are located in ./Provisioning/iPXE.
 
-Next, we will configure DNS: [DNS Setup](DNS_Config.md)
+|||
+|-|-|
+| boot.ipxe | This is the initial iPXE bootstrap file.  It has logic in it to look for a file with the booting host's MAC address.  Otherwise it pulls the default.ipxe file. |
+| fcos-okd4.ipxe | This is the iPXE file that will boot an FCOS image.  The deployment scripts that you will use later, will configure a copy of this file for booting Bootstrap, Master, or Worker OKD nodes. |
+| default.ipxe | This file will initiate a kickstart install of CentOS 7 for non-OKD hosts. |
+
+From the root directory of this project, execute the following:
+
+    mkdir tmp-work
+    cp ./Provisioning/iPXE/*.ipxe ./tmp-work
+    for i in $(ls ./tmp-work)
+    do
+        sed -i "s|%%INSTALL_URL%%|${INSTALL_URL}|g" ./tmp-work/${i}
+    done
+    scp ./tmp-work/boot.ipxe root@${LAB_GATEWAY}:/data/tftpboot/boot.ipxe
+    scp ./tmp-work/default.ipxe root@${LAB_GATEWAY}:/data/tftpboot/ipxe/default.ipxe
+    scp ./tmp-work/fcos-okd4.ipxe root@${LAB_GATEWAY}:/data/tftpboot/ipxe/fcos-okd4.ipxe
+    rm -rf ./tmp-work
+
+__Your router is now ready to PXE boot hosts.__
+
+Next, we will configure DNS: Go to [DNS Setup](DNS_Config.md)

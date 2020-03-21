@@ -92,3 +92,5 @@ Now point your browser to `https://nexus.your.domain.com:8443`
 The `?` in the top right hand corner of the Nexus screen will take you to their documentation.
 
 # ToDo: How to set up Docker registry
+
+Now we need to deploy at least one KVM host for our cluster: [Build KVM Host/s](Deploy_KVM_Host.md)

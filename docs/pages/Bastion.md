@@ -118,20 +118,24 @@ Now, let's create a utility script that will persist these values for us:
     export LOCAL_SECRET_JSON=${OKD4_LAB_PATH}/pull-secret.json
     EOF
 
-The next step is to configure bash to execute this script on login:
+Configure bash to execute this script on login:
 
     chmod 750 ~/bin/lab_bin/setLabEnv.sh
     echo ". /root/bin/lab_bin/setLabEnv.sh" >> ~/.bashrc
 
-Finally, enable this host to be a time server for the rest of your lab: (adjust the network value if you are using a different IP range)
+Clone this project:
+
+    git clone https://github.com/cgruver/okd4-upi-lab-setup
+    cd okd4-upi-lab-setup
+
+Copy the utility scripts that I have prepared for you:
+
+    cp ./Provisioning/bin/*.sh ~/bin/lab_bin
+    chmod 700 ~/bin/lab_bin/*.sh
+
+Enable this host to be a time server for the rest of your lab: (adjust the network value if you are using a different IP range)
 
     echo "allow 10.11.11.0/24" >> /etc/chrony.conf
-
-Now is a good time to reboot the bastion host:
-
-    shutdown -r now
-
-Log back in and you should see all of the environment variables that we just set in the output of an `env` command.
 
 Finally, create an SSH key pair: (Take the defaults for all of the prompts, don't set a key password)
 
@@ -139,5 +143,13 @@ Finally, create an SSH key pair: (Take the defaults for all of the prompts, don'
     <Enter>
     <Enter>
     <Enter>
+
+Now is a good time to reboot the bastion host:
+
+    shutdown -r now
+
+Log back in and you should see all of the environment variables that we just set in the output of an `env` command.
+
+__For the rest of this setup, unless otherwise specified, it is assumed that you are working from the Bastion Host.  You will need the environment variables that we just set up for some of the commands that you will be executing.__
 
 Now we are ready to set up our router: [Router Setup](GL-AR750S-Ext.md)

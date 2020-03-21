@@ -47,4 +47,32 @@ __Take this opportunity to apply the latest BIOS to your NUC__
 
 You won't need the keyboard or mouse again, until it's time for another BIOS update...  Eventually we'll figure out how to push those from the OS too.  ;-)
 
-The last thing that I've prepared for you is the ability to reinstall your OS.  Check it out here: [OS Re-install](ReInstall_Bare_Metal.md)
+The last thing that I've prepared for you is the ability to reinstall your OS.
+
+### Re-Install your NUC host
+
+__*I have included a very dangerous script in this project.*__  If you follow all of the setup instructions, it will be installed in `/root/bin/rebuildhost.sh` of your host.
+
+The script is a quick and dirty way to brick your host so that when it reboots, it will force a Network Install.
+
+The script will destroy your boot partitions and wipe the MBR in the installed SSD drives.
+
+Destroy boot partitions:
+
+    umount /boot/efi
+    umount /boot
+    wipefs -a /dev/sda2
+    wipefs -a /dev/sda1
+
+Wipe MBR:
+
+    dd if=/dev/zero of=/dev/sda bs=512 count=1
+    dd if=/dev/zero of=/dev/sdb bs=512 count=1
+
+Reboot:
+
+    shutdown -r now
+
+That's it!  Your host is now a Brick.  If your PXE environment is set up properly, then in a few minutes you will have a fresh OS install.
+
+It is now time to deploy an OKD cluster: [Deploy OKD](DeployOKD.md)
