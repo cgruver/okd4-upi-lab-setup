@@ -61,7 +61,7 @@ Install some added packages:
     systemctl enable 
     systemctl enable 
 
-Next, we need to set up some environment variables that we will use to set up the rest of the lab.  You need to make some decisions at this point, and fill in the following information, and then set temporary variables for each:
+Next, we need to set up some environment variables that we will use to set up the rest of the lab.  You need to make some decisions at this point, fill in the following information, and then set temporary variables for each:
 
 | Variable | Example Value | Description |
 | --- | --- | --- |

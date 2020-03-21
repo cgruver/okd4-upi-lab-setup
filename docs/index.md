@@ -1,7 +1,5 @@
 ## Building an OpenShift - OKD 4.X Lab, Soup to Nuts
 
-# WIP - This documentation is incomplete.  Check back often.
-
 ### Equipment for your lab
 
 You will need at least one physical server for your lab.  More is obviously better, but also more expensive.  I have built my lab around the small form-factor NUC systems that Intel builds.  My favorite is the [NUC6i7KYK](https://ark.intel.com/content/www/us/en/ark/products/89187/intel-nuc-kit-nuc6i7kyk.html).  This little guy is about the size of a VHS video tape, remember those... ;-)

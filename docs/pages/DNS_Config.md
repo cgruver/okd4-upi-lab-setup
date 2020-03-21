@@ -21,32 +21,27 @@ Do the following, from the root of this project:
     sed -i "s|%%LAB_DOMAIN%%|${LAB_DOMAIN}|g" /etc/named/zones/db.10.11.11
     sed -i "s|%%LAB_DOMAIN%%|${LAB_DOMAIN}|g" /etc/named/zones/db.sinkhole
 
-Now let's talk about this configuration, starting with the A records, (forward lookup zone).  If you did not use the 10.11.11/24 network as illustrated, then rename the file, `/etc/named/zones/db.your.domain.org`, to reflect your local domain.  Then edit it to reflect the appropriate A records for your setup.
+Now let's talk about this configuration, starting with the A records, (forward lookup zone).  If you did not use the 10.11.11/24 network as illustrated, then you will have to edit the files to reflect the appropriate A and PTR records for your setup.
 
 In the example file, there are some entries to take note of:
 
 1. The KVM hosts are named `kvm-host01`, `kvm-host02`, etc...  Modify this to reflect the number of KVM hosts that your lab setup with have.  The example allows for three hosts.
   
-1. The control plane server is `bastion`.  If your control plane is also one of your KVM hosts, then you do not need a separate A record for this.
+1. The Bastion Host is `bastion`.
   
 1. The Sonatype Nexus server gets it's own alias A record, `nexus.your.domain.org`.  This is not strictly necessary, but I find it useful.  For your lab, make sure that this A record reflects the IP address of the server where you have installed Nexus.  In this example, it is installed on the bastion host.
   
-1. These example files contain references for a full OpenShift cluster with an haproxy load balancer.  The OKD cluster has three each of master, infrastructure, and application (compute) nodes.  In this tutorial, you will build a minimal cluster with one master node, one infrastructure node, and two application nodes.
+1. These example files contain references for a full OpenShift cluster with an haproxy load balancer.  The OKD cluster has three each of master, and worker (compute) nodes.  In this tutorial, you will build a minimal cluster with three master nodes which are also schedulable as workers.
 
-    There are also records for four "SAN" nodes which I use to host a GlusterFS implementation, as well as records for three "DB" hosts which I use to host a MariaDB Galera cluster.  More on these later.
-
-     __Remove superflouous entries from these files as needed.__
+     __Remove or add entries to these files as needed for your setup.__
   
-1. There are two wildcard records that OpenShift needs.
+1. There is one wildcard record that OKD needs:
   
-        *.prd-infra.your.domain.com
-        *.prd-apps.your.domain.com
+        *.apps.okd4.your.domain.org
    
-     The "infra" record is for your OpenShift console and other Infrastructure interfaces and APIs.  The "apps" record will be for all of the applications that you deploy into your OpenShift cluster.  The names of the wildcard records are arbitrary.  I have chosen prd-infra, and prd-apps to reflect the infrastruture and application interfaces for my "production" OpenShift cluster.
+     The "apps" record will be for all of the applications that you deploy into your OKD cluster.
 
-     These wildcard A records need to point to the entry point for your OpenShift cluster.  If you build a cluster with three master nodes and three infrastruture nodes, you will need a load balancer in front of the cluster.  In this case, your wildcard A records will point to the IP address of your load balancer.  Never fear, I will show you how to deploy a load balancer.  
-     
-     If you are building a simpler cluster, with only one master node and one infrastructure node, then the wildcard records can simply point to the IP address of your nodes.  In this case `prd-infra` will point to your master node IP and `prd-apps` will point to your infrastructure node.  I realize this is slightly confusing.  Master is "infra" and Infra is "apps".  This is really a reflection of the architecture of OpenShift itself.  The "Master" nodes are hosting the infrastructure that manages the OpenShift cluster itself.  The "Infrastructure" nodes are hosting the infrastructure that supports your applications.  This is an oversimplification, but it will suffice for now.
+     This wildcard A record needs to point to the entry point for your OKD cluster.  If you build a cluster with three master nodes like we are doing here, you will need a load balancer in front of the cluster.  In this case, your wildcard A records will point to the IP address of your load balancer.  Never fear, I will show you how to deploy an HA-Proxy load balancer.  
 
 When you have completed all of your configuration changes, you can test the configuration with the following command:
 
