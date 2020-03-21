@@ -1,4 +1,12 @@
 
+# Documentation is still WIP
+
+# ToDo: Deploy load balancer VM
+
+# ToDo: Describe Deployment Scripts
+
+# ToDo: Explain OKD Deployment
+
 export OKD_RELEASE=4.4.0-0.okd-2020-03-13-191636
 
 oc adm -a ${LOCAL_SECRET_JSON} release mirror --from=registry.svc.ci.openshift.org/${PRODUCT_REPO}/${RELEASE_NAME}:${OKD_RELEASE} --to=${LOCAL_REGISTRY}/${LOCAL_REPOSITORY} --to-release-image=${LOCAL_REGISTRY}/${LOCAL_REPOSITORY}:${OKD_RELEASE}
