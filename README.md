@@ -13,4 +13,4 @@ Or, follow the directions in each section from here:
 1. [DNS Setup](docs/pages/DNS_Config.md)
 1. [Nginx Setup & RPM Repo sync](docs/pages/Nginx_Config.md)
 1. [Sonatype Nexus Setup](docs/pages/Nexus_Config.md)
-1. [Deploy OKD](pages/DeployOKD.md)  __Documentation Incomplete__
+1. [Deploy OKD](docs/pages/DeployOKD.md)  __Documentation Incomplete__
