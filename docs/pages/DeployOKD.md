@@ -1,9 +1,18 @@
 
 # Documentation is still WIP
 
-# ToDo: Deploy load balancer VM
-
 # ToDo: Describe Deployment Scripts
+
+1. Deploy the load-balancer:
+
+       DeployLbNode.sh -h=okd4-lb01 -n=bastion -v=6228
+
+1. Create the Cluster inventory file:
+
+       mkdir -p ${OKD4_LAB_PATH}/guest-inventory
+       cp ./Provisioning/guest_inventory/okd4_lab ${OKD4_LAB_PATH}/guest-inventory
+
+1. Create the cluster virtual machines
 
 # ToDo: Explain OKD Deployment
 

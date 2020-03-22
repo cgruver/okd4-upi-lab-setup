@@ -46,16 +46,38 @@ If you are using the `GL-AR750S-Ext`, note that I create a symbolic link from th
 
     ln -s /mnt/sda1 /data        # This is not necessary for the GL-MV1000
 
-Now we will enable TFTP and iPXE:
+Now we will enable TFTP and PXE: (The VMs will boot via iPXE, and the KVM hosts will boot via PXE/UEFI, __I'm hoping to get iPXE working with Intel NUCs too... but that is WIP__)
 
     mkdir -p /data/tftpboot/ipxe/templates
 
     uci set dhcp.@dnsmasq[0].enable_tftp=1
     uci set dhcp.@dnsmasq[0].tftp_root=/data/tftpboot
-    uci set dhcp.@dnsmasq[0].dhcp_boot=boot.ipxe
-    uci add_list dhcp.lan.dhcp_option="6,10.11.11.10,8.8.8.8,8.8.4.4"
+    uci set dhcp.efi64_boot_1=match
+    uci set dhcp.efi64_boot_1.networkid='set:efi64'
+    uci set dhcp.efi64_boot_1.match='60,PXEClient:Arch:00007'
+    uci set dhcp.efi64_boot_2=match
+    uci set dhcp.efi64_boot_2.networkid='set:efi64'
+    uci set dhcp.efi64_boot_2.match='60,PXEClient:Arch:00009'
+    uci set dhcp.ipxe_boot=userclass
+    uci set dhcp.ipxe_boot.networkid='set:ipxe'
+    uci set dhcp.ipxe_boot.userclass='iPXE'
+    uci set dhcp.uefi=boot
+    uci set dhcp.uefi.filename='tag:efi64,tag:!ipxe,BOOTX64.EFI'
+    uci set dhcp.uefi.serveraddress='10.11.11.1'
+    uci set dhcp.uefi.servername='pxe'
+    uci set dhcp.uefi.force='1'
+    uci set dhcp.ipxe=boot
+    uci set dhcp.ipxe.filename='tag:ipxe,boot.ipxe'
+    uci set dhcp.ipxe.serveraddress='10.11.11.1'
+    uci set dhcp.ipxe.servername='pxe'
+    uci set dhcp.ipxe.force='1'
     uci commit dhcp
     /etc/init.d/dnsmasq restart
+
+    # uci set dhcp.@dnsmasq[0].dhcp_boot=boot.ipxe
+    # uci add_list dhcp.lan.dhcp_option="6,10.11.11.10,8.8.8.8,8.8.4.4"
+    # uci commit dhcp
+    # /etc/init.d/dnsmasq restart
 
     exit
 
@@ -67,19 +89,23 @@ This project has some files already prepared for you.  They are located in ./Pro
 |-|-|
 | boot.ipxe | This is the initial iPXE bootstrap file.  It has logic in it to look for a file with the booting host's MAC address.  Otherwise it pulls the default.ipxe file. |
 | fcos-okd4.ipxe | This is the iPXE file that will boot an FCOS image.  The deployment scripts that you will use later, will configure a copy of this file for booting Bootstrap, Master, or Worker OKD nodes. |
-| default.ipxe | This file will initiate a kickstart install of CentOS 7 for non-OKD hosts. |
+| default.ipxe | This file will initiate a kickstart install of CentOS 7 for non-OKD hosts. __This is not working yet__ |
+| grub.cfg | Until I get iPXE working with intel NUC, we'll be using UEFI |
 
 From the root directory of this project, execute the following:
 
     mkdir tmp-work
-    cp ./Provisioning/iPXE/*.ipxe ./tmp-work
+    cp ./Provisioning/iPXE/* ./tmp-work
     for i in $(ls ./tmp-work)
     do
         sed -i "s|%%INSTALL_URL%%|${INSTALL_URL}|g" ./tmp-work/${i}
     done
     scp ./tmp-work/boot.ipxe root@${LAB_GATEWAY}:/data/tftpboot/boot.ipxe
     scp ./tmp-work/default.ipxe root@${LAB_GATEWAY}:/data/tftpboot/ipxe/default.ipxe
-    scp ./tmp-work/fcos-okd4.ipxe root@${LAB_GATEWAY}:/data/tftpboot/ipxe/fcos-okd4.ipxe
+    scp ./grub.cfg root@${LAB_GATEWAY}:/data/tftpboot
+    mkdir -p ${OKD4_LAB_PATH}/ipxe-templates
+    cp ./tmp-work/fcos-okd4.ipxe ${OKD4_LAB_PATH}/ipxe-templates/fcos-okd4.ipxe
+    cp ./tmp-work/okd-lb.ipxe ${OKD4_LAB_PATH}/ipxe-templates/okd-lb.ipxe
     rm -rf ./tmp-work
 
 __Your router is now ready to PXE boot hosts.__

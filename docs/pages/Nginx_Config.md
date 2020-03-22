@@ -52,10 +52,18 @@ Now, we are going to set up the artifacts for host installation.  This will incl
     wget https://buildlogs.centos.org/rolling/7/isos/x86_64/CentOS-7-x86_64-Minimal.iso
     mkdir /tmp/centos-iso-mount
     mount -o loop CentOS-7-x86_64-Minimal.iso /tmp/centos-iso-mount
-    rsync -av /tmp/centos-iso-mount/ /usr/share/nginx/html/centos/
+    rsync -av /tmp/centos-iso-mount/ ${INSTALL_ROOT}/centos/
     umount /tmp/centos-iso-mount
     rmdir /tmp/centos-iso-mount
     rm CentOS-7-x86_64-Minimal.iso
+
+1. Copy the UEFI PXE boot files to the router:
+
+       scp ${INSTALL_ROOT}/centos/EFI/BOOT/grubx64.efi root@${LAB_GATEWAY}:/data/tftpboot/
+       scp ${INSTALL_ROOT}/centos/EFI/BOOT/BOOTX64.EFI root@${LAB_GATEWAY}:/data/tftpboot/
+       ssh root@${LAB_GATEWAY} "mkdir /data/tftpboot/networkboot"
+       scp ${INSTALL_ROOT}/centos/isolinux/vmlinuz root@${LAB_GATEWAY}:/data/tftpboot/networkboot
+       scp ${INSTALL_ROOT}/centos/isolinux/initrd.img root@${LAB_GATEWAY}:/data/tftpboot/networkboot
 
 1. Deploy the files from this project for supporting `kickstart` installation.
 
