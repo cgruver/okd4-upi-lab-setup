@@ -75,7 +75,7 @@ Before we start Nexus, let's go ahead a set up TLS so that our connections are s
         cp nexus.crt /etc/pki/ca-trust/source/anchors/nexus.crt
         update-ca-trust
 
-2. Modify the Nexus configuration for HTTPS:
+1. Modify the Nexus configuration for HTTPS:
 
        mkdir /usr/local/nexus/sonatype-work/nexus3/etc
        cat <<EOF >> /usr/local/nexus/sonatype-work/nexus3/etc/nexus.properties
@@ -87,10 +87,27 @@ Now we should be able to start Nexus and connect to it with a browser:
 
     systemctl start nexus
 
-Now point your browser to `https://nexus.your.domain.com:8443`
+Now point your browser to `https://nexus.your.domain.com:8443`.  Login, and create a password for your admin user.
 
 The `?` in the top right hand corner of the Nexus screen will take you to their documentation.
 
-# ToDo: How to set up Docker registry
+We need to create a hosted Docker registry to hold the mirror of the OKD images that we will use to install our cluster.
+
+1. Login as your new admin user
+1. Select the gear icon from the top bar, in between a cube icon and the search dialog.
+1. Select `Repositories` from the left menu bar.
+
+    ![Nexus Admin](images/Nexus&#32;Admin.png)
+
+1. Select `+ Create repository`
+1. Select `docker (hosted)`
+1. Name your repository `origin`
+1. Check `HTTPS` and put `5001` in the port dialog entry
+1. Check `Allow anonymous docker pull`
+1. Check `Enable Docker V1 API`, you may need this for some older docker clients.
+
+    ![Nexus OKD Repo](images/CreateOriginRepo.png)
+
+1. Click `Create repository` at the bottom of the page.
 
 Now we need to deploy at least one KVM host for our cluster: [Build KVM Host/s](Deploy_KVM_Host.md)

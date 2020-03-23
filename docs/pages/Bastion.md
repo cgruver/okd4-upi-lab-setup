@@ -8,7 +8,7 @@ The bastion host serves:
 * A DNS server for the lab ecosystem.
 * Sonatype Nexus for the OKD registry mirror, Maven Artifacts, and Container Images.
 
-I recommend using a bare-metal host for your Bastion.  It will also run the load-balancer VM and Bootstrap VM for your cluster.  I am using a [NUC8i3BEK](https://ark.intel.com/content/www/us/en/ark/products/126149/intel-nuc-kit-nuc8i3bek.html) with 32GB of RAM for my Bastion host. The little box with 32GB of RAM is perfect for this purpose, and also very portable for throwing in a bag to take my dev environment with me.  My OpenShift build environment is also installed on the Bastion host.
+I recommend using a bare-metal host for your Bastion.  It will also run the load-balancer VM and Bootstrap VM for your cluster.  I am using a [NUC8i3BEK](https://ark.intel.com/content/www/us/en/ark/products/126149/intel-nuc-kit-nuc8i3bek.html) with 32GB of RAM for my Bastion host. This little box with 32GB of RAM is perfect for this purpose, and also very portable for throwing in a bag to take my dev environment with me.  My OpenShift build environment is also installed on the Bastion host.
 
 You need to start with a minimal CentOS 7 install. (__This tutorial assumes that you are comfortable installing a Linux OS.__)
 
@@ -24,7 +24,7 @@ You will have to attach monitor, mouse, and keyboard to your NUC for the install
     * Configure the network interface with a fixed IP address, `10.11.11.10` if you are following this guide exactly.
     * Set the system hostname to `bastion`
 * Storage:
-    * Allocate 50GB for the `/` filesystem
+    * Allocate 100GB for the `/` filesystem
     * Do not create a `/home` filesystem (no users on this system)
     * Allocate the remaining disk space for the VM guest filesystem
         * I put my KVM guests in `/VirtualMachines` 
@@ -43,23 +43,27 @@ Enable password-less SSH:
 
 Shutdown the host and disconnect the keyboard, mouse, and display.  Your host is now headless.  
 
-### __Power the host back on, and continue the Bastion host set up.__
+### __Power the host back on, log in via SSH, and continue the Bastion host set up.__
 
 Install some added packages:
 
-    echo << EOF > /etc/yum.repos.d/kvm-common.repo
-    [kvm-common]
-    name=KVM Common
-    baseurl=http://mirror.centos.org/centos/7/virt/x86_64/kvm-common/
-    gpgcheck=0
-    enabled=1
-    EOF
+1. We're going to use the kvm-common repository to ensure we get a new enough version of KVM.
 
-    yum -y install wget git net-tools bind bind-utils bash-completion nfs-utils rsync ipmitool python3-pip yum-utils qemu-kvm libvirt libvirt-python libguestfs-tools virt-install iscsi-initiator-utils createrepo docker libassuan-devel java-1.8.0-openjdk.x86_64 epel-release ipxe-bootimgs
+       echo << EOF > /etc/yum.repos.d/kvm-common.repo
+       [kvm-common]
+       name=KVM Common
+       baseurl=http://mirror.centos.org/centos/7/virt/x86_64/kvm-common/
+       gpgcheck=0
+       enabled=1
+       EOF
 
-    pip3.6 install virtualbmc
-    systemctl enable 
-    systemctl enable 
+1. Now install the packages that we are going to need.
+
+       yum -y install wget git net-tools bind bind-utils bash-completion nfs-utils rsync ipmitool python3-pip yum-utils qemu-kvm libvirt libvirt-python libguestfs-tools virt-install iscsi-initiator-utils createrepo docker libassuan-devel java-1.8.0-openjdk.x86_64 epel-release ipxe-bootimgs
+
+1. Install Virtual BMC:
+
+       pip3.6 install virtualbmc
 
 Next, we need to set up some environment variables that we will use to set up the rest of the lab.  You need to make some decisions at this point, fill in the following information, and then set temporary variables for each:
 
