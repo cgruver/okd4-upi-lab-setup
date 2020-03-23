@@ -56,6 +56,16 @@ I have provided a set of utility scripts to automate a lot of the tasks associat
     | 8 | ROLE | The OKD role that this VM will play: `BOOSTRAP`, `MASTER`, or `WORKER` |
     | 9 | VBMC_PORT | The port that VBMC will bind to for IPMI control of this VM |
 
+    It looks like this: (The entries for the three worker nodes are commented out, if you have two KVM hosts with 64GB RAM each, then you can uncomment those lines and have a full 6-node cluster)
+
+       bastion,okd4-bootstrap,16384,4,50,0,1,BOOTSTRAP,6229
+       kvm-host01,okd4-master-0,20480,4,100,0,1,MASTER,6230
+       kvm-host01,okd4-master-1,20480,4,100,0,1,MASTER,6231
+       kvm-host01,okd4-master-2,20480,4,100,0,1,MASTER,6232
+       # kvm-host02,okd4-worker-0,20480,4,100,0,1,WORKER,6233
+       # kvm-host02,okd4-worker-1,20480,4,100,0,1,WORKER,6234
+       # kvm-host02,okd4-worker-2,20480,4,100,0,1,WORKER,6235
+
     Copy this file into place, and modify it if necessary:
 
        mkdir -p ${OKD4_LAB_PATH}/guest-inventory
@@ -104,6 +114,8 @@ I have provided a set of utility scripts to automate a lot of the tasks associat
 
            echo "admin:password" | base64... WIP 
 
+# WIP from here on down...
+
 1. Create the cluster virtual machines and set up for OKD installation:
 
     We need to pull a current version of OKD.  So point your browser at `https://origin-release.svc.ci.openshift.org`.  
@@ -120,7 +132,7 @@ I have provided a set of utility scripts to automate a lot of the tasks associat
 
        oc adm -a ${LOCAL_SECRET_JSON} release mirror --from=registry.svc.ci.openshift.org/${PRODUCT_REPO}/${RELEASE_NAME}:${OKD_RELEASE} --to=${LOCAL_REGISTRY}/${LOCAL_REPOSITORY} --to-release-image=${LOCAL_REGISTRY}/${LOCAL_REPOSITORY}:${OKD_RELEASE}
 
-    
+
 
 ### Start the LB
 
