@@ -1,25 +1,27 @@
 
 # Documentation is still WIP
 
+## Prepare to Install OKD 4.4
+
 I have provided a set of utility scripts to automate a lot of the tasks associated with deploying and tearing down an OKD cluster.  In your ~/bin/lab-bin directory you will see the following:
 
 | | |
-|---|---|
+|-|-|
 | `DeployLbNode.sh` | Creates a virtual machine that will install and configure HA-Proxy |
-| `UnDeployLbNode.sh` | |
-| `DeployOkdNodes.sh` | |
-| `UnDeployOkdNodes.sh` | |
-| `PowerOnVms.sh` | |
-
-## Install OKD 4.4
+| `UnDeployLbNode.sh` | Destroys the load balancer VM and supporting infrastructure |
+| `DeployOkdNodes.sh` | Creates the Bootstrap, Master, and Worker VMs from an inventory file, (described below) |
+| `UnDeployOkdNodes.sh` | Destroys the OKD cluster and all supporting infrastructure |
+| `PowerOnVms.sh` | Helper script that uses IPMI to power on the VMs listed in an inventory file |
 
 1. Deploy the load-balancer:
 
        DeployLbNode.sh -h=okd4-lb01 -n=bastion -v=6228
 
-    * Hostname: okd4-lb01
-    * Hypervisor Host: bastion
-    * VBMC Port: 6228
+    | | | | |
+    |-|-|-|-|
+    | -h | Sets Hostname: | okd4-lb01 | __*DNS `A` and `PTR` records must exist*__ |
+    | -n | Sets the Hypervisor Host | bastion | |
+    | -v  | Sets the VBMC Port | 6228 | |
 
     This will create a VM which will do a kickstart install of CentOS with HA-Proxy.  It will pull the haproxy.cfg file that we prepared earlier when we set up Nginx.  If you are curious about the installation, take a look at: 
 
@@ -36,7 +38,7 @@ I have provided a set of utility scripts to automate a lot of the tasks associat
 
     You should see your VM do an iPXE boot and begin an unattended installation of CentOS 7.
 
-1. Now let's prepare to deploy the VMs for our OKD cluster by preparing Cluster VM inventory file:
+1. Now let's prepare to deploy the VMs for our OKD cluster by preparing the Cluster VM inventory file:
 
     This is not an ansible inventory like you might have encountered with OKD 3.11.  This is something I made up for my lab that allows me to quickly create, manage, and destroy virtual machines.
 
@@ -70,15 +72,55 @@ I have provided a set of utility scripts to automate a lot of the tasks associat
        tar -xzf openshift-client-linux-4.4.0-0.okd-2020-01-28-022517.tar.gz
        mv oc ~/bin
 
+    The `DeployOkdNodes.sh` script will pull the correct version of `oc` and `openshift-install` when we run it.  It will over-write older versions in `~/bin`.
+
+1. Now, we need a couple of pull secrets.  
+
+   The first one is for quay.io.  If you don't already have an account, go to `https://quay.io/` and create a free account.
+
+   Once you have your account, you need to extract your pull secret.
+
+   1. Log into your new Quay.io account.
+   1. In the top left corner, click the down arrow next to your user name.  This will expand a menu
+   1. Select `Account Settings`
+   1. Under `Docker CLI Password`, click on `Generate Encrypted Password`
+   1. Type in your quay.io password
+   1. Select `Kubernetes Secret`
+   1. Select `View <your-userid>-secret.yml`
+   1. Copy the base64 encoded string under `.dockerconfigjson`
+
+        It will look something like:
+
+           ewoblahblahblahblahblahblahblahREDACTEDetc...IH0KfQ==
+
+        But much longer...
+    1. We need to put the pull secret into a JSON file that we will use to mirror the OKD images into our Nexus registry.  We'll also need the pull secret for our cluster install.
+
+       echo "PASTE THE COPIED BASE64 STRING HERE" | base64 -d > ${OKD4_LAB_PATH}/pull_secret.json 
+
+    So, that's the first pull secret.  The second is for our local Nexus install.  We need to push the mirrored images into our Nexus.
+
+    1. Create the pull secret for Nexus
+
+           echo "admin:password" | base64... WIP 
+
 1. Create the cluster virtual machines and set up for OKD installation:
 
-# ToDo: Explain OKD Deployment
+    We need to pull a current version of OKD.  So point your browser at `https://origin-release.svc.ci.openshift.org`.  
 
-    export OKD_RELEASE=4.4.0-0.okd-2020-03-13-191636
+    ![OKD Release](images/OKD-Release.png)
 
-    oc adm -a ${LOCAL_SECRET_JSON} release mirror --from=registry.svc.ci.openshift.org/${PRODUCT_REPO}/${RELEASE_NAME}:${OKD_RELEASE} --to=${LOCAL_REGISTRY}/${LOCAL_REPOSITORY} --to-release-image=${LOCAL_REGISTRY}/${LOCAL_REPOSITORY}:${OKD_RELEASE}
+    Select the most recent 4.4.0-0.okd release that is in a Phase of `Accepted`, and copy the release name into an environment variable:
 
-DeployOkdNodes.sh -i=/root/okd4-lab/guest-inventory/okd4 -p -m
+       export OKD_RELEASE=4.4.0-0.okd-2020-03-23-073327
+
+    Now, deploy the VMs for the lab cluster:
+
+       DeployOkdNodes.sh -i=/root/okd4-lab/guest-inventory/okd4 -p -m
+
+       oc adm -a ${LOCAL_SECRET_JSON} release mirror --from=registry.svc.ci.openshift.org/${PRODUCT_REPO}/${RELEASE_NAME}:${OKD_RELEASE} --to=${LOCAL_REGISTRY}/${LOCAL_REPOSITORY} --to-release-image=${LOCAL_REGISTRY}/${LOCAL_REPOSITORY}:${OKD_RELEASE}
+
+    
 
 ### Start the LB
 
