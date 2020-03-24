@@ -14,7 +14,7 @@ Do the following, from the root of this project:
 
     cp ./DNS/named.conf /etc
     cp ./DNS/named /etc
-    export LAB_DOMAIN=your.domain.org # Put your domain name here
+    
     mv /etc/named/zones/db.your.domain.org /etc/named/zones/db.${LAB_DOMAIN} # Don't substitute your.domain.org in this line
     sed -i "s|%%LAB_DOMAIN%%|${LAB_DOMAIN}|g" /etc/named/named.conf.local
     sed -i "s|%%LAB_DOMAIN%%|${LAB_DOMAIN}|g" /etc/named/zones/db.${LAB_DOMAIN}
