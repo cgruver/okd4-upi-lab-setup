@@ -50,6 +50,7 @@ Now we will enable TFTP and PXE: (The VMs will boot via iPXE, and the KVM hosts 
 
     mkdir -p /data/tftpboot/ipxe/templates
 
+    uci add_list dhcp.lan.dhcp_option="6,10.11.11.10,8.8.8.8,8.8.4.4"
     uci set dhcp.@dnsmasq[0].enable_tftp=1
     uci set dhcp.@dnsmasq[0].tftp_root=/data/tftpboot
     uci set dhcp.efi64_boot_1=match
@@ -74,12 +75,14 @@ Now we will enable TFTP and PXE: (The VMs will boot via iPXE, and the KVM hosts 
     uci commit dhcp
     /etc/init.d/dnsmasq restart
 
-    # uci set dhcp.@dnsmasq[0].dhcp_boot=boot.ipxe
-    # uci add_list dhcp.lan.dhcp_option="6,10.11.11.10,8.8.8.8,8.8.4.4"
-    # uci commit dhcp
-    # /etc/init.d/dnsmasq restart
-
     exit
+
+That's a lot of `uci` commands that we just did.  I won't drain the list, but I will explain at a high level, because some of this is not well documented by OpenWRT, and is the result of a LOT of Googling on my part.
+
+* `uci add_list dhcp.lan.dhcp_option="6,10.11.11.10,8.8.8.8,8.8.4.4"`  This is setting DHCP option 6, (DNS Servers), it represents the list of DNS servers that the DHCP client should use for name resolution.
+* `uci set dhcp.efi64_boot_1=match`  This series of commands creates a DHCP match for DHCP option 60 in the request.  If the vendor class identifier is `7` or `9`, then the match variable, (`networkid`), is set to `efi64` which is arbitrary, but matchable in the `boot` sections which come after.
+* `uci set dhcp.ipxe_boot=userclass`  This series of commands looks for a userclass of `iPXE` in the DHCP request and sets the `networkid` variable to `ipxe`.
+* `uci set dhcp.uefi=boot` This series of commands looks for a `networkid` match against either `efi64` or `ipxe` and sends the appropriate PXE response back to the client.
 
 With the router configured, it's now time to copy over the files for iPXE.
 

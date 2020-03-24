@@ -1,9 +1,6 @@
-
-# Documentation is still WIP
-
 ## Prepare to Install OKD 4.4
 
-I have provided a set of utility scripts to automate a lot of the tasks associated with deploying and tearing down an OKD cluster.  In your ~/bin/lab-bin directory you will see the following:
+I have provided a set of utility scripts to automate a lot of the tasks associated with deploying and tearing down an OKD cluster.  In your `~/bin/lab-bin` directory you will see the following:
 
 | | |
 |-|-|
@@ -108,17 +105,27 @@ I have provided a set of utility scripts to automate a lot of the tasks associat
 
        echo "PASTE THE COPIED BASE64 STRING HERE" | base64 -d > ${OKD4_LAB_PATH}/pull_secret.json 
 
-    So, that's the first pull secret.  The second is for our local Nexus install.  We need to push the mirrored images into our Nexus.
+    So, that's the first pull secret.  The second is for our local Nexus install.  We need to push the mirrored images into our Nexus, and the OKD install will need to pull them out.
 
-    1. Create the pull secret for Nexus
+    1. Create the pull secret for Nexus.  Use a username and password that has write authority to the `origin` repository that we created earlier.
 
-           echo "admin:password" | base64... WIP 
+           echo -n "admin:your_admin_password" | base64 -w0
 
-# WIP from here on down...
+    1. Copy the resulting string, and edit the pull_secret.json file we created above.
 
-1. Create the cluster virtual machines and set up for OKD installation:
+           vi ${OKD4_LAB_PATH}/pull_secret.json
 
-    We need to pull a current version of OKD.  So point your browser at `https://origin-release.svc.ci.openshift.org`.  
+        The file should look something like:
+
+           {"auths": {"quay.io": {"auth": "Y2dydXZlcREDACTEDrNmpiL34MVZHeGt2YpREDACTEDptNVlxS9ZTFIUREDACTEDM4bmZB", "email": ""}}}
+
+        Add an entry for your Nexus secret, so that the file looks like this:
+           
+           {"auths": {"quay.io": {"auth": "Y2dydXZlcREDACTEDrNmpiL34MVZHeGt2YpREDACTEDptNVlxS9ZTFIUREDACTEDM4bmZB", "email": ""},"nexus.your.domain.org:5002": {"auth": "PASTE_NEW_SECRET_HERE", "email": ""}}}
+
+        Save this file.
+
+1. We need to pull a current version of OKD.  So point your browser at `https://origin-release.svc.ci.openshift.org`.  
 
     ![OKD Release](images/OKD-Release.png)
 
@@ -126,57 +133,254 @@ I have provided a set of utility scripts to automate a lot of the tasks associat
 
        export OKD_RELEASE=4.4.0-0.okd-2020-03-23-073327
 
-    Now, deploy the VMs for the lab cluster:
+1. The next step is to prepare our install-config.yaml file that `openshift-install` will use to create the `ignition` files for bootstrap, master, and worker nodes.
 
-       DeployOkdNodes.sh -i=/root/okd4-lab/guest-inventory/okd4 -p -m
+    I have prepared a skeleton file for you in this project, `./Provisioning/install-config-upi.yaml`.
+
+       apiVersion: v1
+       baseDomain: %%LAB_DOMAIN%%
+       metadata:
+         name: okd4
+       networking:
+         networkType: OpenShiftSDN
+         clusterNetwork:
+         - cidr: 10.100.0.0/14 
+           hostPrefix: 23 
+         serviceNetwork: 
+         - 172.30.0.0/16
+         machineNetwork:
+         - cidr: 10.11.11.0/24
+       compute:
+         name: worker
+         replicas: 0
+       controlPlane:
+         name: master
+         replicas: 3
+       platform:
+         none: {}
+       pullSecret: '%%PULL_SECRET%%'
+       sshKey: %%SSH_KEY%%
+       additionalTrustBundle: |
+
+       imageContentSources:
+       - mirrors:
+         - nexus.%%LAB_DOMAIN%%:5001/origin
+           source: registry.svc.ci.openshift.org/origin/%%OKD_RELEASE%%
+       - mirrors:
+         - nexus.%%LAB_DOMAIN%%:5001/origin
+           source: registry.svc.ci.openshift.org/origin/release
+
+    Copy this file to our working directory.
+
+        cp ./Provisioning/install-config-upi.yaml ${OKD4_LAB_PATH}/install-config-upi.yaml
+
+    Patch in some values:
+
+        sed -i "s|%%LAB_DOMAIN%%|${LAB_DOMAIN}|g" ${OKD4_LAB_PATH}/install-config-upi.yaml
+        sed -i "s|%%OKD_RELEASE%%|${OKD_RELEASE}|g" ${OKD4_LAB_PATH}/install-config-upi.yaml
+        SECRET=$(cat ${OKD4_LAB_PATH}/pull-secret.json)
+        sed -i "s|%%PULL_SECRET%%|${SECRET}|g" ${OKD4_LAB_PATH}/install-config-upi.yaml
+        SSH_KEY=$(cat ~/.ssh/id_rsa.pub)
+        sed -i "s|%%SSH_KEY%%|${SSH_KEY}|g" ${OKD4_LAB_PATH}/install-config-upi.yaml
+
+    For the last piece, you need to manually paste in a cert.  No `sed` magic here for you...
+
+    Copy the contents of: `/etc/pki/ca-trust/source/anchors/nexus.crt` and paste it into the blank line here in the config file:
+
+       additionalTrustBundle: |
+
+       imageContentSources:
+
+    You need to indent every line of the cert with two spaces for the yaml syntax.
+
+    Your install-config-upi.yaml file should now look something like:
+
+       apiVersion: v1
+       baseDomain: your.domain.org
+       metadata:
+         name: okd4
+       networking:
+         networkType: OpenShiftSDN
+         clusterNetwork:
+        - cidr: 10.100.0.0/14 
+           hostPrefix: 23 
+         serviceNetwork: 
+        - 172.30.0.0/16
+         machineNetwork:
+        - cidr: 10.11.11.0/24
+       compute:
+         name: worker
+         replicas: 0
+       controlPlane:
+         name: master
+         replicas: 3
+       platform:
+         none: {}
+       pullSecret: '{"auths": {"quay.io": {"auth": "Y2dydREDACTEDREDACTEDHeGtREDACTEDREDACTEDU55NWV5MREDACTEDREDACTEDM4bmZB", "email": ""},"nexus.oscluster.clgcom.org:5002": {"auth": "YREDACTEDREDACTED==", "email": ""}}}'
+       sshKey: ssh-rsa AAAREDACTEDREDACTEDAQAREDACTEDREDACTEDMnvPFqpEoOvZi+YK3L6MIGzVXbgo8SZREDACTEDREDACTEDbNZhieREDACTEDREDACTEDYI/upDR8TUREDACTEDREDACTEDoG1oJ+cRf6Z6gd+LZNE+jscnK/xnAyHfCBdhoyREDACTEDREDACTED9HmLRkbBkv5/2FPpc+bZ2xl9+I1BDr2uREDACTEDREDACTEDG7Ms0vJqrUhwb+o911tOJB3OWkREDACTEDREDACTEDU+1lNcFE44RREDACTEDREDACTEDov8tWSzn root@bastion
+       additionalTrustBundle: |
+         -----BEGIN CERTIFICATE-----
+         MIIFyTREDACTEDREDACTEDm59lk0W1CnMA0GCSqGSIb3DQEBCwUAMHsxCzAJBgNV
+         BAYTAlREDACTEDREDACTEDVTMREwDwYDVQQIDAhWaXJnaW5pYTEQMA4GA1UEBwwH
+         A1UECgwGY2xnY29tMREwDwREDACTEDREDACTEDYDVQQLDAhva2Q0LWxhYjEjMCEG
+         b3NjbHVzdGVyLmNsZ2NvbS5vcmcwHhcNMjAwMzREDACTEDREDACTEDE0MTYxMTQ2
+         MTQ2WREDACTEDREDACTEDjB7MQswCQYDVQQGEwJVUzERMA8GA1UECAwIVmlyZ2lu
+         B1JvYW5va2UxDzANBgNVBREDACTEDREDACTEDAoMBmNsZ2NvbTERMA8GA1UECwwI
+         BgNVBAMMGm5leHVzLm9zY2x1c3Rlci5jbGdjbREDACTEDREDACTED20ub3JnMIIC
+         REDACTEDREDACTEDAQEFAAOCAg8AMIICCgKCAgEAwwnvZEW+UqsyyWwHS4rlWbcz
+         hmvMMBXEXqNqSp5sREDACTEDREDACTEDlYrjKIBdLa9isEfgIydtTWZugG1L1iA4
+         hgdAlW83s8wwKW4bbEd8iDZyUFfzmFSKREDACTEDREDACTEDTrwk9JcH+S3/oGbk
+         9iq8oKMiFkz9loYxTu93/p/iGieTWMFGajbAuUPjZsBYgbf9REDACTEDREDACTED
+         REDACTEDREDACTEDYlFMcpkdlfYwJbJcfqeXAf9Y/QJQbBqRFxJCuXzr/D5Ingg3
+         HrXXvOr612LWHFvZREDACTEDREDACTEDYj7JRKKPKXIA0NHA29Db0TdVUzDi3uUs
+         WcDBmIpfZTXfrHG9pcj1CbOsw3vPhD4mREDACTEDREDACTEDCApsGKET4FhnFLkt
+         yc2vpaut8X3Pjep821pQznT1sR6G1bF1eP84nFhL7qnBdhEwREDACTEDREDACTED
+         REDACTEDREDACTEDIuOZH60cUhMNpl0uMSYU2BvfVDKQlcGPUh7pDWWhZ+5I1pei
+         KgWUMBT/j3KAJNgFREDACTEDREDACTEDX43aDvUxyjbDg8FyjBGY1jdS8TnGg3YM
+         zGP5auSqeyO1yZ2v3nbr9xUoRTVuzPUwREDACTEDREDACTED0SfiaeGPczpNfT8f
+         6H0CAwEAAaNQME4wHQYDVR0OBBYEFPAJpXdtNX0bi8dh1QMsREDACTEDREDACTED
+         REDACTEDREDACTEDIwQYMBaAFPAJpXdtNX0bi8dh1QMsE1URxd8tMAwGA1UdEwQF
+         hvcNAQELBQADggIBREDACTEDREDACTEDAAx0CX20lQhP6HBNRl7C7IpTEBpds/4E
+         dHuDuGMILaawZTbbKLMTlGu01Y8uCO/3REDACTEDREDACTEDUVZeX7X9NAw80l4J
+         kPtLrp169L/09F+qc8c39jb7QaNRWenrNEFFJqoLRakdXM1MREDACTEDREDACTED
+         REDACTEDREDACTED5CAWBCRgm67NhAJlzYOyqplLs0dPPX+kWdANotCfVxDx1jRM
+         8tDL/7kurJA/wSOLREDACTEDREDACTEDDCaNs205/nEAEhrHLr8NHt42/TpmgRlg
+         fcZ7JFw3gOtsk6Mi3XtS6rxSKpVqUWJ8REDACTEDREDACTED3nafC2IQCmBU2KIZ
+         3Oir8xCyVjgf4EY/dQc5GpIxrJ3dV+U2Hna3ZsiCooAdq957REDACTEDREDACTED
+         REDACTEDREDACTED57krXJy+4z8CdSMa36Pmc115nrN9Ea5C12d6UVnHnN+Kk4cL
+         Wr9ZZSO3jDiwuzidREDACTEDREDACTEDk/IP3tkLtS0s9gWDdHdHeW0eit+trPib
+         Oo9fJIxuD246HTQb+51ZfrvyBcbAA/M3REDACTEDREDACTED06B/Uq4CQMjhRwrU
+         aUEYgiOJjUjLXGJSuDVdCo4J9kpQa5D1bUxcHxTp3R98CasnREDACTEDREDACTED
+         -----END CERTIFICATE-----
+       imageContentSources:
+       - mirrors:
+         - nexus.your.domain.org:5001/origin
+         source: registry.svc.ci.openshift.org/origin/4.4.0-0.okd-2020-03-23-073327
+       - mirrors:
+         - nexus.your.domain.org:5001/origin
+         source: registry.svc.ci.openshift.org/origin/release
+
+1. Now mirror the OKD images into the local Nexus:
 
        oc adm -a ${LOCAL_SECRET_JSON} release mirror --from=registry.svc.ci.openshift.org/${PRODUCT_REPO}/${RELEASE_NAME}:${OKD_RELEASE} --to=${LOCAL_REGISTRY}/${LOCAL_REPOSITORY} --to-release-image=${LOCAL_REGISTRY}/${LOCAL_REPOSITORY}:${OKD_RELEASE}
 
+    The output should look something like:
+
+       Success
+       Update image:  nexus.oscluster.clgcom.org:5002/origin:4.4.0-0.okd-2020-03-11-174228
+       Mirror prefix: nexus.oscluster.clgcom.org:5002/origin
+
+       To use the new mirrored repository to install, add the following section to the install-config.yaml:
+
+       imageContentSources:
+       - mirrors:
+         - nexus.oscluster.clgcom.org:5002/origin
+         source: registry.svc.ci.openshift.org/origin/4.4-2020-03-13-191636
+       - mirrors:
+         - nexus.oscluster.clgcom.org:5002/origin
+         source: registry.svc.ci.openshift.org/origin/release
 
 
-### Start the LB
+       To use the new mirrored repository for upgrades, use the following to create an ImageContentSourcePolicy:
 
-    ipmitool -I lanplus -H10.11.11.10 -p6228 -Uadmin -Ppassword chassis power on
+       apiVersion: operator.openshift.io/v1alpha1
+       kind: ImageContentSourcePolicy
+       metadata:
+         name: example
+       spec:
+         repositoryDigestMirrors:
+         - mirrors:
+           - nexus.oscluster.clgcom.org:5002/origin
+           source: registry.svc.ci.openshift.org/origin/4.4-2020-03-13-191636
+         - mirrors:
+           - nexus.oscluster.clgcom.org:5002/origin
+           source: registry.svc.ci.openshift.org/origin/release
 
-### Start the bootstrap node
+1. Create the cluster virtual machines and set up for OKD installation:
 
-    ipmitool -I lanplus -H10.11.11.10 -p6229 -Uadmin -Ppassword chassis power on
+       DeployOkdNodes.sh -i=${OKD4_LAB_PATH}/guest-inventory/okd4 -p -m
 
-### Start the cluster master nodes
+    This script does a whole lot of work for us.
 
-    for i in 6230 6231 6232
-    do
-      ipmitool -I lanplus -H10.11.11.10 -p${i} -Uadmin -Ppassword chassis power on
-    done
+    1. It will pull the current versions of `oc` and `openshift-install` based on the value of `${OKD_RELEASE}` that we set previously.
+    2. Invokes the openshift-install command against our install-config to produce ignition files
+    3. Copies the ignition files into place for FCOS install
+    4. Sets up for a mirrored install by putting `registry.svc.ci.openshift.org` into a DNS sinkhole.
+    5. Creates guest VMs based on the inventory file at `${OKD4_LAB_PATH}/guest-inventory/okd4`
+    6. Creates DHCP reservations for each VM
+    7. Creates iPXE boot files for each VM and copies them to the iPXE server, (your router)
 
-#### Start the cluster worker nodes
+# We are now ready to fire up our OKD cluster!!!
 
-    for i in 6233 6234 6235
-    do
-      ipmitool -I lanplus -H10.11.11.10 -p${i} -Uadmin -Ppassword chassis power on
-    done
+1. Start the LB
 
-## Monitor install:
+       ipmitool -I lanplus -H10.11.11.10 -p6228 -Uadmin -Ppassword chassis power on
 
-    ssh -o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null core@okd4-bootstrap "journalctl -b -f -u bootkube.service"
-    ssh -o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null core@okd4-master-0 "journalctl -b -f -u kubelet.service"
+1. Start the bootstrap node
 
-    openshift-install --dir=${OKD4_LAB_PATH}/okd4-install-dir wait-for bootstrap-complete --log-level debug
+       ipmitool -I lanplus -H10.11.11.10 -p6229 -Uadmin -Ppassword chassis power on
 
-    openshift-install --dir=${OKD4_LAB_PATH}/okd4-install-dir wait-for install-complete --log-level debug
+1. Start the cluster master nodes
+
+       for i in 6230 6231 6232
+       do
+         ipmitool -I lanplus -H10.11.11.10 -p${i} -Uadmin -Ppassword chassis power on
+       done
+
+1. Start the cluster worker nodes (If you have any)
+
+       for i in 6233 6234 6235
+       do
+         ipmitool -I lanplus -H10.11.11.10 -p${i} -Uadmin -Ppassword chassis power on
+       done
+
+### Now let's sit back and watch the install:
+
+* To watch a node boot and install:
+  * Bootstrap node from the Bastion host:
+  
+         virsh console okd4-bootstrap
+
+  * Master Node from `kvm-host01`
+
+         virsh console okd4-master-0
+
+* Once a host has installed FCOS:
+  * Bootstrap Node:
+
+        ssh -o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null core@okd4-bootstrap "journalctl -b -f -u bootkube.service"
+
+  * Master Node:
+
+        ssh -o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null core@okd4-master-0 "journalctl -b -f -u kubelet.service"
+
+* Monitor OKD install progress:
+  * Bootstrap Progress:
+
+        openshift-install --dir=${OKD4_LAB_PATH}/okd4-install-dir wait-for bootstrap-complete --log-level debug
+
+  * Install Progress:
+
+        openshift-install --dir=${OKD4_LAB_PATH}/okd4-install-dir wait-for install-complete --log-level debug
+
+### Issue commands against your new cluster:
 
     export KUBECONFIG="${OKD4_LAB_PATH}/okd4-install-dir/auth/kubeconfig"
+    oc get pods --all-namespaces
 
-### Approve certs:
+You may need to approve the certs of you master and or worker nodes before they can join the cluster:
 
     oc get csr
 
+If you see certs in a Pending state:
+
     oc get csr -ojson | jq -r '.items[] | select(.status == {} ) | .metadata.name' | xargs oc adm certificate approve
 
-### Empty vol for registry storage:
+Create an Empty volume for registry storage:
 
     oc patch configs.imageregistry.operator.openshift.io cluster --type merge --patch '{"spec":{"managementState":"Managed","storage":{"emptyDir":{}}}}'
 
 ### If it all goes pancake shaped:
 
-    openshift-install --dir=okd4-install gather bootstrap --bootstrap 10.11.11.99 --master 10.11.11.101
+    openshift-install --dir=okd4-install gather bootstrap --bootstrap 10.11.11.49 --master 10.11.11.60 --master 10.11.11.61 --master 10.11.11.62
+
