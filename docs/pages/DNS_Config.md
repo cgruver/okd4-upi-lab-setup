@@ -52,7 +52,7 @@ In the example file, there are some entries to take note of:
 
        _etcd-server-ssl._tcp.okd4.your.domain.org    86400     IN    SRV     0    10    2380    etcd-0.okd4.your.domain.org.
        _etcd-server-ssl._tcp.okd4.your.domain.org    86400     IN    SRV     0    10    2380    etcd-1.okd4.your.domain.org.
-       _etcd-server-ssl._tcp.okd4.%%LAB_DOMAIN%%    86400     IN    SRV     0    10    2380    etcd-2.okd4.your.domain.org.
+       _etcd-server-ssl._tcp.okd4.your.domain.org    86400     IN    SRV     0    10    2380    etcd-2.okd4.your.domain.org.
 
 When you have completed all of your configuration changes, you can test the configuration with the following command:
 
