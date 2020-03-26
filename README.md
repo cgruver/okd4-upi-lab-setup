@@ -1,5 +1,4 @@
-# okd4-UPI-Lab-Setup
-Installing OKD4.X with User Provisioned Infrastructure.  Libvirt, iPXE, and FCOS
+# Installing OKD4.X with User Provisioned Infrastructure. Libvirt, iPXE, and FCOS
 
 ## This documentation is complete, but is not fully tested yet.  I have written it from my own lab configuration, but have not yet run through these instructions from scratch.  If you are brave, then go ahead and give it a try.  Open issues if you encounter problems.  I am sure there are plenty of bugs.  Otherwise, check back often for progress.
 
