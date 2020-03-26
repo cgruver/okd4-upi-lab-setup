@@ -14,7 +14,7 @@ You need to start with a minimal CentOS 7 install. (__This tutorial assumes that
 
     wget https://buildlogs.centos.org/rolling/7/isos/x86_64/CentOS-7-x86_64-Minimal.iso
 
-I use [balenaEtcher](https://www.balena.io/etcher/) to create a bootable USB key from a CentOS ISO ISO.
+I use [balenaEtcher](https://www.balena.io/etcher/) to create a bootable USB key from a CentOS ISO.
 
 You will have to attach monitor, mouse, and keyboard to your NUC for the install.  After the install, these machines will be headless.  So, no need for a complicated KVM setup...  The other, older meaning of KVM...  not confusing at all.
 
@@ -148,8 +148,9 @@ Finally, create an SSH key pair: (Take the defaults for all of the prompts, don'
     <Enter>
     <Enter>
 
-Now is a good time to reboot the bastion host:
+Now is a good time to update and reboot the bastion host:
 
+    yum -y update
     shutdown -r now
 
 Log back in and you should see all of the environment variables that we just set in the output of an `env` command.
