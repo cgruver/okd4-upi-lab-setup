@@ -298,7 +298,7 @@ I have provided a set of utility scripts to automate a lot of the tasks associat
 
 1. Create the cluster virtual machines and set up for OKD installation:
 
-       DeployOkdNodes.sh -i=${OKD4_LAB_PATH}/guest-inventory/okd4 -p -m
+       DeployOkdNodes.sh -i=${OKD4_LAB_PATH}/guest-inventory/okd4 -p -m -d1
 
     This script does a whole lot of work for us.
 
