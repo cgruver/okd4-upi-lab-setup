@@ -9,6 +9,8 @@ RESTART_DHCP_2=false
 IP_CONFIG_1=""
 IP_CONFIG_2=""
 IP_CONFIG=""
+DHCP_1=false
+DHCP_2=false
 
 for i in "$@"
 do
@@ -171,6 +173,7 @@ do
     echo "Create DHCP Reservation for ${IP_02}"
     ssh root@${DHCP_2} "uci add dhcp host && uci set dhcp.@host[-1].mac=\"${NET_MAC_2}\" && uci set dhcp.@host[-1].ip=\"${IP_02}\" && uci set dhcp.@host[-1].leasetime=\"1m\" && uci commit dhcp"
   elif [ ${NICS} == "2" ]
+  then
     IP_CONFIG_2="ip=${IP_02}:::${LAB_NETMASK}::eth1:none"
   fi
   IP_CONFIG="${IP_CONFIG_1} ${IP_CONFIG_2} nameserver=${LAB_NAMESERVER}"
