@@ -22,7 +22,7 @@ chmod 600 /root/.ssh/authorized_keys
 
 curl -o /etc/chrony.conf %%INSTALL_URL%%/postinstall/chrony.conf
 
-yum -y install net-tools bind-utils bridge-utils bash-completion kexec-tools haproxy
+yum -y install net-tools bind-utils bridge-utils bash-completion kexec-tools haproxy policycoreutils-python
 curl -o /etc/haproxy/haproxy.cfg %%INSTALL_URL%%/postinstall/haproxy.cfg
 yum -y update
 
