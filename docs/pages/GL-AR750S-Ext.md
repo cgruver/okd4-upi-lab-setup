@@ -105,7 +105,7 @@ From the root directory of this project, execute the following:
     done
     scp ./tmp-work/boot.ipxe root@${LAB_GATEWAY}:/data/tftpboot/boot.ipxe
     scp ./tmp-work/default.ipxe root@${LAB_GATEWAY}:/data/tftpboot/ipxe/default.ipxe
-    scp ./grub.cfg root@${LAB_GATEWAY}:/data/tftpboot
+    scp ./tmp-work/grub.cfg root@${LAB_GATEWAY}:/data/tftpboot
     mkdir -p ${OKD4_LAB_PATH}/ipxe-templates
     cp ./tmp-work/fcos-okd4.ipxe ${OKD4_LAB_PATH}/ipxe-templates/fcos-okd4.ipxe
     cp ./tmp-work/okd-lb.ipxe ${OKD4_LAB_PATH}/ipxe-templates/okd-lb.ipxe
