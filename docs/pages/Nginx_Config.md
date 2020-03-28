@@ -97,7 +97,6 @@ Now, we are going to set up the artifacts for host installation.  This will incl
          sed -i "s|%%LAB_DOMAIN%%|${LAB_DOMAIN}|g" ./tmp-work/firstboot/${i}
        done
 
-       sed -i "s|%%LAB_DOMAIN%%|${LAB_DOMAIN}|g" ./tmp-work/postinstall/mariadb-server.cnf
        sed -i "s|%%REPO_URL%%|${REPO_URL}|g" ./tmp-work/postinstall/local-repos.repo
 
        scp -r ./tmp-work/kickstart root@${INSTALL_HOST_IP}:${INSTALL_ROOT}
