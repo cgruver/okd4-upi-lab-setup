@@ -163,12 +163,6 @@ I have provided a set of utility scripts to automate a lot of the tasks associat
        additionalTrustBundle: |
 
        imageContentSources:
-       - mirrors:
-         - nexus.%%LAB_DOMAIN%%:5001/origin
-           source: registry.svc.ci.openshift.org/origin/%%OKD_RELEASE%%
-       - mirrors:
-         - nexus.%%LAB_DOMAIN%%:5001/origin
-           source: registry.svc.ci.openshift.org/origin/release
 
     Copy this file to our working directory.
 
@@ -177,7 +171,6 @@ I have provided a set of utility scripts to automate a lot of the tasks associat
     Patch in some values:
 
         sed -i "s|%%LAB_DOMAIN%%|${LAB_DOMAIN}|g" ${OKD4_LAB_PATH}/install-config-upi.yaml
-        sed -i "s|%%OKD_RELEASE%%|${OKD_RELEASE}|g" ${OKD4_LAB_PATH}/install-config-upi.yaml
         SECRET=$(cat ${OKD4_LAB_PATH}/pull-secret.json)
         sed -i "s|%%PULL_SECRET%%|${SECRET}|g" ${OKD4_LAB_PATH}/install-config-upi.yaml
         SSH_KEY=$(cat ~/.ssh/id_rsa.pub)
@@ -253,12 +246,6 @@ I have provided a set of utility scripts to automate a lot of the tasks associat
          aUEYgiOJjUjLXGJSuDVdCo4J9kpQa5D1bUxcHxTp3R98CasnREDACTEDREDACTED
          -----END CERTIFICATE-----
        imageContentSources:
-       - mirrors:
-         - nexus.your.domain.org:5001/origin
-         source: registry.svc.ci.openshift.org/origin/4.4.0-0.okd-2020-03-23-073327
-       - mirrors:
-         - nexus.your.domain.org:5001/origin
-         source: registry.svc.ci.openshift.org/origin/release
 
 1. Now mirror the OKD images into the local Nexus:
 
@@ -295,6 +282,32 @@ I have provided a set of utility scripts to automate a lot of the tasks associat
          - mirrors:
            - nexus.oscluster.clgcom.org:5002/origin
            source: registry.svc.ci.openshift.org/origin/release
+
+1. Now, we need to add one last entry to `${OKD4_LAB_PATH}/install-config-upi.yaml`
+
+    From the output of the mirror command that we just ran, copy the `yaml` for `imageContentSources:` and paste it at the bottom of the `install-config-upi.yaml` where there is an empty `imageContentSources:` section.
+
+       apiVersion: v1
+       baseDomain: your.domain.org
+       metadata:
+         name: okd4
+
+         ...
+
+         fcZ7JFw3gOtsk6Mi3XtS6rxSKpVqUWJ8REDACTEDREDACTED3nafC2IQCmBU2KIZ
+         3Oir8xCyVjgf4EY/dQc5GpIxrJ3dV+U2Hna3ZsiCooAdq957REDACTEDREDACTED
+         REDACTEDREDACTED57krXJy+4z8CdSMa36Pmc115nrN9Ea5C12d6UVnHnN+Kk4cL
+         Wr9ZZSO3jDiwuzidREDACTEDREDACTEDk/IP3tkLtS0s9gWDdHdHeW0eit+trPib
+         Oo9fJIxuD246HTQb+51ZfrvyBcbAA/M3REDACTEDREDACTED06B/Uq4CQMjhRwrU
+         aUEYgiOJjUjLXGJSuDVdCo4J9kpQa5D1bUxcHxTp3R98CasnREDACTEDREDACTED
+         -----END CERTIFICATE-----
+       imageContentSources:
+       - mirrors:
+         - nexus.oscluster.clgcom.org:5002/origin
+         source: registry.svc.ci.openshift.org/origin/4.4-2020-03-13-191636
+       - mirrors:
+         - nexus.oscluster.clgcom.org:5002/origin
+         source: registry.svc.ci.openshift.org/origin/release
 
 1. Create the cluster virtual machines and set up for OKD installation:
 
