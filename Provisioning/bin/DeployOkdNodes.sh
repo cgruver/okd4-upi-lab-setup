@@ -176,7 +176,7 @@ do
   IP_CONFIG="${IP_CONFIG_1} ${IP_CONFIG_2} nameserver=${LAB_NAMESERVER}"
 
   # Create and deploy the iPXE boot file for this VM
-  sed -i "s|%%IP_CONFIG%%|${IP_CONFIG}|g" ${OKD4_LAB_PATH}/ipxe-templates/fcos-okd4.ipxe > ${OKD4_LAB_PATH}/ipxe-work-dir/${NET_MAC//:/-}.ipxe
+  sed "s|%%IP_CONFIG%%|${IP_CONFIG}|g" ${OKD4_LAB_PATH}/ipxe-templates/fcos-okd4.ipxe > ${OKD4_LAB_PATH}/ipxe-work-dir/${NET_MAC//:/-}.ipxe
   if [ ${ROLE} == "BOOTSTRAP" ]
   then
     sed -i "s|%%OKD_ROLE%%|bootstrap|g" ${OKD4_LAB_PATH}/ipxe-work-dir/${NET_MAC//:/-}.ipxe
