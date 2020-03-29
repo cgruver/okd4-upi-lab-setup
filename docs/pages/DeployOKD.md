@@ -372,9 +372,26 @@ I have provided a set of utility scripts to automate a lot of the tasks associat
 
         openshift-install --dir=${OKD4_LAB_PATH}/okd4-install-dir wait-for bootstrap-complete --log-level debug
 
+  * When bootstrap is complete, remove the bootstrap node from HA-Proxy
+
+        ssh root@okd4-lb01 "cat /etc/haproxy/haproxy.cfg | grep -v bootstrap > /etc/haproxy/haproxy.tmp && mv /etc/haproxy/haproxy.tmp /etc/haproxy/haproxy.cfg && systemctl restart haproxy.service"
+
   * Install Progress:
 
         openshift-install --dir=${OKD4_LAB_PATH}/okd4-install-dir wait-for install-complete --log-level debug
+
+* Install Complete:
+
+    You will see output that looks like:
+
+      INFO Waiting up to 10m0s for the openshift-console route to be created... 
+      DEBUG Route found in openshift-console namespace: console 
+      DEBUG Route found in openshift-console namespace: downloads 
+      DEBUG OpenShift console route is created           
+      INFO Install complete!                            
+      INFO To access the cluster as the system:admin user when using 'oc', run 'export KUBECONFIG=/root/okd4-lab/okd4-install-dir/auth/kubeconfig' 
+      INFO Access the OpenShift web-console here: https://console-openshift-console.apps.okd4.your.domain.org 
+      INFO Login to the console with user: kubeadmin, password: aBCdE-FGHiJ-klMNO-PqrSt
 
 ### Issue commands against your new cluster:
 

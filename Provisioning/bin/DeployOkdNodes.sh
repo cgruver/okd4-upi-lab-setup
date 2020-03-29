@@ -102,6 +102,10 @@ do
   VBMC_PORT=$(echo ${VARS} | cut -d',' -f9)
 
   DISK_LIST="--disk size=${ROOT_VOL},path=/VirtualMachines/${HOSTNAME}/rootvol,bus=sata"
+  if [ ${DATA_VOL} != "0" ]
+  then
+    DISK_LIST="${DISK_LIST} --disk size=${DATA_VOL},path=/VirtualMachines/${HOSTNAME}/datavol,bus=sata"
+  fi
   ARGS="--cpu host-passthrough,match=exact"
 
   # Get IP address for eth0
@@ -148,7 +152,7 @@ do
     echo "Create DHCP Reservation for ${HOSTNAME}"
     ssh root@${LAB_GATEWAY} "uci add dhcp host && uci set dhcp.@host[-1].name=\"${HOSTNAME}\" && uci set dhcp.@host[-1].mac=\"${NET_MAC}\" && uci set dhcp.@host[-1].ip=\"${IP_01}\" && uci set dhcp.@host[-1].leasetime=\"1m\" && uci commit dhcp"
   else
-    IP_CONFIG_1="ip=${IP_01}::${LAB_GATEWAY}:${LAB_NETMASK}:${HOSTNAME}.${LAB_DOMAIN}:eth0:none"
+    IP_CONFIG_1="ip=${IP_01}::${LAB_GATEWAY}:${LAB_NETMASK}:${HOSTNAME}.${LAB_DOMAIN}:eth0:none nameserver=${LAB_NAMESERVER}"
   fi
 
   if [ ${DHCP_2} == "true" ] && [ ${NICS} == "2" ]
@@ -176,7 +180,7 @@ do
   then
     IP_CONFIG_2="ip=${IP_02}:::${LAB_NETMASK}::eth1:none"
   fi
-  IP_CONFIG="${IP_CONFIG_1} ${IP_CONFIG_2} nameserver=${LAB_NAMESERVER}"
+  IP_CONFIG="${IP_CONFIG_1} ${IP_CONFIG_2}"
 
   # Create and deploy the iPXE boot file for this VM
   sed "s|%%IP_CONFIG%%|${IP_CONFIG}|g" ${OKD4_LAB_PATH}/ipxe-templates/fcos-okd4.ipxe > ${OKD4_LAB_PATH}/ipxe-work-dir/${NET_MAC//:/-}.ipxe
