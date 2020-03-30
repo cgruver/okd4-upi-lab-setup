@@ -80,7 +80,7 @@ Next, we need to set up some environment variables that we will use to set up th
 | `OKD4_LAB_PATH` | `~/okd4-lab` | The path from which we will build our OKD4 cluster |
 | `DHCP_2` | `10.11.12.1` | (Optional) If you are running a dual-nic setup and need a DHCP server on that network |
 | `OKD_REGISTRY` | `registry.svc.ci.openshift.org/origin/release` | This is where we will get our OKD 4 images from to populate our local mirror |
-| `LOCAL_REGISTRY` | `nexus.${LAB_DOMAIN}:5001/origin` | The URL that we will use for our local mirror of the OKD registry images | 
+| `LOCAL_REGISTRY` | `nexus.${LAB_DOMAIN}:5001` | The URL that we will use for our local mirror of the OKD registry images | 
 | `LOCAL_REPOSITORY` | `origin` | The repository where the local OKD image mirror will be pushed |
 | `LOCAL_SECRET_JSON` | `${OKD4_LAB_PATH}/pull-secret.json` | The path to the pull secret that we will need for mirroring OKD images |
 
@@ -96,7 +96,7 @@ When you have selected values for the variables.  Set them in the shell like thi
     REPO_PATH=/usr/share/nginx/html/repos
     OKD4_LAB_PATH=~/okd4-lab
     DHCP_2=10.11.12.1
-    LOCAL_REGISTRY=nexus.${LAB_DOMAIN}:5001/origin
+    LOCAL_REGISTRY=nexus.${LAB_DOMAIN}:5001
     LOCAL_REPOSITORY=origin
 
 Now, let's create a utility script that will persist these values for us:
