@@ -75,11 +75,7 @@ Now, we are going to set up the artifacts for host installation.  This will incl
 
        export LAB_PWD=$(openssl passwd -1 '<YourRootPasswordHere>')
 
-    Copy your public SSH key
-
-       cat ~/.ssh/id_rsa.pub > ./tmp-work/postinstall/authorized_keys
-
-    Prep and copy the install files from this project:
+    Prep the install files from this project:
 
        cp -rf ./Provisioning/Infrastructure/kickstart ./tmp-work 
        cp -rf ./Provisioning/Infrastructure/firstboot ./tmp-work
@@ -99,10 +95,15 @@ Now, we are going to set up the artifacts for host installation.  This will incl
 
        sed -i "s|%%REPO_URL%%|${REPO_URL}|g" ./tmp-work/postinstall/local-repos.repo
 
+    Copy your public SSH key
+
+       cat ~/.ssh/id_rsa.pub > ./tmp-work/postinstall/authorized_keys
+
+    Copy the prepared files into place
+    
        scp -r ./tmp-work/kickstart root@${INSTALL_HOST_IP}:${INSTALL_ROOT}
        scp -r ./tmp-work/firstboot root@${INSTALL_HOST_IP}:${INSTALL_ROOT}
        scp -r ./tmp-work/postinstall root@${INSTALL_HOST_IP}:${INSTALL_ROOT}
-
        rm -rf ./tmp-work
 
 ### FCOS:
