@@ -1,6 +1,6 @@
 # Installing OKD4.X with User Provisioned Infrastructure. Libvirt, iPXE, and FCOS
 
-## This documentation is complete, but is not fully tested yet.  I have written it from my own lab configuration, but have not yet run through these instructions from scratch.  If you are brave, then go ahead and give it a try.  Open issues if you encounter problems.  I am sure there are plenty of bugs.  Otherwise, check back often for progress.
+## This documentation is complete, but is not fully tested yet.  I have written it from my own lab configuration, but have not yet run through these all of these instructions from scratch.  If you are brave, then go ahead and give it a try.  I am doing a clean run in another environment, and will continue to push fixes and clarifications as I encounter issues.  Open issues if you encounter problems.  I am sure there are plenty of bugs.  Otherwise, check back often for progress.
 
 ## If you created a fork of this project, you will want to re-sync with this repository.  I am fixing issues while testing.
 
