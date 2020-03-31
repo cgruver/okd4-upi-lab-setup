@@ -49,13 +49,13 @@ Now, we are going to set up the artifacts for host installation.  This will incl
 
 1. Deploy the Minimal ISO files.
 
-    wget https://buildlogs.centos.org/rolling/7/isos/x86_64/CentOS-7-x86_64-Minimal.iso
-    mkdir /tmp/centos-iso-mount
-    mount -o loop CentOS-7-x86_64-Minimal.iso /tmp/centos-iso-mount
-    rsync -av /tmp/centos-iso-mount/ ${INSTALL_ROOT}/centos/
-    umount /tmp/centos-iso-mount
-    rmdir /tmp/centos-iso-mount
-    rm CentOS-7-x86_64-Minimal.iso
+       wget https://buildlogs.centos.org/rolling/7/isos/x86_64/CentOS-7-x86_64-Minimal.iso
+       mkdir /tmp/centos-iso-mount
+       mount -o loop CentOS-7-x86_64-Minimal.iso /tmp/centos-iso-mount
+       rsync -av /tmp/centos-iso-mount/ ${INSTALL_ROOT}/centos/
+       umount /tmp/centos-iso-mount
+       rmdir /tmp/centos-iso-mount
+       rm CentOS-7-x86_64-Minimal.iso
 
 1. Copy the UEFI PXE boot files to the router:
 
