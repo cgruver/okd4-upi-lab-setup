@@ -67,8 +67,7 @@ Before we start Nexus, let's go ahead a set up TLS so that our connections are s
         # Common Name (eg, your name or your server's hostname) []:nexus.your.domain.org
         # Email Address []:
 
-        openssl pkcs12 -export -in nexus.crt -inkey my.key -chain -CAfile nexus-ca-file.crt -name "your.domain.org" -out nexus.p12
-        openssl pkcs12 -export -in nexus.crt -inkey nexus.key -name "your.domain.org" -out nexus.p12
+        openssl pkcs12 -export -in nexus.crt -inkey nexus.key -chain -CAfile nexus-ca-file.crt -name "${LAB_DOMAIN}" -out nexus.p12
         keytool -importkeystore -deststorepass password -destkeystore keystore.jks -srckeystore nexus.p12 -srcstoretype PKCS12
 
         cp keystore.jks /usr/local/nexus/nexus-3/etc/ssl/keystore.jks
