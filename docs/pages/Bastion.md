@@ -49,7 +49,7 @@ Install some added packages:
 
 1. We're going to use the kvm-common repository to ensure we get a new enough version of KVM.
 
-       echo << EOF > /etc/yum.repos.d/kvm-common.repo
+       cat << EOF > /etc/yum.repos.d/kvm-common.repo
        [kvm-common]
        name=KVM Common
        baseurl=http://mirror.centos.org/centos/7/virt/x86_64/kvm-common/
