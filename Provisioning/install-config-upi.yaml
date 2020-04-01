@@ -9,8 +9,6 @@ networking:
     hostPrefix: 23 
   serviceNetwork: 
   - 172.30.0.0/16
-  machineNetwork:
-  - cidr: 10.11.11.0/24
 compute:
   name: worker
   replicas: 0
