@@ -13,6 +13,7 @@
 200   IN      PTR     kvm-host01.%%LAB_DOMAIN%%. 
 201   IN      PTR     kvm-host02.%%LAB_DOMAIN%%. 
 202   IN      PTR     kvm-host03.%%LAB_DOMAIN%%. 
+49    IN      PTR     bootstrap.%%LAB_DOMAIN%%.
 50    IN      PTR     okd4-lb01.%%LAB_DOMAIN%%.  
 60    IN      PTR     okd4-master-0.%%LAB_DOMAIN%%. 
 61    IN      PTR     okd4-master-1.%%LAB_DOMAIN%%. 
