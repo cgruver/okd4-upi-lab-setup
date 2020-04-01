@@ -22,8 +22,11 @@ okd4-lb01.%%LAB_DOMAIN%%.       IN      A      10.10.11.50
 api.okd4.%%LAB_DOMAIN%%.        IN      A      10.10.11.50
 api-int.okd4.%%LAB_DOMAIN%%.    IN      A      10.10.11.50
 okd4-master-0.%%LAB_DOMAIN%%.   IN      A      10.10.11.60
+etcd-0.%%LAB_DOMAIN%%.          IN      A      10.10.11.60
 okd4-master-1.%%LAB_DOMAIN%%.   IN      A      10.10.11.61
+etcd-1.%%LAB_DOMAIN%%.          IN      A      10.10.11.61
 okd4-master-2.%%LAB_DOMAIN%%.   IN      A      10.10.11.62
+etcd-2.%%LAB_DOMAIN%%.          IN      A      10.10.11.62
 okd4-worker-0.%%LAB_DOMAIN%%.   IN      A      10.10.11.70
 okd4-worker-0.%%LAB_DOMAIN%%.   IN      A      10.10.11.71
 okd4-worker-0.%%LAB_DOMAIN%%.   IN      A      10.10.11.72
