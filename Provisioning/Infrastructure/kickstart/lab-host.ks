@@ -39,7 +39,7 @@ source /tmp/install-vars
 cat << EOF > /tmp/net-info
 network  --hostname=${HOST_NAME}
 network  --device=eno1 --noipv4 --noipv6 --no-activate --onboot=no
-network  --bootproto=static --device=br0 --bridgeslaves=eno1 --gateway=${GATEWAY} --ip=${IP_01} --nameserver=${NAME_SERVER} --netmask=${NETMASK_01} --noipv6 --activate --bridgeopts="stp=false" --onboot=yes
+network  --bootproto=static --device=br0 --bridgeslaves=eno1 --gateway=${GATEWAY_01} --ip=${IP_01} --nameserver=${NAME_SERVER} --netmask=${NETMASK_01} --noipv6 --activate --bridgeopts="stp=false" --onboot=yes
 EOF
 
 if [ ${NIC_02} != "" ]
