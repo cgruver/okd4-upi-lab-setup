@@ -376,6 +376,11 @@ I have provided a set of utility scripts to automate a lot of the tasks associat
 
         ssh root@okd4-lb01 "cat /etc/haproxy/haproxy.cfg | grep -v bootstrap > /etc/haproxy/haproxy.tmp && mv /etc/haproxy/haproxy.tmp /etc/haproxy/haproxy.cfg && systemctl restart haproxy.service"
 
+    Destroy the Bootstrap Node on the Bastion host:
+
+        virsh destroy okd4-bootstrap
+        vbmc delete okd4-bootstrap
+
   * Install Progress:
 
         openshift-install --dir=${OKD4_LAB_PATH}/okd4-install-dir wait-for install-complete --log-level debug
@@ -392,6 +397,19 @@ I have provided a set of utility scripts to automate a lot of the tasks associat
       INFO To access the cluster as the system:admin user when using 'oc', run 'export KUBECONFIG=/root/okd4-lab/okd4-install-dir/auth/kubeconfig' 
       INFO Access the OpenShift web-console here: https://console-openshift-console.apps.okd4.your.domain.org 
       INFO Login to the console with user: kubeadmin, password: aBCdE-FGHiJ-klMNO-PqrSt
+
+### Log into your new cluster console:
+
+Point your browser to the url listed at the completion of install: `https://console-openshift-console.apps.okd4.your.domain.org`
+Log in as `kubeadmin` with the password from the output at the completion of the install.
+
+__If you forget the password for this initial account, you can find it in the file: `${OKD4_LAB_PATH}/okd4-install-dir/auth/kubeadmin-password`
+
+__Note: the first time you try to log in, you may have to wait a couple of minutes for all of the console resources to initialize.__
+
+You will have to accept the certs for your new cluster, and you may see a screen that looks like:
+
+![OKD Console Error](images/ConsoleError.png)
 
 ### Issue commands against your new cluster:
 
@@ -414,3 +432,4 @@ Create an Empty volume for registry storage:
 
     openshift-install --dir=okd4-install gather bootstrap --bootstrap 10.11.11.49 --master 10.11.11.60 --master 10.11.11.61 --master 10.11.11.62
 
+Next: [Updating Your Cluster](UpdateOKD.md)
