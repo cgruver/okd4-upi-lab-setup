@@ -69,6 +69,7 @@ Before we start Nexus, let's go ahead a set up TLS so that our connections are s
 
         openssl pkcs12 -export -in nexus.crt -inkey nexus.key -chain -CAfile nexus-ca-file.crt -name "${LAB_DOMAIN}" -out nexus.p12
         keytool -importkeystore -deststorepass password -destkeystore keystore.jks -srckeystore nexus.p12 -srcstoretype PKCS12
+        keytool -importkeystore -srckeystore keystore.jks -destkeystore keystore.jks -deststoretype pkcs12
 
         cp keystore.jks /usr/local/nexus/nexus-3/etc/ssl/keystore.jks
         cp nexus.crt /etc/pki/ca-trust/source/anchors/nexus.crt
