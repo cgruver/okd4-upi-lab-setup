@@ -65,6 +65,31 @@ Install some added packages:
 
        pip3.6 install virtualbmc
 
+    Set up VBMC as a systemd controlled service:
+
+       cat > /etc/systemd/system/vbmcd.service <<EOF
+       [Install]
+       WantedBy = multi-user.target
+       [Service]
+       BlockIOAccounting = True
+       CPUAccounting = True
+       ExecReload = /bin/kill -1 $MAINPID
+       ExecStop = /bin/kill -15 $MAINPID
+       ExecStart = /usr/local/bin/vbmcd --foreground
+       Group = root
+       Restart = on-failure
+       RestartSec = 2
+       Slice = vbmc.slice
+       TimeoutSec = 120
+       Type = simple
+       User = root
+       [Unit]
+       After = libvirtd.service
+       After = syslog.target
+       After = network.target
+       Description = vbmc service
+       EOF
+
 Next, we need to set up some environment variables that we will use to set up the rest of the lab.  You need to make some decisions at this point, fill in the following information, and then set temporary variables for each:
 
 | Variable | Example Value | Description |
