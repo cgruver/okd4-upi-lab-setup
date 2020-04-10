@@ -246,6 +246,12 @@ I have provided a set of utility scripts to automate a lot of the tasks associat
          aUEYgiOJjUjLXGJSuDVdCo4J9kpQa5D1bUxcHxTp3R98CasnREDACTEDREDACTED
          -----END CERTIFICATE-----
        imageContentSources:
+       - mirrors:
+         - nexus.your.domain.org:5001/origin
+         source: registry.svc.ci.openshift.org/origin/%%OKD_VER%%
+       - mirrors:
+         - nexus.your.domain.org:5001/origin
+         source: registry.svc.ci.openshift.org/origin/release
 
 1. Now mirror the OKD images into the local Nexus:
 
@@ -283,32 +289,6 @@ I have provided a set of utility scripts to automate a lot of the tasks associat
            - nexus.oscluster.clgcom.org:5002/origin
            source: registry.svc.ci.openshift.org/origin/release
 
-1. Now, we need to add one last entry to `${OKD4_LAB_PATH}/install-config-upi.yaml`
-
-    From the output of the mirror command that we just ran, copy the `yaml` for `imageContentSources:` and paste it at the bottom of the `install-config-upi.yaml` where there is an empty `imageContentSources:` section.
-
-       apiVersion: v1
-       baseDomain: your.domain.org
-       metadata:
-         name: okd4
-
-         ...
-
-         fcZ7JFw3gOtsk6Mi3XtS6rxSKpVqUWJ8REDACTEDREDACTED3nafC2IQCmBU2KIZ
-         3Oir8xCyVjgf4EY/dQc5GpIxrJ3dV+U2Hna3ZsiCooAdq957REDACTEDREDACTED
-         REDACTEDREDACTED57krXJy+4z8CdSMa36Pmc115nrN9Ea5C12d6UVnHnN+Kk4cL
-         Wr9ZZSO3jDiwuzidREDACTEDREDACTEDk/IP3tkLtS0s9gWDdHdHeW0eit+trPib
-         Oo9fJIxuD246HTQb+51ZfrvyBcbAA/M3REDACTEDREDACTED06B/Uq4CQMjhRwrU
-         aUEYgiOJjUjLXGJSuDVdCo4J9kpQa5D1bUxcHxTp3R98CasnREDACTEDREDACTED
-         -----END CERTIFICATE-----
-       imageContentSources:
-       - mirrors:
-         - nexus.oscluster.clgcom.org:5002/origin
-         source: registry.svc.ci.openshift.org/origin/4.4-2020-03-13-191636
-       - mirrors:
-         - nexus.oscluster.clgcom.org:5002/origin
-         source: registry.svc.ci.openshift.org/origin/release
-
 1. Create the cluster virtual machines and set up for OKD installation:
 
        DeployOkdNodes.sh -i=${OKD4_LAB_PATH}/guest-inventory/okd4 -p -m -d1
@@ -316,12 +296,13 @@ I have provided a set of utility scripts to automate a lot of the tasks associat
     This script does a whole lot of work for us.
 
     1. It will pull the current versions of `oc` and `openshift-install` based on the value of `${OKD_RELEASE}` that we set previously.
-    2. Invokes the openshift-install command against our install-config to produce ignition files
-    3. Copies the ignition files into place for FCOS install
-    4. Sets up for a mirrored install by putting `registry.svc.ci.openshift.org` into a DNS sinkhole.
-    5. Creates guest VMs based on the inventory file at `${OKD4_LAB_PATH}/guest-inventory/okd4`
-    6. Creates DHCP reservations for each VM
-    7. Creates iPXE boot files for each VM and copies them to the iPXE server, (your router)
+    1. fills in the OKD version in the install-config-upi.yaml file and copies that file to the install directory as install-config.yaml.
+    1. Invokes the openshift-install command against our install-config to produce ignition files
+    1. Copies the ignition files into place for FCOS install
+    1. Sets up for a mirrored install by putting `registry.svc.ci.openshift.org` into a DNS sinkhole.
+    1. Creates guest VMs based on the inventory file at `${OKD4_LAB_PATH}/guest-inventory/okd4`
+    1. Creates DHCP reservations for each VM
+    1. Creates iPXE boot files for each VM and copies them to the iPXE server, (your router)
 
 # We are now ready to fire up our OKD cluster!!!
 

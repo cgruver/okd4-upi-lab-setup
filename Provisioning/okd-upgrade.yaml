@@ -1,0 +1,12 @@
+apiVersion: operator.openshift.io/v1alpha1
+kind: ImageContentSourcePolicy
+metadata:
+  name: okd4-%%OKD_VER%% 
+spec:
+  repositoryDigestMirrors:
+  - mirrors:
+    - nexus.%%LAB_DOMAIN%%:5002/origin
+    source: registry.svc.ci.openshift.org/origin/%%OKD_VER%%
+  - mirrors:
+    - nexus.%%LAB_DOMAIN%%:5002/origin
+    source: registry.svc.ci.openshift.org/origin/release
