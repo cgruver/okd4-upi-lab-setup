@@ -90,6 +90,11 @@ Install some added packages:
        Description = vbmc service
        EOF
 
+    Enable the vbmcd service:
+
+       systemctl enable vbmcd.service
+       systemctl start vbmcd.service
+
 Next, we need to set up some environment variables that we will use to set up the rest of the lab.  You need to make some decisions at this point, fill in the following information, and then set temporary variables for each:
 
 | Variable | Example Value | Description |
