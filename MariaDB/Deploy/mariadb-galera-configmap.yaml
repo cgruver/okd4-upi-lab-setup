@@ -1,0 +1,31 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: galera-config-cm
+data:
+  mariadb-server.cnf: |
+    [server]
+    
+    [mysqld]
+    
+    [galera]
+    user=mysql
+    bind-address=0.0.0.0
+    default_storage_engine=InnoDB
+    binlog_format=row
+    innodb_autoinc_lock_mode=2
+    innodb_flush_log_at_trx_commit=0
+    query_cache_size=0
+    query_cache_type=0
+    wsrep_on=ON
+    wsrep_provider=/usr/lib64/galera-4/libgalera_smm.so
+    wsrep_sst_method=rsync
+    %%CLUSTER_ADDRESS%%
+    wsrep_cluster_name=mariadb-galera
+    
+    [embedded]
+    
+    [mariadb]
+    
+    [mariadb-10.3]
+    

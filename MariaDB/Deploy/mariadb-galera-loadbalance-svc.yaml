@@ -1,0 +1,15 @@
+apiVersion: v1
+kind: Service
+metadata:
+  name: mariadb-svc
+  labels:
+    app: mariadb-galera
+spec:
+  clusterIP:
+  ports:
+  - name: mariadb
+    port: 3306
+    protocol: TCP
+  selector:
+    app: mariadb-galera
+  type: LoadBalancer

@@ -1,0 +1,27 @@
+apiVersion: v1
+kind: Service
+metadata:
+  # This is a "headless" service for the mariadb-galera cluster
+  name: galera-cluster
+  labels:
+    app: mariadb-galera
+spec:
+  clusterIP: None
+  ports:
+  - name: mariadb
+    port: 3306
+    protocol: TCP
+  - name: galera-replication-tcp
+    port: 4567
+    protocol: TCP
+  - name: galera-replication-udp
+    port: 4567
+    protocol: UDP
+  - name: galera-ist
+    port: 4568
+    protocol: TCP
+  - name: galera-sst
+    port: 4444
+    protocol: TCP
+  selector:
+    app: mariadb-galera
