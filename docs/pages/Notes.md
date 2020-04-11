@@ -3,7 +3,23 @@
 Set up HTPasswd
 
     mkdir -p ${OKD4_LAB_PATH}/okd-creds
+    htpasswd -B -c -b ${OKD4_LAB_PATH}/okd-creds/htpasswd admin <password>
     htpasswd -b ${OKD4_LAB_PATH}/okd-creds/htpasswd <username> <password>
+    oc create -n openshift-config secret generic htpasswd-secret --from-file=htpasswd=${OKD4_LAB_PATH}/okd-creds/htpasswd
+    oc apply -f htpasswd-cr.yml
+
+apiVersion: config.openshift.io/v1
+kind: OAuth
+metadata:
+  name: cluster
+spec:
+  identityProviders:
+  - name: okd4_htpasswd_idp
+    mappingMethod: claim 
+    type: HTPasswd
+    htpasswd:
+      fileData:
+        name: htpasswd-secret
 
 Reset the HA Proxy configuration for a new cluster build:
 
