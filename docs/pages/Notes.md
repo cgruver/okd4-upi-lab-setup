@@ -3,23 +3,12 @@
 Set up HTPasswd
 
     mkdir -p ${OKD4_LAB_PATH}/okd-creds
-    htpasswd -B -c -b ${OKD4_LAB_PATH}/okd-creds/htpasswd admin <password>
+    ADMIN_PWD=$(cat ${OKD4_LAB_PATH}/okd4-install-dir/auth/kubeadmin-password)
+    htpasswd -B -c -b ${OKD4_LAB_PATH}/okd-creds/htpasswd admin ${ADMIN_PWD}
     htpasswd -b ${OKD4_LAB_PATH}/okd-creds/htpasswd <username> <password>
     oc create -n openshift-config secret generic htpasswd-secret --from-file=htpasswd=${OKD4_LAB_PATH}/okd-creds/htpasswd
-    oc apply -f htpasswd-cr.yml
-
-apiVersion: config.openshift.io/v1
-kind: OAuth
-metadata:
-  name: cluster
-spec:
-  identityProviders:
-  - name: okd4_htpasswd_idp
-    mappingMethod: claim 
-    type: HTPasswd
-    htpasswd:
-      fileData:
-        name: htpasswd-secret
+    oc create -f ${OKD4_LAB_PATH}/htpasswd-cr.yml
+    oc adm policy add-cluster-role-to-user cluster-admin admin
 
 Reset the HA Proxy configuration for a new cluster build:
 
