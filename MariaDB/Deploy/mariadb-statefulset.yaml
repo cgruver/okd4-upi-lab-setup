@@ -37,7 +37,7 @@ spec:
               topologyKey: kubernetes.io/hostname
       containers:
       - name: mariadb-galera
-        image: docker-registry.default.svc:5000/openshift/mariadb-galera:10.4
+        image: openshift/mariadb-galera:10.4
         imagePullPolicy: IfNotPresent 
         env:
         - name: SERVICE_NAME

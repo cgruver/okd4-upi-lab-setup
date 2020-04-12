@@ -163,6 +163,12 @@ I have provided a set of utility scripts to automate a lot of the tasks associat
        additionalTrustBundle: |
 
        imageContentSources:
+       - mirrors:
+         - nexus.%%LAB_DOMAIN%%:5001/origin
+         source: registry.svc.ci.openshift.org/origin/%%OKD_VER%%
+       - mirrors:
+         - nexus.%%LAB_DOMAIN%%:5001/origin
+         source: registry.svc.ci.openshift.org/origin/release
 
     Copy this file to our working directory.
 
