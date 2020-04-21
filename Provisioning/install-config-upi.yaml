@@ -10,7 +10,7 @@ networking:
   serviceNetwork: 
   - 172.30.0.0/16
 compute:
-  name: worker
+- name: worker
   replicas: 0
 controlPlane:
   name: master

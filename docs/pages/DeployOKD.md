@@ -151,7 +151,7 @@ I have provided a set of utility scripts to automate a lot of the tasks associat
          machineNetwork:
          - cidr: 10.11.11.0/24
        compute:
-         name: worker
+       - name: worker
          replicas: 0
        controlPlane:
          name: master
@@ -201,14 +201,12 @@ I have provided a set of utility scripts to automate a lot of the tasks associat
        networking:
          networkType: OpenShiftSDN
          clusterNetwork:
-        - cidr: 10.100.0.0/14 
+         - cidr: 10.100.0.0/14 
            hostPrefix: 23 
          serviceNetwork: 
-        - 172.30.0.0/16
-         machineNetwork:
-        - cidr: 10.11.11.0/24
+         - 172.30.0.0/16
        compute:
-         name: worker
+       - name: worker
          replicas: 0
        controlPlane:
          name: master
@@ -259,7 +257,7 @@ I have provided a set of utility scripts to automate a lot of the tasks associat
          - nexus.your.domain.org:5001/origin
          source: registry.svc.ci.openshift.org/origin/release
 
-1. Now mirror the OKD images into the local Nexus:
+2. Now mirror the OKD images into the local Nexus:
 
        oc adm -a ${LOCAL_SECRET_JSON} release mirror --from=${OKD_REGISTRY}:${OKD_RELEASE} --to=${LOCAL_REGISTRY}/${LOCAL_REPOSITORY} --to-release-image=${LOCAL_REGISTRY}/${LOCAL_REPOSITORY}:${OKD_RELEASE}
 
@@ -295,20 +293,20 @@ I have provided a set of utility scripts to automate a lot of the tasks associat
            - nexus.oscluster.clgcom.org:5002/origin
            source: registry.svc.ci.openshift.org/origin/release
 
-1. Create the cluster virtual machines and set up for OKD installation:
+3. Create the cluster virtual machines and set up for OKD installation:
 
        DeployOkdNodes.sh -i=${OKD4_LAB_PATH}/guest-inventory/okd4 -p -m -d1
 
     This script does a whole lot of work for us.
 
     1. It will pull the current versions of `oc` and `openshift-install` based on the value of `${OKD_RELEASE}` that we set previously.
-    1. fills in the OKD version in the install-config-upi.yaml file and copies that file to the install directory as install-config.yaml.
-    1. Invokes the openshift-install command against our install-config to produce ignition files
-    1. Copies the ignition files into place for FCOS install
-    1. Sets up for a mirrored install by putting `registry.svc.ci.openshift.org` into a DNS sinkhole.
-    1. Creates guest VMs based on the inventory file at `${OKD4_LAB_PATH}/guest-inventory/okd4`
-    1. Creates DHCP reservations for each VM
-    1. Creates iPXE boot files for each VM and copies them to the iPXE server, (your router)
+    2. fills in the OKD version in the install-config-upi.yaml file and copies that file to the install directory as install-config.yaml.
+    3. Invokes the openshift-install command against our install-config to produce ignition files
+    4. Copies the ignition files into place for FCOS install
+    5. Sets up for a mirrored install by putting `registry.svc.ci.openshift.org` into a DNS sinkhole.
+    6. Creates guest VMs based on the inventory file at `${OKD4_LAB_PATH}/guest-inventory/okd4`
+    7. Creates DHCP reservations for each VM
+    8. Creates iPXE boot files for each VM and copies them to the iPXE server, (your router)
 
 # We are now ready to fire up our OKD cluster!!!
 
