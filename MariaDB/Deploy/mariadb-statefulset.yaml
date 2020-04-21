@@ -22,7 +22,7 @@ spec:
       serviceAccount: mariadb
       terminationGracePeriodSeconds: 60
       nodeSelector:
-        node-role.kubernetes.io/compute: 'true'
+        node-role.kubernetes.io/worker: ""
       affinity:
         podAntiAffinity:
           preferredDuringSchedulingIgnoredDuringExecution:
@@ -37,7 +37,7 @@ spec:
               topologyKey: kubernetes.io/hostname
       containers:
       - name: mariadb-galera
-        image: openshift/mariadb-galera:10.4
+        image: image-registry.openshift-image-registry.svc:5000/openshift/mariadb-galera:10.4
         imagePullPolicy: IfNotPresent 
         env:
         - name: SERVICE_NAME

@@ -1,0 +1,178 @@
+apiVersion: v1
+kind: Template
+metadata:
+  annotations:
+    description: "Initialize Pipeline Objects for Tekton"
+    iconClass: icon-java
+    openshift.io/display-name: "Initialize Pipeline Objects for Tekton"
+    template.openshift.io/bindable: "false"
+    tags: "tekton"
+    version: "1.0"
+  name: initialize-pipeline
+objects:
+  - apiVersion: tekton.dev/v1alpha1
+    kind: Pipeline
+    metadata:
+      name: build-and-deploy
+    spec:
+      params:
+      resources:
+        - name: appSource
+          type: git
+        - name: appImage
+          type: image
+      tasks:
+        - name: build
+          taskRef:
+            name: build-app
+          resources:
+            inputs:
+              - name: source
+                resource: appSource
+            outputs:
+              - name: builtImage
+                resource: appImage
+        - name: config
+          taskRef:
+            name: config-app
+          runAfter:
+            - build
+          resources:
+            inputs:
+              - name: source
+                resource: appSource
+        - name: deploy
+          taskRef:
+            name: deploy-app
+          runAfter:
+            - config
+
+  - apiVersion: tekton.dev/v1alpha1
+    kind: Task
+    metadata:
+      name: build-app
+    spec:
+      stepTemplate:
+        securityContext:
+          runAsUser: 0
+          privileged: true
+        volumeMounts:
+          - name: varlibc
+            mountPath: /var/lib/containers
+          - name: maven-settings
+            mountPath: /tmp/maven-settings
+          - name: docker-file
+            mountPath: /tmp/docker-file
+      inputs:
+        resources:
+          - name: source
+            type: git
+        params:
+          - name: destinationImage
+            description: the fully qualified image name
+            default: "$(outputs.resources.builtImage.url)"
+          - name: dockerFile
+            description: the docker file to used for building the application
+            default: Dockerfile
+          - name: tlsVerify
+            description: tls verify
+            type: string
+            default: "false"
+      outputs:
+        resources:
+          - name: builtImage
+            type: image
+      steps:
+        - name: prep-build
+          image: image-registry.openshift-image-registry.svc:5000/openshift/maven:3.6.3-jdk-8-slim
+          script: |
+            cp /tmp/maven-settings/settings.xml /workspace/source
+            cp /tmp/docker-file/Dockerfile /workspace/source
+          env:
+            - name: user.home
+              value: /home/tekton
+          workingDir: "/"
+        - name: build-sources
+          image: image-registry.openshift-image-registry.svc:5000/openshift/maven:3.6.3-jdk-8-slim
+          command:
+            - mvn
+          args:
+            - "-DskipTests"
+            - "-Dmaven.wagon.http.ssl.insecure=true"
+            - "-ssettings.xml"
+            - "-P ocp"
+            - "-DappName=app"
+            - "clean"
+            - "package"
+          env:
+            - name: user.home
+              value: /home/tekton
+          workingDir: "/workspace/source"
+        - name: build-image
+          image: image-registry.openshift-image-registry.svc:5000/openshift/buildah:stable
+          command:
+            - "buildah"
+          args:
+            - "bud"
+            - "--layers"
+            - "--tls-verify=$(inputs.params.tlsVerify)"
+            - "-f"
+            - "Dockerfile"
+            - "-t"
+            - "$(inputs.params.destinationImage)"
+            - "."
+          workingDir: "/workspace/source"
+        - name: push-image
+          image: image-registry.openshift-image-registry.svc:5000/openshift/buildah:stable
+          command:
+            - "buildah"
+          args:
+            - "push"
+            - "--tls-verify=$(inputs.params.tlsVerify)"
+            - $(inputs.params.destinationImage)
+            - "docker://$(inputs.params.destinationImage)"
+          workingDir: "/workspace/source"
+      volumes:
+        - name: varlibc
+          emptyDir: {}
+        - name: maven-settings
+          configMap:
+            name: maven-settings-xml
+        - name: docker-file
+          configMap:
+            name: docker-file
+
+  - apiVersion: tekton.dev/v1alpha1
+    kind: Task
+    metadata:
+      name: ${APP_NAME}-config
+    spec:
+      inputs:
+        resources:
+          - {type: git, name: source}
+      steps:
+        - name: apply
+          image: image-registry.openshift-image-registry.svc:5000/openshift/origin-cli:latest
+          workingDir: /workspace/source
+          command: ["/bin/bash", "-c"]
+          args:
+            - |-
+              echo Applying configs in $(inputs.params.manifest_dir) directory
+              oc apply -f ./ocp/dev
+              echo -----------------------------------
+
+  - apiVersion: tekton.dev/v1alpha1
+    kind: Task
+    metadata:
+      name: ${APP_NAME}-deploy
+    spec:
+      steps:
+        - name: rollout
+          image: image-registry.openshift-image-registry.svc:5000/openshift/origin-cli:latest
+          workingDir: /workspace
+          command: ["/bin/bash", "-c"]
+          args:
+            - |-
+              echo Rolling out ${APP_NAME}
+              oc rollout latest dc/${APP_NAME}
+              echo -----------------------------------

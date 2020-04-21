@@ -37,15 +37,15 @@ Where `apps.your.cluster.domain.com` is the wild-card DNS entry for your OpenShi
 
 1. Log into your image registry: (Assuming that you are already logged into your OpenShift cluster)
 
-        docker login -p $(oc whoami -t) -u admin docker-registry-default.apps.your.cluster.domain.com
+        podman login -u $(oc whoami) -p $(oc whoami -t) --tls-verify=false $(oc get route default-route -n openshift-image-registry --template='{{ .spec.host }}')
 
 1. Build the image:
 
-        docker build -t docker-registry-default.apps.your.cluster.domain.com/openshift/mariadb-galera:10.4 .
+        podman build -t $(oc get route default-route -n openshift-image-registry --template='{{ .spec.host }}')/openshift/mariadb-galera:10.4 .
 
 1. Push the image to the OpenShift image registry.
 
-        docker push docker-registry-default.apps.your.cluster.domain.com/openshift/mariadb-galera:10.4
+        podman push $(oc get route default-route -n openshift-image-registry --template='{{ .spec.host }}')/openshift/mariadb-galera:10.4 --tls-verify=false
 
 Now, let's deploy a database cluster:
 

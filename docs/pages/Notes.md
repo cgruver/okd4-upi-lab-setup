@@ -79,3 +79,46 @@ Add PVC to Registry:
     oc patch configs.imageregistry.operator.openshift.io cluster --type json -p '[{ "op": "remove", "path": "/spec/storage/emptyDir" }]'
 
     oc patch configs.imageregistry.operator.openshift.io cluster --type merge --patch '{"spec":{"rolloutStrategy":"Recreate","managementState":"Managed","storage":{"pvc":{"claim":"registry-pvc"}}}}'
+
+Samples Operator: Extract templates and image streams, then remove the operator.  We don't want everything and the kitchen sink...
+
+    mkdir -p ${OKD4_LAB_PATH}/OKD-Templates-ImageStreams/templates
+    mkdir ${OKD4_LAB_PATH}/OKD-Templates-ImageStreams/image-streams
+    oc project openshift
+    oc get template | grep -v NAME | while read line
+    do
+       TEMPLATE=$(echo $line | cut -d' ' -f1)
+       oc get --export template ${TEMPLATE} -o yaml > ${OKD4_LAB_PATH}/OKD-Templates-ImageStreams/templates/${TEMPLATE}.yml
+    done
+
+    oc get is | grep -v NAME | while read line
+    do
+       IS=$(echo $line | cut -d' ' -f1)
+       oc get --export is ${IS} -o yaml > ${OKD4_LAB_PATH}/OKD-Templates-ImageStreams/image-streams/${IS}.yml
+    done
+
+    oc patch configs.samples.operator.openshift.io cluster --type merge --patch '{"spec":{"managementState":"Removed"}}'
+
+Tekton:
+
+    tkn clustertask ls
+
+    IMAGE_REGISTRY=$(oc get route default-route -n openshift-image-registry --template='{{ .spec.host }}')
+    podman login -u $(oc whoami) -p $(oc whoami -t) --tls-verify=false ${IMAGE_REGISTRY}
+    podman pull quay.io/openshift/origin-cli:4.4.0
+    podman tag quay.io/openshift/origin-cli:4.4.0 ${IMAGE_REGISTRY}/openshift/origin-cli:4.4.0
+    podman push ${IMAGE_REGISTRY}/openshift/origin-cli:4.4.0 --tls-verify=false
+
+    docker pull quay.io/buildah/stable
+    docker tag quay.io/buildah/stable:latest ${IMAGE_REGISTRY}/openshift/buildah:stable
+    docker push ${IMAGE_REGISTRY}/openshift/buildah:stable
+
+    docker pull docker.io/maven:3.6.3-jdk-8-slim
+    docker tag docker.io/library/maven:3.6.3-jdk-8-slim ${IMAGE_REGISTRY}/openshift/maven:3.6.3-jdk-8-slim
+    docker push ${IMAGE_REGISTRY}/openshift/maven:3.6.3-jdk-8-slim
+
+    docker pull quay.io/openshift/origin-cli:4.4.0
+    docker tag quay.io/openshift/origin-cli:4.4.0 ${IMAGE_REGISTRY}/openshift/origin-cli:4.4.0
+    docker push ${IMAGE_REGISTRY}/openshift/origin-cli:4.4.0
+
+    oc patch sa pipeline --type merge --patch '{"secrets":[{"name":"bitbucket-secret"}]}'
