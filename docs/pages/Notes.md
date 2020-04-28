@@ -135,3 +135,21 @@ Logs:
 
     for i in 0 1 2 ; do echo "okd4-master-${i}" ; ssh -o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null core@okd4-master-${i}.${LAB_DOMAIN} "sudo journalctl --vacuum-time=1s"; done
     for i in 0 1 2 ; do echo "okd4-master-${i}" ; ssh -o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null core@okd4-worker-${i}.${LAB_DOMAIN} "sudo journalctl --vacuum-time=1s"; done
+
+Ceph:
+
+    oc -n rook-ceph get pod -l app=rook-ceph-osd-prepare
+
+
+    oc get -n rook-ceph cephblockpool
+    oc create -f toolbox.yaml
+    oc -n rook-ceph get pod -l "app=rook-ceph-tools"
+    oc -n rook-ceph exec -it $(kubectl -n rook-ceph get pod -l "app=rook-ceph-tools" -o jsonpath='{.items[0].metadata.name}') bash
+
+
+
+    oc delete -n rook-ceph cephblockpool replicapool --force
+    oc describe -n rook-ceph cephblockpool replicapool
+    oc -n rook-ceph patch cephblockpool replicapool --type merge -p '{"metadata":{"finalizers": [null]}}'
+
+    oc -n rook-ceph delete deployment rook-ceph-tools
