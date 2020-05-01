@@ -153,3 +153,16 @@ Ceph:
     oc -n rook-ceph patch cephblockpool replicapool --type merge -p '{"metadata":{"finalizers": [null]}}'
 
     oc -n rook-ceph delete deployment rook-ceph-tools
+
+Project Provisioning:
+
+    oc describe clusterrolebinding.rbac self-provisioners
+
+    # Remove self-provisioning from all roles
+    oc patch clusterrolebinding.rbac self-provisioners -p '{"subjects": null}'
+
+    # Remove from specific role
+    oc adm policy remove-cluster-role-from-group self-provisioner system:authenticated:oauth
+
+    # Prevent automatic updates to the role
+    oc patch clusterrolebinding.rbac self-provisioners -p '{ "metadata": { "annotations": { "rbac.authorization.kubernetes.io/autoupdate": "false" } } }'

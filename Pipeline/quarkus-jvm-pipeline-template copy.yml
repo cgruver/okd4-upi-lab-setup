@@ -141,6 +141,174 @@ objects:
             name: keystore-volume
 
   - apiVersion: tekton.dev/v1alpha1
+    kind: Pipeline
+    metadata:
+      name: ${APP_NAME}-build-deploy
+    spec:
+      params:
+      resources:
+        - name: appSource
+          type: git
+        - name: appImage
+          type: image
+      tasks:
+        - name: build-app
+          taskRef:
+            name: ${APP_NAME}-build
+          resources:
+            inputs:
+              - name: source
+                resource: appSource
+            outputs:
+              - name: builtImage
+                resource: appImage
+        - name: config-app
+          taskRef:
+            name: ${APP_NAME}-config
+          runAfter:
+            - build-app
+          resources:
+            inputs:
+              - name: source
+                resource: appSource
+        - name: deploy-app
+          taskRef:
+            name: ${APP_NAME}-deploy
+          runAfter:
+            - config-app
+
+  - apiVersion: tekton.dev/v1alpha1
+    kind: Task
+    metadata:
+      name: ${APP_NAME}-build
+    spec:
+      stepTemplate:
+        securityContext:
+          runAsUser: 0
+          privileged: true
+        volumeMounts:
+          - name: varlibc
+            mountPath: /var/lib/containers
+          - name: maven-settings
+            mountPath: /tmp/maven-settings
+          - name: docker-file
+            mountPath: /tmp/docker-file
+      inputs:
+        resources:
+          - name: source
+            type: git
+        params:
+          - name: destinationImage
+            description: the fully qualified image name
+            default: "$(outputs.resources.builtImage.url)"
+          - name: dockerFile
+            description: the docker file to used for building the application
+            default: Dockerfile
+          - name: tlsVerify
+            description: tls verify
+            type: string
+            default: "false"
+      outputs:
+        resources:
+          - name: builtImage
+            type: image
+      steps:
+        - name: prep-build
+          image: image-registry.openshift-image-registry.svc:5000/openshift/maven:3.6.3-jdk-8-slim
+          script: |
+            cp /tmp/maven-settings/settings.xml /workspace/source
+            cp /tmp/docker-file/Dockerfile /workspace/source
+          env:
+            - name: user.home
+              value: /home/tekton
+          workingDir: "/"
+        - name: build-sources
+          image: image-registry.openshift-image-registry.svc:5000/openshift/maven:3.6.3-jdk-8-slim
+          command:
+            - mvn
+          args:
+            - "-DskipTests"
+            - "-Dmaven.wagon.http.ssl.insecure=true"
+            - "-ssettings.xml"
+            - "-P ocp"
+            - "-DappName=app"
+            - "clean"
+            - "package"
+          env:
+            - name: user.home
+              value: /home/tekton
+          workingDir: "/workspace/source"
+        - name: build-image
+          image: image-registry.openshift-image-registry.svc:5000/openshift/buildah:stable
+          command:
+            - "buildah"
+          args:
+            - "bud"
+            - "--layers"
+            - "--tls-verify=$(inputs.params.tlsVerify)"
+            - "-f"
+            - "Dockerfile"
+            - "-t"
+            - "$(inputs.params.destinationImage)"
+            - "."
+          workingDir: "/workspace/source"
+        - name: push-image
+          image: image-registry.openshift-image-registry.svc:5000/openshift/buildah:stable
+          command:
+            - "buildah"
+          args:
+            - "push"
+            - "--tls-verify=$(inputs.params.tlsVerify)"
+            - $(inputs.params.destinationImage)
+            - "docker://$(inputs.params.destinationImage)"
+          workingDir: "/workspace/source"
+      volumes:
+        - name: varlibc
+          emptyDir: {}
+        - name: maven-settings
+          configMap:
+            name: maven-settings-xml
+        - name: docker-file
+          configMap:
+            name: docker-file
+
+  - apiVersion: tekton.dev/v1alpha1
+    kind: Task
+    metadata:
+      name: ${APP_NAME}-config
+    spec:
+      inputs:
+        resources:
+          - name: source
+            type: git
+      steps:
+        - name: apply-config
+          image: image-registry.openshift-image-registry.svc:5000/openshift/origin-cli:4.4.0
+          workingDir: /workspace/source
+          command: ["/bin/bash", "-c"]
+          args:
+            - |-
+              echo Applying ocp configs
+              oc apply -f ./ocp/dev
+              echo -----------------------------------
+
+  - apiVersion: tekton.dev/v1alpha1
+    kind: Task
+    metadata:
+      name: ${APP_NAME}-deploy
+    spec:
+      steps:
+        - name: rollout
+          image: image-registry.openshift-image-registry.svc:5000/openshift/origin-cli:4.4.0
+          workingDir: /workspace
+          command: ["/bin/bash", "-c"]
+          args:
+            - |-
+              echo Rolling out ${APP_NAME}
+              oc rollout latest dc/${APP_NAME}
+              echo -----------------------------------
+
+  - apiVersion: tekton.dev/v1alpha1
     kind: PipelineResource
     metadata:
       name: ${APP_NAME}-source
@@ -161,16 +329,6 @@ objects:
       params:
         - name: url
           value: "image-registry.openshift-image-registry.svc:5000/rating/${APP_NAME}:latest"
-
-  - apiVersion: tekton.dev/v1alpha1
-    kind: PipelineResource
-    metadata:
-      name: ${APP_NAME}-image-rc
-    spec:
-      type: image
-      params:
-        - name: url
-          value: "image-registry.openshift-image-registry.svc:5000/rating/${APP_NAME}:rc"
 
 parameters:
   -

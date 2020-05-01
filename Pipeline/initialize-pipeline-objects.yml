@@ -145,7 +145,7 @@ objects:
   - apiVersion: tekton.dev/v1alpha1
     kind: Task
     metadata:
-      name: ${APP_NAME}-config
+      name: config-app
     spec:
       inputs:
         resources:
@@ -164,7 +164,7 @@ objects:
   - apiVersion: tekton.dev/v1alpha1
     kind: Task
     metadata:
-      name: ${APP_NAME}-deploy
+      name: deploy-app
     spec:
       steps:
         - name: rollout
