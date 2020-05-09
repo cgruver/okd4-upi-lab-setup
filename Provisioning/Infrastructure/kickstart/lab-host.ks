@@ -48,6 +48,7 @@ cat << EOF >> /tmp/net-info
 network  --device=${NIC_02} --noipv4 --noipv6 --no-activate --onboot=no
 network  --bootproto=static --device=br1 --bridgeslaves=${NIC_02} --ip=${IP_02} --netmask=${NETMASK_02} --noipv6 --activate --bridgeopts="stp=false" --onboot=yes
 EOF
+fi
 
 if [ -d /sys/block/sdb ]
 then
