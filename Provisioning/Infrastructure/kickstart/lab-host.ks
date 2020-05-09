@@ -32,7 +32,7 @@ eula --agreed
 
 %pre
 j=$(cat /sys/class/net/eno1/address)
-NET_MAC=${j/-/:}
+NET_MAC=${j//:/-}
 curl -o /tmp/install-vars %%INSTALL_URL%%/hostconfig/${NET_MAC}
 source /tmp/install-vars
 
