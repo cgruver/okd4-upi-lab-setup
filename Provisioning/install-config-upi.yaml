@@ -1,7 +1,7 @@
 apiVersion: v1
 baseDomain: %%LAB_DOMAIN%%
 metadata:
-  name: okd4
+  name: %%CLUSTER_NAME%%
 networking:
   networkType: OpenShiftSDN
   clusterNetwork:
