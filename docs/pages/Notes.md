@@ -9,7 +9,7 @@ Set Masters as Infra nodes
 
     oc patch scheduler cluster --patch '{"spec":{"mastersSchedulable":false}}' --type=merge
 
-    oc patch -n openshift-ingress-operator ingresscontroller default --patch '{"spec":{"nodePlacement":{"nodeSelector":{"matchLabels":{"node-role.kubernetes.io/infra":""}},"tolerations":[{"key":"node.kubernetes.io/unschedulable","effect":"NoSchedule","operator":"Equal","value":"master"}]}}}' --type=merge
+    oc patch -n openshift-ingress-operator ingresscontroller default --patch '{"spec":{"nodePlacement":{"nodeSelector":{"matchLabels":{"node-role.kubernetes.io/infra":""}},"tolerations":[{"key":"node.kubernetes.io/unschedulable","effect":"NoSchedule"},{"key":"node-role.kubernetes.io/master","effect":"NoSchedule"}]}}}' --type=merge
 
     oc get pod -n openshift-ingress -o wide
 
