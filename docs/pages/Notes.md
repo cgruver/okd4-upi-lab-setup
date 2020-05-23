@@ -7,11 +7,11 @@ Set Masters as Infra nodes
       oc label nodes okd4-master-${i}.${LAB_DOMAIN} node-role.kubernetes.io/infra=""
     done
 
-    oc patch -n openshift-ingress-operator ingresscontroller default --patch '{"spec":{"nodePlacement":{"nodeSelector":{"matchLabels":{"node-role.kubernetes.io/infra":""}}}}}' --type=merge
+    oc patch scheduler cluster --patch '{"spec":{"mastersSchedulable":false}}' --type=merge
+
+    oc patch -n openshift-ingress-operator ingresscontroller default --patch '{"spec":{"nodePlacement":{"nodeSelector":{"matchLabels":{"node-role.kubernetes.io/infra":""}},"tolerations":[{"key":"node.kubernetes.io/unschedulable","effect":"NoSchedule","operator":"Equal","value":"master"}]}}}' --type=merge
 
     oc get pod -n openshift-ingress -o wide
-
-    oc patch scheduler cluster --patch '{"spec":{"mastersSchedulable":false}}' --type=merge
 
 Deploy Load Balancer
 
