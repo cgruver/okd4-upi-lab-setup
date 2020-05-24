@@ -48,7 +48,7 @@ case $i in
     PULL_RELEASE=true
     shift
     ;;
-    -n|--name)
+    -n=*|--name=*)
     CLUSTER_NAME="${i#*=}"
     shift
     ;;
