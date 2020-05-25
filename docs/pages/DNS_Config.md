@@ -13,7 +13,7 @@ __If you set up your lab router on the 10.11.11/24 network.  Then you can use th
 Do the following, from the root of this project:
 
     cp ./DNS/named.conf /etc
-    cp ./DNS/named /etc
+    cp -r ./DNS/named /etc
     
     mv /etc/named/zones/db.your.domain.org /etc/named/zones/db.${LAB_DOMAIN} # Don't substitute your.domain.org in this line
     sed -i "s|%%LAB_DOMAIN%%|${LAB_DOMAIN}|g" /etc/named/named.conf.local
