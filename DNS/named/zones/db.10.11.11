@@ -6,7 +6,7 @@
                          604800 )       ; Negative Cache TTL
 
 ; name servers - NS records
-      IN      NS      lab-controller01.%%LAB_DOMAIN%%.
+      IN      NS      bastion.%%LAB_DOMAIN%%.
 
 ; PTR Records
 10    IN      PTR     bastion.%%LAB_DOMAIN%%.
