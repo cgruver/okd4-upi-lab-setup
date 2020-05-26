@@ -57,14 +57,6 @@ Now, we are going to set up the artifacts for host installation.  This will incl
        rmdir /tmp/centos-iso-mount
        rm CentOS-7-x86_64-Minimal.iso
 
-1. Copy the UEFI PXE boot files to the router:
-
-       scp ${INSTALL_ROOT}/centos/EFI/BOOT/grubx64.efi root@${LAB_GATEWAY}:/data/tftpboot/
-       scp ${INSTALL_ROOT}/centos/EFI/BOOT/BOOTX64.EFI root@${LAB_GATEWAY}:/data/tftpboot/
-       ssh root@${LAB_GATEWAY} "mkdir /data/tftpboot/networkboot"
-       scp ${INSTALL_ROOT}/centos/isolinux/vmlinuz root@${LAB_GATEWAY}:/data/tftpboot/networkboot
-       scp ${INSTALL_ROOT}/centos/isolinux/initrd.img root@${LAB_GATEWAY}:/data/tftpboot/networkboot
-
 1. Deploy the files from this project for supporting `kickstart` installation.
 
     Make a temporary work space:
@@ -128,4 +120,6 @@ Now, we are going to set up the artifacts for host installation.  This will incl
        curl -o ${INSTALL_ROOT}/fcos/install.xz https://builds.coreos.fedoraproject.org/prod/streams/${FCOS_STREAM}/builds/${FCOS_VER}/x86_64/fedora-coreos-${FCOS_VER}-metal.x86_64.raw.xz
        curl -o ${INSTALL_ROOT}/fcos/install.xz.sig https://builds.coreos.fedoraproject.org/prod/streams/${FCOS_STREAM}/builds/${FCOS_VER}/x86_64/fedora-coreos-${FCOS_VER}-metal.x86_64.raw.xz.sig
 
-Now, continue on to set up your Nexus: [Sonatype Nexus Setup](Nexus_Config.md)
+Now, continue on to [DHCP Setup](DHCP.md)
+
+

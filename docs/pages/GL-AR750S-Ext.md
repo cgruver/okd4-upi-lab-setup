@@ -111,6 +111,14 @@ From the root directory of this project, execute the following:
     cp ./tmp-work/okd-lb.ipxe ${OKD4_LAB_PATH}/ipxe-templates/okd-lb.ipxe
     rm -rf ./tmp-work
 
+Finally, copy the UEFI PXE boot files to the router:
+
+    scp ${INSTALL_ROOT}/centos/EFI/BOOT/grubx64.efi root@${LAB_GATEWAY}:/data/tftpboot/
+    scp ${INSTALL_ROOT}/centos/EFI/BOOT/BOOTX64.EFI root@${LAB_GATEWAY}:/data/tftpboot/
+    ssh root@${LAB_GATEWAY} "mkdir /data/tftpboot/networkboot"
+    scp ${INSTALL_ROOT}/centos/isolinux/vmlinuz root@${LAB_GATEWAY}:/data/tftpboot/networkboot
+    scp ${INSTALL_ROOT}/centos/isolinux/initrd.img root@${LAB_GATEWAY}:/data/tftpboot/networkboot
+
 __Your router is now ready to PXE boot hosts.__
 
-Next, we will configure DNS: Go to [DNS Setup](DNS_Config.md)
+Continue on to set up your Nexus: [Sonatype Nexus Setup](Nexus_Config.md)
