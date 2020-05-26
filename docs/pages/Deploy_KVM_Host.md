@@ -1,5 +1,7 @@
 ## Installing or reinstalling a NUC via iPXE
 
+__Note:__ If you would rather manually install your KVM hosts, then follow this guide: [KVM Host Manual Install](KVM_Host_Install.md)
+
 The installation on a bare metal host will work like this:
 
 1. The host will power on and find no bootable OS
@@ -22,7 +24,7 @@ There are a couple of things that we need to put in place to get started.
 
 First we need to flip the NUC over and get the MAC address for the wired NIC, and then create a file with the MAC address replacing the `:` characters with `-`.
 
-Assuming your MAC is: `1C:69:7A:02:B6:C2` you will create a file named `1c-69-7a-02-b6-c2` and populate it with something like this: (There is an example file in this project under `./Provisioning/Infrastructure/hostconfig/1c-69-7a-02-b6-c2`)
+Assuming your MAC is: `1C:69:7A:02:B6:C2` you will create a file named `1c-69-7a-02-b6-c2` and populate it with something like this: (There is an example file in this project under `./Provisioning/guest_install/hostconfig/1c-69-7a-02-b6-c2`)
 
     export NIC_02=enp60s0u1                         # The device name of your second NIC, if present
     export GATEWAY_01=10.11.11.1                    # Your primary network Router IP

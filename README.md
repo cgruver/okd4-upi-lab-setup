@@ -14,6 +14,7 @@ Or, follow the directions in each section from here:
 1. [Nginx Setup & RPM Repo sync](docs/pages/Nginx_Config.md)
 1. [PXE Boot with TFTP & DHCP](docs/pages/DHCP.md)
 1. [Sonatype Nexus Setup](docs/pages/Nexus_Config.md)
+1. [Build KVM Hosts](docs/pages/Deploy_KVM_Host.md)
 1. [Deploy OKD](docs/pages/DeployOKD.md)
 
 ### Coming soon: Instructions for those of you without an OpenWRT router, HCI Ceph Storage, 3 Node MariaDB Cluster, Applying Updates, Tekton Pipeline for Spring Boot and Quarkus.  If you are brave, watch the branches.

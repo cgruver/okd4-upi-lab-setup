@@ -69,9 +69,9 @@ Now, we are going to set up the artifacts for host installation.  This will incl
 
     Prep the install files from this project:
 
-       cp -rf ./Provisioning/Infrastructure/kickstart ./tmp-work 
-       cp -rf ./Provisioning/Infrastructure/firstboot ./tmp-work
-       cp -rf ./Provisioning/Infrastructure/postinstall ./tmp-work
+       cp -rf ./Provisioning/guest_install/kickstart ./tmp-work 
+       cp -rf ./Provisioning/guest_install/firstboot ./tmp-work
+       cp -rf ./Provisioning/guest_install/postinstall ./tmp-work
        for i in $(ls ./tmp-work/kickstart)
        do
           sed -i "s|%%INSTALL_URL%%|${INSTALL_URL}|g" ./tmp-work/kickstart/${i}

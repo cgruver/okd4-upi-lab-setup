@@ -47,7 +47,7 @@ Follow each of these guides to get setup:
 1. [Nginx Setup & RPM Repo sync](pages/Nginx_Config.md)
 1. [PXE Boot with TFTP & DHCP](pages/DHCP.md)
 1. [Sonatype Nexus Setup](pages/Nexus_Config.md)
-1. [Build additional KVM Host/s](pages/Deploy_KVM_Host.md)
+1. [Build KVM Host/s](pages/Deploy_KVM_Host.md)
 
 When your setup is complete, it's time to deploy your OKD cluster:
 
