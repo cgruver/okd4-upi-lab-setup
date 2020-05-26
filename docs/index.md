@@ -10,9 +10,7 @@ I don't know if the NUC6i7KYK are still available.  They may have been discontin
 
 I am also a fan of the [NUC8i3BEK](https://ark.intel.com/content/www/us/en/ark/products/126149/intel-nuc-kit-nuc8i3bek.html).  This unit is smaller than the NUC6i7KYK.  It sports a dual-core CPU, supports 32GB of RAM and has a single M.2 slot for an SSD.  I use one of these for my [Bastion Host](pages/Bastion.md) server.
 
-You will need a router that supports DHCP reservations, TFTP, and PXE.  Assuming that you already have a home router, you can use that as long as it supports TFTP and PXE configuration.  Most consumer WiFi routers do not support TFTP or PXE.  However, if you want something portable and awesome, check out the GL.iNet [GL-AR750S-Ext](https://www.gl-inet.com/products/gl-ar750s/).  This little guy runs OpenWRT which means that you can use it as a router for your lab network, plus - Wireless bridge, VPN, PXE, Http, DNS, etc...  [OpenWRT](https://openwrt.org) is a very powerful networking distro.  There is a new version out now, [GL-MV1000](https://www.gl-inet.com/products/gl-mv1000/).  It does not have WiFi, but it is much faster than the GL-AR750S-Ext.  I carry the AR750 with me when traveling, and use a pair of the MV1000s in my home lab.
-
-__Note: The instructions for this lab setup assume that you are using an OpenWRT router with the `uci` command line interface.  These instructions will work out-of-the-box with the GL.iNet GL-AR750S-Ext or GL-MV1000__
+You will either need a router that supports DHCP reservations, TFTP, and PXE or you will set up DHCP & TFTP on a Linux host.  Assuming that you already have a home router, you can use that as long as it supports TFTP and PXE configuration.  Most consumer WiFi routers do not support TFTP or PXE.  However, if you want something portable and awesome, check out the GL.iNet [GL-AR750S-Ext](https://www.gl-inet.com/products/gl-ar750s/).  This little guy runs OpenWRT which means that you can use it as a router for your lab network, plus - Wireless bridge, VPN, PXE, Http, DNS, etc...  [OpenWRT](https://openwrt.org) is a very powerful networking distro.  There is a new version out now, [GL-MV1000](https://www.gl-inet.com/products/gl-mv1000/).  It does not have WiFi, but it is much faster than the GL-AR750S-Ext.  I carry the AR750 with me when traveling, and use a pair of the MV1000s in my home lab.
 
 You may also need a network switch, if you don't have enough 1GB ports available in your router.  I am using a couple of [Netgear GS110EMX](https://www.netgear.com/support/product/GS110EMX.aspx).  It's a great little managed switch with 8 1Gb ports and 2 10Gb ports.  The 10Gb ports are really handy if you also have a NAS device that supports 10Gb network speeds.  
 
@@ -45,9 +43,9 @@ Once you have acquired the necessary gear, it's time to start setting it all up.
 Follow each of these guides to get setup:
 
 1. [Bastion Host](pages/Bastion.md)
-1. [Router Setup](pages/GL-AR750S-Ext.md)
 1. [DNS Setup](pages/DNS_Config.md)
 1. [Nginx Setup & RPM Repo sync](pages/Nginx_Config.md)
+1. [PXE Boot with TFTP & DHCP](pages/DHCP.md)
 1. [Sonatype Nexus Setup](pages/Nexus_Config.md)
 1. [Build additional KVM Host/s](pages/Deploy_KVM_Host.md)
 
