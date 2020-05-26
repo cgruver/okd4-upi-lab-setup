@@ -140,7 +140,7 @@ I have provided a set of utility scripts to automate a lot of the tasks associat
        apiVersion: v1
        baseDomain: %%LAB_DOMAIN%%
        metadata:
-         name: okd4
+         name: %%CLUSTER_NAME%%
        networking:
          networkType: OpenShiftSDN
          clusterNetwork:
@@ -197,7 +197,7 @@ I have provided a set of utility scripts to automate a lot of the tasks associat
        apiVersion: v1
        baseDomain: your.domain.org
        metadata:
-         name: okd4
+         name: %%CLUSTER_NAME%%
        networking:
          networkType: OpenShiftSDN
          clusterNetwork:
@@ -295,18 +295,17 @@ I have provided a set of utility scripts to automate a lot of the tasks associat
 
 3. Create the cluster virtual machines and set up for OKD installation:
 
-       DeployOkdNodes.sh -i=${OKD4_LAB_PATH}/guest-inventory/okd4 -p -m -d1
+       DeployOkdNodes.sh -i=${OKD4_LAB_PATH}/guest-inventory/okd4 -p -m -n=okd4
 
     This script does a whole lot of work for us.
 
     1. It will pull the current versions of `oc` and `openshift-install` based on the value of `${OKD_RELEASE}` that we set previously.
-    2. fills in the OKD version in the install-config-upi.yaml file and copies that file to the install directory as install-config.yaml.
-    3. Invokes the openshift-install command against our install-config to produce ignition files
-    4. Copies the ignition files into place for FCOS install
-    5. Sets up for a mirrored install by putting `registry.svc.ci.openshift.org` into a DNS sinkhole.
-    6. Creates guest VMs based on the inventory file at `${OKD4_LAB_PATH}/guest-inventory/okd4`
-    7. Creates DHCP reservations for each VM
-    8. Creates iPXE boot files for each VM and copies them to the iPXE server, (your router)
+    1. fills in the OKD version and `%%CLUSTER_NAME%%` in the install-config-upi.yaml file and copies that file to the install directory as install-config.yaml.
+    1. Invokes the openshift-install command against our install-config to produce ignition files
+    1. Copies the ignition files into place for FCOS install
+    1. Sets up for a mirrored install by putting `registry.svc.ci.openshift.org` into a DNS sinkhole.
+    1. Creates guest VMs based on the inventory file at `${OKD4_LAB_PATH}/guest-inventory/okd4`
+    1. Creates iPXE boot files for each VM and copies them to the iPXE server, (your router)
 
 # We are now ready to fire up our OKD cluster!!!
 
