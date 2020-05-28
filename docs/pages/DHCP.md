@@ -56,6 +56,7 @@ From the root directory of this project, execute the following:
 
     mkdir tmp-work
     mkdir -p /var/lib/tftpboot/networkboot
+    mkdir /var/lib/tftpboot/ipxe
     cp ./Provisioning/iPXE/* ./tmp-work
     for i in $(ls ./tmp-work)
     do
