@@ -4,20 +4,24 @@ I have provided a set of utility scripts to automate a lot of the tasks associat
 
 | | |
 |-|-|
-| `DeployLbNode.sh` | Creates a virtual machine that will install and configure HA-Proxy |
-| `UnDeployLbNode.sh` | Destroys the load balancer VM and supporting infrastructure |
+| `DeployLabGuest.sh` | Creates a virtual machine that will kickstart based on a specific role.  We will use it to configure the HA-Proxy load balancer |
+| `UnDeployLabGuest.sh` | Destroys a guest VM and supporting infrastructure |
 | `DeployOkdNodes.sh` | Creates the Bootstrap, Master, and Worker VMs from an inventory file, (described below) |
 | `UnDeployOkdNodes.sh` | Destroys the OKD cluster and all supporting infrastructure |
 | `PowerOnVms.sh` | Helper script that uses IPMI to power on the VMs listed in an inventory file |
 
-1. Deploy the load-balancer:
+1. Deploy the load-balancer: (Replace `bastion` with the hostname of your bastion host if you used a different name.)
 
-       DeployLbNode.sh -h=okd4-lb01 -n=bastion -v=6228
+       DeployLabGuest.sh -h=okd4-lb01 -n=bastion -r=lb-node -c=2 -m=4096 -d=50 -v=6228
 
     | | | | |
     |-|-|-|-|
     | -h | Sets Hostname: | okd4-lb01 | __*DNS `A` and `PTR` records must exist*__ |
     | -n | Sets the Hypervisor Host | bastion | |
+    | -r | Sets the kickstart file to lb-node.ks | |
+    | -c | Sets the vCPU count | |
+    | -m | Sets the guest memory | |
+    | -d | Sets the guest root disk volume in GB | |
     | -v  | Sets the VBMC Port | 6228 | |
 
     This will create a VM which will do a kickstart install of CentOS with HA-Proxy.  It will pull the haproxy.cfg file that we prepared earlier when we set up Nginx.  If you are curious about the installation, take a look at: 
