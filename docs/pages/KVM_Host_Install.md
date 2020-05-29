@@ -21,11 +21,11 @@ Ensure that you have DNS `A` and `PTR` records for each host.  The DNS files tha
 
 After the installation completes,  ensure that you can ssh to your host from your bastion.
 
-    ssh-copy-id root@10.11.11.200
-    ssh root@10.11.11.200 "uname -a"
+    ssh-copy-id root@kvm-host01.${LAB_DOMAIN}
+    ssh root@kvm-host01.${LAB_DOMAIN} "uname -a"
 
-    ssh-copy-id root@10.11.11.201
-    ssh root@10.11.11.201 "uname -a"
+    ssh-copy-id root@kvm-host01.${LAB_DOMAIN}
+    ssh root@kvm-host01.${LAB_DOMAIN} "uname -a"
 
 Then, disconnect the monitor, mouse and keyboard.
 
@@ -56,6 +56,9 @@ Set up KVM for each host.  Do the following for kvm-host01, and modify the IP in
        mkdir /VirtualMachines
        virsh pool-destroy default
        virsh pool-undefine default
+
+    If there is no default pool, the two commands above will fail.  This is OK, carry on.
+
        virsh pool-define-as --name default --type dir --target /VirtualMachines
        virsh pool-autostart default
        virsh pool-start default
@@ -90,6 +93,10 @@ Set up KVM for each host.  Do the following for kvm-host01, and modify the IP in
        IP=10.11.11.200   # Change this for kvm-host01, etc...
 
     Set the following variables from your bastion host: `LAB_DOMAIN`, `LAB_NAMESERVER`, `LAB_GATEWAY`
+
+    1. Set the hostname:
+
+       hostnamectl set-hostname kvm-host01.${LAB_DOMAIN}
 
     1. Create a network bridge device named `br0`
 
