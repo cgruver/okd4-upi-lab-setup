@@ -7,6 +7,7 @@ USE_MIRROR=false
 IP_CONFIG_1=""
 IP_CONFIG_2=""
 IP_CONFIG=""
+CLUSTER_NAME="okd4"
 
 for i in "$@"
 do
@@ -34,6 +35,10 @@ case $i in
     -dns=*|--nameserver=*)
     LAB_NAMESERVER="${i#*=}"
     shift # past argument with no value
+    ;;
+    -n=*|--name=*)
+    CLUSTER_NAME="${i#*=}"
+    shift
     ;;
     -m|--mirror)
     USE_MIRROR=true
@@ -72,8 +77,13 @@ fi
 rm -rf ${OKD4_LAB_PATH}/okd4-install-dir
 mkdir ${OKD4_LAB_PATH}/okd4-install-dir
 cp ${OKD4_LAB_PATH}/install-config-upi.yaml ${OKD4_LAB_PATH}/okd4-install-dir/install-config.yaml
+OKD_VER=$(echo $OKD_RELEASE | sed  "s|4.4.0-0.okd|4.4|g")
+sed -i "s|%%OKD_VER%%|${OKD_VER}|g" ${OKD4_LAB_PATH}/okd4-install-dir/install-config.yaml
+sed -i "s|%%CLUSTER_NAME%%|${CLUSTER_NAME}|g" ${OKD4_LAB_PATH}/okd4-install-dir/install-config.yaml
 openshift-install --dir=${OKD4_LAB_PATH}/okd4-install-dir create ignition-configs
-scp -r ${OKD4_LAB_PATH}/okd4-install-dir/*.ign root@${INSTALL_HOST_IP}:${INSTALL_ROOT}/fcos/ignition/
+ssh root@${INSTALL_HOST_IP} "mkdir -p ${INSTALL_ROOT}/fcos/ignition/${CLUSTER_NAME}"
+scp -r ${OKD4_LAB_PATH}/okd4-install-dir/*.ign root@${INSTALL_HOST_IP}:${INSTALL_ROOT}/fcos/ignition/${CLUSTER_NAME}/
+ssh root@${INSTALL_HOST_IP} "chmod 644 ${INSTALL_ROOT}/fcos/ignition/${CLUSTER_NAME}/*"
 
 # Create Virtual Machines from the inventory file
 mkdir -p ${OKD4_LAB_PATH}/ipxe-work-dir
@@ -131,6 +141,7 @@ do
 
   # Create and deploy the iPXE boot file for this VM
   sed "s|%%IP_CONFIG%%|${IP_CONFIG}|g" ${OKD4_LAB_PATH}/ipxe-templates/fcos-okd4.ipxe > ${OKD4_LAB_PATH}/ipxe-work-dir/${NET_MAC//:/-}.ipxe
+  sed -i "s|%%CLUSTER_NAME%%|${CLUSTER_NAME}|g" ${OKD4_LAB_PATH}/ipxe-work-dir/${NET_MAC//:/-}.ipxe
   if [ ${ROLE} == "BOOTSTRAP" ]
   then
     sed -i "s|%%OKD_ROLE%%|bootstrap|g" ${OKD4_LAB_PATH}/ipxe-work-dir/${NET_MAC//:/-}.ipxe
