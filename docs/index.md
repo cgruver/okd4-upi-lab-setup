@@ -52,3 +52,16 @@ Follow each of these guides to get setup:
 When your setup is complete, it's time to deploy your OKD cluster:
 
 [Deploy OKD](pages/DeployOKD.md)
+
+Things to do with your cluster:
+
+1. [Designate your Master Nodes as Infrastructure Nodes](InfraNodes.md)
+
+    __Do Not do this step if you do not have dedicated `worker` nodes.__
+
+    If you have dedicated worker nodes in addition to three master nodes, then I recommend this step to pin your Ingress Routers to the Master nodes.  If they restart on worker nodes, you will lose Ingress access to your cluster unless you add the worker nodes to your external HA Proxy configuration.  I prefer to use Infrasturcture nodes to run the Ingress routers and a number of other pods.
+
+1. [Set up Htpasswd as an Identity Provider](pages/HtPasswd.md)
+1. [Deploy a Ceph cluster for block storage provisioning](pages/Ceph.md)
+1. [Updating Your Cluster](UpdateOKD.md)
+1. Coming soon...  Tekton pipeline for Quarkus and Spring Boot applications.

@@ -416,4 +416,18 @@ Create an Empty volume for registry storage:
 
     openshift-install --dir=okd4-install gather bootstrap --bootstrap 10.11.11.49 --master 10.11.11.60 --master 10.11.11.61 --master 10.11.11.62
 
-Next: [Updating Your Cluster](UpdateOKD.md)
+### Next: 
+
+1. Create an Image Pruner:
+
+       oc patch imagepruners.imageregistry.operator.openshift.io/cluster --type merge -p '{"spec":{"schedule":"*/0 * * * *","suspend":false,"keepTagRevisions":3,"keepYoungerThan":60,"resources":{},"affinity":{},"nodeSelector":{},"tolerations":[],"startingDeadlineSeconds":60,"successfulJobsHistoryLimit":3,"failedJobsHistoryLimit":3}}'
+1. [Designate your Master Nodes as Infrastructure Nodes](InfraNodes.md)
+
+    __Do Not do this step if you do not have dedicated `worker` nodes.__
+
+    If you have dedicated worker nodes in addition to three master nodes, then I recommend this step to pin your Ingress Routers to the Master nodes.  If they restart on worker nodes, you will lose Ingress access to your cluster unless you add the worker nodes to your external HA Proxy configuration.  I prefer to use Infrasturcture nodes to run the Ingress routers and a number of other pods.
+
+1. [Set up Htpasswd as an Identity Provider](pages/HtPasswd.md)
+1. [Deploy a Ceph cluster for block storage provisioning](pages/Ceph.md)
+1. [Updating Your Cluster](UpdateOKD.md)
+1. Coming soon...  Tekton pipeline for Quarkus and Spring Boot applications.

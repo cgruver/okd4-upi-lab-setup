@@ -2,7 +2,7 @@
 bastion,okd4-bootstrap,16384,4,50,0,1,BOOTSTRAP,6229
 kvm-host01,okd4-master-0,20480,4,80,0,1,MASTER,6230
 kvm-host02,okd4-master-1,20480,4,80,0,1,MASTER,6231
-kvm-host03,okd4-master-2,20480,4,80,700,1,MASTER,6232
+kvm-host03,okd4-master-2,20480,4,80,0,1,MASTER,6232
 kvm-host01,okd4-worker-0,40960,4,80,700,1,WORKER,6233
 kvm-host02,okd4-worker-1,40960,4,80,700,1,WORKER,6234
 kvm-host03,okd4-worker-2,40960,4,80,700,1,WORKER,6235
