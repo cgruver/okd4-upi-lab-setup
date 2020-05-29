@@ -40,7 +40,7 @@ Check prices at [Amazon.com](https://www.amazon.com) and [B&H Photo Video](https
 
 Once you have acquired the necessary gear, it's time to start setting it all up.
 
-Follow each of these guides to get setup:
+__Follow each of these guides to get setup:__
 
 1. [Bastion Host](pages/Bastion.md)
 1. [DNS Setup](pages/DNS_Config.md)
@@ -53,7 +53,7 @@ When your setup is complete, it's time to deploy your OKD cluster:
 
 [Deploy OKD](pages/DeployOKD.md)
 
-Things to do with your cluster:
+After deployment is complete, here are some things to do with your cluster:
 
 1. [Designate your Master Nodes as Infrastructure Nodes](InfraNodes.md)
 

@@ -6,7 +6,7 @@
 
 Read the [Tutorial on GitHub Pages](https://cgruver.github.io/okd4-upi-lab-setup/)
 
-Or, follow the directions in each section from here:
+Or, follow the directions in each section here:
 
 1. [Building Your Lab](docs/index.md)
 1. [Bastion Host](docs/pages/Bastion.md)
@@ -17,7 +17,7 @@ Or, follow the directions in each section from here:
 1. [Build KVM Hosts](docs/pages/Deploy_KVM_Host.md)
 1. [Deploy OKD](docs/pages/DeployOKD.md)
 
-Things to do with your cluster:
+After deployment is complete, here are some things to do with your cluster:
 
 1. [Designate your Master Nodes as Infrastructure Nodes](InfraNodes.md)
 
@@ -27,4 +27,5 @@ Things to do with your cluster:
 
 1. [Set up Htpasswd as an Identity Provider](pages/HtPasswd.md)
 1. [Deploy a Ceph cluster for block storage provisioning](pages/Ceph.md)
-1. Coming soon...  Tekton pipeline for Quarkus and Spring Boot applications.
+1. [Updating Your Cluster](UpdateOKD.md)
+1. Coming soon...  Adding additional worker nodes, Tekton pipeline for Quarkus and Spring Boot applications.
