@@ -28,8 +28,8 @@ etcd-1.%%LAB_DOMAIN%%.          IN      A      10.11.11.61
 okd4-master-2.%%LAB_DOMAIN%%.   IN      A      10.11.11.62
 etcd-2.%%LAB_DOMAIN%%.          IN      A      10.11.11.62
 okd4-worker-0.%%LAB_DOMAIN%%.   IN      A      10.11.11.70
-okd4-worker-0.%%LAB_DOMAIN%%.   IN      A      10.11.11.71
-okd4-worker-0.%%LAB_DOMAIN%%.   IN      A      10.11.11.72
+okd4-worker-1.%%LAB_DOMAIN%%.   IN      A      10.11.11.71
+okd4-worker-2.%%LAB_DOMAIN%%.   IN      A      10.11.11.72
 
 _etcd-server-ssl._tcp.okd4.%%LAB_DOMAIN%%    86400     IN    SRV     0    10    2380    etcd-0.okd4.%%LAB_DOMAIN%%.
 _etcd-server-ssl._tcp.okd4.%%LAB_DOMAIN%%    86400     IN    SRV     0    10    2380    etcd-1.okd4.%%LAB_DOMAIN%%.
