@@ -147,10 +147,10 @@ objects:
     spec:
       type: git
       params:
-        - name: url
-          value: ${GIT_REPOSITORY}
-        - name: revision
-          value: ${GIT_BRANCH}
+      - name: url
+        value: ${GIT_REPOSITORY}
+      - name: revision
+        value: ${GIT_BRANCH}
 
   - apiVersion: tekton.dev/v1alpha1
     kind: PipelineResource
@@ -159,8 +159,8 @@ objects:
     spec:
       type: image
       params:
-        - name: url
-          value: "image-registry.openshift-image-registry.svc:5000/rating/${APP_NAME}:latest"
+      - name: url
+        value: "image-registry.openshift-image-registry.svc:5000/rating/${APP_NAME}:latest"
 
   - apiVersion: tekton.dev/v1alpha1
     kind: PipelineResource
@@ -169,8 +169,25 @@ objects:
     spec:
       type: image
       params:
-        - name: url
-          value: "image-registry.openshift-image-registry.svc:5000/rating/${APP_NAME}:rc"
+      - name: url
+        value: "image-registry.openshift-image-registry.svc:5000/rating/${APP_NAME}:rc"
+
+  - apiVersion: tekton.dev/v1alpha1
+    kind: PipelineRun
+    metadata:
+      name: ${APP_NAME}-pipeline-run
+    spec:
+      pipelineRef: build-and-deploy
+      params:
+      - name: appName
+        value: ${APP_NAME}
+      resources:
+      - name: appSource
+        resourceRef:
+          name: ${APP_NAME}-source
+      - name: appImage
+        resourceRef:
+          name: ${APP_NAME}-image
 
 parameters:
   -

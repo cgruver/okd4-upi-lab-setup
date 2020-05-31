@@ -1,41 +1,5 @@
 # Notes before they become docs
 
-Set Masters as Infra nodes
-
-    for i in 0 1 2
-    do
-      oc label nodes okd4-master-${i}.${LAB_DOMAIN} node-role.kubernetes.io/infra=""
-    done
-
-    oc patch scheduler cluster --patch '{"spec":{"mastersSchedulable":false}}' --type=merge
-
-    oc patch -n openshift-ingress-operator ingresscontroller default --patch '{"spec":{"nodePlacement":{"nodeSelector":{"matchLabels":{"node-role.kubernetes.io/infra":""}},"tolerations":[{"key":"node.kubernetes.io/unschedulable","effect":"NoSchedule"},{"key":"node-role.kubernetes.io/master","effect":"NoSchedule"}]}}}' --type=merge
-
-    oc get pod -n openshift-ingress -o wide
-
-Deploy Load Balancer
-
-    DeployLabGuest.sh -h=okd4-prd-lb01 -n=bastion -r=lb-node -c=2 -m=4096 -d=50 -v=7000
-
-Set up HTPasswd
-
-    mkdir -p ${OKD4_LAB_PATH}/okd-creds
-    ADMIN_PWD=$(cat ${OKD4_LAB_PATH}/okd4-install-dir/auth/kubeadmin-password)
-    htpasswd -B -c -b ${OKD4_LAB_PATH}/okd-creds/htpasswd admin $(cat ${OKD4_LAB_PATH}/okd4-install-dir/auth/kubeadmin-password)
-    htpasswd -b ${OKD4_LAB_PATH}/okd-creds/htpasswd devuser devpwd
-    oc create -n openshift-config secret generic htpasswd-secret --from-file=htpasswd=${OKD4_LAB_PATH}/okd-creds/htpasswd
-    oc apply -f ${OKD4_LAB_PATH}/htpasswd-cr.yml
-    oc adm policy add-cluster-role-to-user cluster-admin admin
-
-Remove temporary user:
-
-    oc delete secrets kubeadmin -n kube-system
-
-Expose Registry:
-
-    oc patch configs.imageregistry.operator.openshift.io/cluster --patch '{"spec":{"defaultRoute":true}}' --type=merge
-    docker login -u $(oc whoami) -p $(oc whoami -t) --tls-verify=false $(oc get route default-route -n openshift-image-registry --template='{{ .spec.host }}')
-
 Reset the HA Proxy configuration for a new cluster build:
 
     ssh okd4-lb01 "curl -o /etc/haproxy/haproxy.cfg http://${INSTALL_HOST_IP}/install/postinstall/haproxy.cfg && systemctl restart haproxy"
@@ -67,19 +31,6 @@ Upgrade:
 
     oc patch clusterversion/version --patch '{"spec":{"upstream":"https://origin-release.svc.ci.openshift.org/graph"}}' --type=merge
 
-Add PVC to Registry:
-
-    
-    oc patch configs.imageregistry.operator.openshift.io cluster --type merge --patch '{"spec":{"storage":{"pvc":{"claim":"registry-pvc"}}}}'
-
-    oc patch configs.imageregistry.operator.openshift.io cluster --type merge --patch '{"spec":{"managementState":"Managed","storage":{"emptyDir":{}}}}'
-
-    oc patch configs.imageregistry.operator.openshift.io cluster --type merge --patch '{"spec":{"managementState":"Removed"}}'
-
-    oc patch configs.imageregistry.operator.openshift.io cluster --type json -p '[{ "op": "remove", "path": "/spec/storage/emptyDir" }]'
-
-    oc patch configs.imageregistry.operator.openshift.io cluster --type merge --patch '{"spec":{"rolloutStrategy":"Recreate","managementState":"Managed","storage":{"pvc":{"claim":"registry-pvc"}}}}'
-
 Samples Operator: Extract templates and image streams, then remove the operator.  We don't want everything and the kitchen sink...
 
     mkdir -p ${OKD4_LAB_PATH}/OKD-Templates-ImageStreams/templates
@@ -99,30 +50,6 @@ Samples Operator: Extract templates and image streams, then remove the operator.
 
     oc patch configs.samples.operator.openshift.io cluster --type merge --patch '{"spec":{"managementState":"Removed"}}'
 
-Tekton:
-
-    tkn clustertask ls
-
-    IMAGE_REGISTRY=$(oc get route default-route -n openshift-image-registry --template='{{ .spec.host }}')
-    podman login -u $(oc whoami) -p $(oc whoami -t) --tls-verify=false ${IMAGE_REGISTRY}
-    podman pull quay.io/openshift/origin-cli:4.4.0
-    podman tag quay.io/openshift/origin-cli:4.4.0 ${IMAGE_REGISTRY}/openshift/origin-cli:4.4.0
-    podman push ${IMAGE_REGISTRY}/openshift/origin-cli:4.4.0 --tls-verify=false
-
-    docker pull quay.io/buildah/stable
-    docker tag quay.io/buildah/stable:latest ${IMAGE_REGISTRY}/openshift/buildah:stable
-    docker push ${IMAGE_REGISTRY}/openshift/buildah:stable
-
-    docker pull docker.io/maven:3.6.3-jdk-8-slim
-    docker tag docker.io/library/maven:3.6.3-jdk-8-slim ${IMAGE_REGISTRY}/openshift/maven:3.6.3-jdk-8-slim
-    docker push ${IMAGE_REGISTRY}/openshift/maven:3.6.3-jdk-8-slim
-
-    docker pull quay.io/openshift/origin-cli:4.4.0
-    docker tag quay.io/openshift/origin-cli:4.4.0 ${IMAGE_REGISTRY}/openshift/origin-cli:4.4.0
-    docker push ${IMAGE_REGISTRY}/openshift/origin-cli:4.4.0
-
-    oc patch sa pipeline --type merge --patch '{"secrets":[{"name":"bitbucket-secret"}]}'
-
 Fix Hostname:
 
     for i in 0 1 2 ; do ssh -o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null core@okd4-master-${i}.${LAB_DOMAIN} "sudo hostnamectl set-hostname okd4-master-${i}.my.domain.org && sudo shutdown -r now"; done
@@ -136,24 +63,6 @@ Logs:
     for i in 0 1 2 ; do echo "okd4-master-${i}" ; ssh -o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null core@okd4-master-${i}.${LAB_DOMAIN} "sudo journalctl --vacuum-time=1s"; done
     for i in 0 1 2 ; do echo "okd4-master-${i}" ; ssh -o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null core@okd4-worker-${i}.${LAB_DOMAIN} "sudo journalctl --vacuum-time=1s"; done
 
-Ceph:
-
-    oc -n rook-ceph get pod -l app=rook-ceph-osd-prepare
-
-
-    oc get -n rook-ceph cephblockpool
-    oc create -f toolbox.yaml
-    oc -n rook-ceph get pod -l "app=rook-ceph-tools"
-    oc -n rook-ceph exec -it $(kubectl -n rook-ceph get pod -l "app=rook-ceph-tools" -o jsonpath='{.items[0].metadata.name}') bash
-
-
-
-    oc delete -n rook-ceph cephblockpool replicapool --force
-    oc describe -n rook-ceph cephblockpool replicapool
-    oc -n rook-ceph patch cephblockpool replicapool --type merge -p '{"metadata":{"finalizers": [null]}}'
-
-    oc -n rook-ceph delete deployment rook-ceph-tools
-
 Project Provisioning:
 
     oc describe clusterrolebinding.rbac self-provisioners
@@ -166,10 +75,6 @@ Project Provisioning:
 
     # Prevent automatic updates to the role
     oc patch clusterrolebinding.rbac self-provisioners -p '{ "metadata": { "annotations": { "rbac.authorization.kubernetes.io/autoupdate": "false" } } }'
-
-Image Pruner:
-
-    oc patch imagepruners.imageregistry.operator.openshift.io/cluster --type merge -p '{"spec":{"schedule":"*/0 * * * *","suspend":false,"keepTagRevisions":3,"keepYoungerThan":60,"resources":{},"affinity":{},"nodeSelector":{},"tolerations":[],"startingDeadlineSeconds":60,"successfulJobsHistoryLimit":3,"failedJobsHistoryLimit":3}}'
 
 iSCSI:
 
