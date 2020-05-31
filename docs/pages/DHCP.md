@@ -70,8 +70,6 @@ From the root directory of this project, execute the following:
     cp ./tmp-work/lab-guest.ipxe ${OKD4_LAB_PATH}/ipxe-templates/lab-guest.ipxe
     rm -rf ./tmp-work
 
-Finally, copy the UEFI PXE boot files to the router:
-
     cp ${INSTALL_ROOT}/centos/EFI/BOOT/grubx64.efi /var/lib/tftpboot
     cp ${INSTALL_ROOT}/centos/EFI/BOOT/BOOTX64.EFI /var/lib/tftpboot
     cp ${INSTALL_ROOT}/centos/isolinux/vmlinuz /var/lib/tftpboot/networkboot
