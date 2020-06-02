@@ -50,3 +50,16 @@ Create a Secret for your git repo:
 
     oc apply -f git-secret.yml
     oc patch sa pipeline --type merge --patch '{"secrets":[{"name":"git-secret"}]}'
+
+Create templates:
+
+    oc apply -f quarkus-jvm-pipeline-template.yml -n openshift
+    oc apply -f initialize-pipeline-objects.yml -n openshift
+
+Deploy Pipeline objects:
+
+    oc process openshift//initialize-pipeline -p MVN_MIRROR_ID=homelab-central -p MVN_MIRROR_NAME=homelab-central -p MVN_MIRROR_URL=https://nexus.your.domain.com:8443/repository/homelab-central/ | oc create -f -
+
+Deploy an Application:
+
+    oc process openshift//quarkus-jvm-pipeline-dev -p APP_NAME=your-project-name -p GIT_REPOSITORY=git@bitbucket.org:your/project.git -p GIT_BRANCH=master | oc create -f -

@@ -177,7 +177,8 @@ objects:
     metadata:
       name: ${APP_NAME}-pipeline-run
     spec:
-      pipelineRef: build-and-deploy
+      pipelineRef: 
+        name: build-and-deploy
       params:
       - name: appName
         value: ${APP_NAME}
@@ -206,10 +207,5 @@ parameters:
     name: GIT_BRANCH
     required: true
     value: master
-  -
-    description: "Name of the secret for Git credentials."
-    displayName: "Build Secret"
-    name: BUILD_SECRET
-    required: true
-    value: git-secret
+
     
