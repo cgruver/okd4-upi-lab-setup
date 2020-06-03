@@ -181,7 +181,7 @@ I have provided a set of utility scripts to automate a lot of the tasks associat
     Patch in some values:
 
         sed -i "s|%%LAB_DOMAIN%%|${LAB_DOMAIN}|g" ${OKD4_LAB_PATH}/install-config-upi.yaml
-        SECRET=$(cat ${OKD4_LAB_PATH}/pull-secret.json)
+        SECRET=$(cat ${OKD4_LAB_PATH}/pull_secret.json)
         sed -i "s|%%PULL_SECRET%%|${SECRET}|g" ${OKD4_LAB_PATH}/install-config-upi.yaml
         SSH_KEY=$(cat ~/.ssh/id_rsa.pub)
         sed -i "s|%%SSH_KEY%%|${SSH_KEY}|g" ${OKD4_LAB_PATH}/install-config-upi.yaml
