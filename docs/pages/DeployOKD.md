@@ -431,7 +431,7 @@ Create an Empty volume for registry storage:
 
     If you have dedicated worker nodes in addition to three master nodes, then I recommend this step to pin your Ingress Routers to the Master nodes.  If they restart on worker nodes, you will lose Ingress access to your cluster unless you add the worker nodes to your external HA Proxy configuration.  I prefer to use Infrasturcture nodes to run the Ingress routers and a number of other pods.
 
-1. [Set up Htpasswd as an Identity Provider](pages/HtPasswd.md)
-1. [Deploy a Ceph cluster for block storage provisioning](pages/Ceph.md)
+1. [Set up Htpasswd as an Identity Provider](HtPasswd.md)
+1. [Deploy a Ceph cluster for block storage provisioning](Ceph.md)
 1. [Updating Your Cluster](UpdateOKD.md)
 1. Coming soon...  Tekton pipeline for Quarkus and Spring Boot applications.
