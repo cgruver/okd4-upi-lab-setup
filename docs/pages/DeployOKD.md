@@ -125,7 +125,7 @@ I have provided a set of utility scripts to automate a lot of the tasks associat
 
         Add an entry for your Nexus secret, so that the file looks like this:
            
-           {"auths": {"quay.io": {"auth": "Y2dydXZlcREDACTEDrNmpiL34MVZHeGt2YpREDACTEDptNVlxS9ZTFIUREDACTEDM4bmZB", "email": ""},"nexus.your.domain.org:5002": {"auth": "PASTE_NEW_SECRET_HERE", "email": ""}}}
+           {"auths": {"quay.io": {"auth": "Y2dydXZlcREDACTEDrNmpiL34MVZHeGt2YpREDACTEDptNVlxS9ZTFIUREDACTEDM4bmZB", "email": ""},"nexus.your.domain.org:5001": {"auth": "PASTE_NEW_SECRET_HERE", "email": ""}}}
 
         Save this file.
 
@@ -268,17 +268,17 @@ I have provided a set of utility scripts to automate a lot of the tasks associat
     The output should look something like:
 
        Success
-       Update image:  nexus.oscluster.clgcom.org:5002/origin:4.4.0-0.okd-2020-03-11-174228
-       Mirror prefix: nexus.oscluster.clgcom.org:5002/origin
+       Update image:  nexus.oscluster.clgcom.org:5001/origin:4.4.0-0.okd-2020-03-11-174228
+       Mirror prefix: nexus.oscluster.clgcom.org:5001/origin
 
        To use the new mirrored repository to install, add the following section to the install-config.yaml:
 
        imageContentSources:
        - mirrors:
-         - nexus.oscluster.clgcom.org:5002/origin
+         - nexus.oscluster.clgcom.org:5001/origin
          source: registry.svc.ci.openshift.org/origin/4.4-2020-03-13-191636
        - mirrors:
-         - nexus.oscluster.clgcom.org:5002/origin
+         - nexus.oscluster.clgcom.org:5001/origin
          source: registry.svc.ci.openshift.org/origin/release
 
 
@@ -291,10 +291,10 @@ I have provided a set of utility scripts to automate a lot of the tasks associat
        spec:
          repositoryDigestMirrors:
          - mirrors:
-           - nexus.oscluster.clgcom.org:5002/origin
+           - nexus.oscluster.clgcom.org:5001/origin
            source: registry.svc.ci.openshift.org/origin/4.4-2020-03-13-191636
          - mirrors:
-           - nexus.oscluster.clgcom.org:5002/origin
+           - nexus.oscluster.clgcom.org:5001/origin
            source: registry.svc.ci.openshift.org/origin/release
 
 3. Create the cluster virtual machines and set up for OKD installation:
