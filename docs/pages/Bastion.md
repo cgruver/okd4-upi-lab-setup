@@ -112,7 +112,7 @@ Next, we need to set up some environment variables that we will use to set up th
 | `OKD_REGISTRY` | `registry.svc.ci.openshift.org/origin/release` | This is where we will get our OKD 4 images from to populate our local mirror |
 | `LOCAL_REGISTRY` | `nexus.${LAB_DOMAIN}:5001` | The URL that we will use for our local mirror of the OKD registry images | 
 | `LOCAL_REPOSITORY` | `origin` | The repository where the local OKD image mirror will be pushed |
-| `LOCAL_SECRET_JSON` | `${OKD4_LAB_PATH}/pull-secret.json` | The path to the pull secret that we will need for mirroring OKD images |
+| `LOCAL_SECRET_JSON` | `${OKD4_LAB_PATH}/pull_secret.json` | The path to the pull secret that we will need for mirroring OKD images |
 
 When you have selected values for the variables.  Set them in the shell like this: 
 
