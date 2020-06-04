@@ -152,7 +152,7 @@ Now, let's create a utility script that will persist these values for us:
     export OKD_REGISTRY=registry.svc.ci.openshift.org/origin/release
     export LOCAL_REGISTRY=${LOCAL_REGISTRY}
     export LOCAL_REPOSITORY=${LOCAL_REPOSITORY}
-    export LOCAL_SECRET_JSON=${OKD4_LAB_PATH}/pull-secret.json
+    export LOCAL_SECRET_JSON=${OKD4_LAB_PATH}/pull_secret.json
     EOF
 
 Configure bash to execute this script on login:
