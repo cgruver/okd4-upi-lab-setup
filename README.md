@@ -2,6 +2,12 @@
 
 ## I have written this from my own lab configuration. I am doing clean runs in another environment, and will continue to push fixes and clarifications as I encounter issues.  Open issues if you encounter problems.  I am sure there are still plenty of bugs.  
 
+__If you want to connect with a team of OpenShift enthusiasts, join us in the OKD Working Group:__
+
+https://github.com/openshift/okd
+
+https://github.com/openshift/community
+
 ### If you created a fork of this project, you will want to re-sync with this repository.  I am fixing issues while testing, and adding new features.  
 
 Read the [Tutorial on GitHub Pages](https://cgruver.github.io/okd4-upi-lab-setup/)
