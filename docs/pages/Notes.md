@@ -92,3 +92,6 @@ OpenLibrary:  (For demo Quarkus application)
     curl https://openlibrary.org/api/volumes/brief/isbn/9780062225740.json
     curl https://openlibrary.org/books/OL27566628M.json
     curl https://openlibrary.org/authors/OL25712A.json
+
+
+    curl 'https://openlibrary.org/api/books?bibkeys=9780062225740&format=json&jscmd=data'
