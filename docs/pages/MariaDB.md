@@ -45,9 +45,11 @@ Now, let's build this image and push it to the OpenShift repository.
 
 Now, let's deploy a database cluster:
 
+    cd ../Deploy
+
 ### Deploying a MariaDB Galera cluster into OpenShift:
 
-Let's look at the OpenShift deployment files in the OKD-Deploy folder.
+Let's look at the OpenShift deployment files in the Deploy folder.
 
 * `mariadb-galera-configmap.yaml`: ConfigMap with the MariaDB configuration
 * `mariadb-galera-headless-svc.yaml`: Headless service for inter-pod communications
