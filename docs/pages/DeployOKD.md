@@ -433,5 +433,6 @@ Create an Empty volume for registry storage:
 
 1. [Set up Htpasswd as an Identity Provider](HtPasswd.md)
 1. [Deploy a Ceph cluster for block storage provisioning](Ceph.md)
+1. [Create a MariaDB Galera StatefulSet](MariaDB.md)
 1. [Updating Your Cluster](UpdateOKD.md)
 1. Coming soon...  Tekton pipeline for Quarkus and Spring Boot applications.

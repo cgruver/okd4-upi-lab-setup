@@ -1,3 +1,9 @@
+# Deploying a MariaDB Galera Cluster
+
+__Note: This section assumes that you have set up Ceph storage as described here: [Ceph](Ceph.md)__
+
+In this section we will build a custom container image that is configured to be part of a MariaDB 10.4 cluster using Galera.  The MariaSB cluster will be deployed as a StatefulSet and will leverage Ceph block devices with an XFS filesystem for persistent storage.
+
 ### Building the MariaDB Galera Cluster container image
 
 We are going to use podman to build this image.  Then, we are going to push it to the image registry of our OpenShift cluster.

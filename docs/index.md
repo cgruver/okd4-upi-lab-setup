@@ -63,5 +63,6 @@ After deployment is complete, here are some things to do with your cluster:
 
 1. [Set up Htpasswd as an Identity Provider](pages/HtPasswd.md)
 1. [Deploy a Ceph cluster for block storage provisioning](pages/Ceph.md)
+1. [Create a MariaDB Galera StatefulSet](pages/MariaDB.md)
 1. [Updating Your Cluster](UpdateOKD.md)
 1. Coming soon...  Tekton pipeline for Quarkus and Spring Boot applications.

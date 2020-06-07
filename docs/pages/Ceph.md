@@ -9,7 +9,7 @@ Follow these steps to deploy a Ceph cluster:
 1. From the root directory of this project, grab and modify the files that are prepared for you.
 
        mkdir -p ${OKD4_LAB_PATH}/ceph
-       cp ./Provisioning/Ceph/* ${OKD4_LAB_PATH}/ceph
+       cp ./Ceph/* ${OKD4_LAB_PATH}/ceph
        sed -i "s|%%LAB_DOMAIN%%|${LAB_DOMAIN}|g" ${OKD4_LAB_PATH}/ceph/cluster.yml
 
     The Ceph installation files were taken from https://github.com/rook/rook and modified for this tutorial.
