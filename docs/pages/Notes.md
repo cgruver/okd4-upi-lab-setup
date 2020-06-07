@@ -86,12 +86,3 @@ iSCSI:
     for i in 0 1 2 ; do ssh -o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null core@okd4-prd-master-${i}.${LAB_DOMAIN} "sudo bash -c \"echo InitiatorName=iqn.$(hostname) > /etc/iscsi/initiatorname.iscsi\" && sudo systemctl enable iscsid --now"; done
 
     for i in 0 1 2 3 4 5 ; do ssh -o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null core@okd4-prd-worker-${i}.${LAB_DOMAIN} "sudo bash -c \"echo InitiatorName=iqn.$(hostname) > /etc/iscsi/initiatorname.iscsi\" && sudo systemctl enable iscsid --now"; done
-
-OpenLibrary:  (For demo Quarkus application)
-
-    curl https://openlibrary.org/api/volumes/brief/isbn/9780062225740.json
-    curl https://openlibrary.org/books/OL27566628M.json
-    curl https://openlibrary.org/authors/OL25712A.json
-
-
-    curl 'https://openlibrary.org/api/books?bibkeys=9780062225740&format=json&jscmd=data'
