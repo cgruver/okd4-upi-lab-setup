@@ -23,9 +23,9 @@ Tekton:
     docker tag quay.io/buildah/stable:latest ${IMAGE_REGISTRY}/openshift/buildah:stable
     docker push ${IMAGE_REGISTRY}/openshift/buildah:stable
 
-    docker pull docker.io/maven:3.6.3-jdk-8-slim
-    docker tag docker.io/library/maven:3.6.3-jdk-8-slim ${IMAGE_REGISTRY}/openshift/maven:3.6.3-jdk-8-slim
-    docker push ${IMAGE_REGISTRY}/openshift/maven:3.6.3-jdk-8-slim
+    docker pull docker.io/maven:3.6.3-jdk-11-slim
+    docker tag docker.io/library/maven:3.6.3-jdk-8-slim ${IMAGE_REGISTRY}/openshift/maven:3.6.3-jdk-11-slim
+    docker push ${IMAGE_REGISTRY}/openshift/maven:3.6.3-jdk-11-slim
 
     docker pull quay.io/openshift/origin-cli:4.4.0
     docker tag quay.io/openshift/origin-cli:4.4.0 ${IMAGE_REGISTRY}/openshift/origin-cli:4.4.0

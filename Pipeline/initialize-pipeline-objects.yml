@@ -90,7 +90,7 @@ objects:
             type: image
       steps:
         - name: prep-build
-          image: image-registry.openshift-image-registry.svc:5000/openshift/maven:3.6.3-jdk-8-slim
+          image: image-registry.openshift-image-registry.svc:5000/openshift/maven:3.6.3-jdk-11-slim
           script: |
             cp /tmp/maven-settings/settings.xml /workspace/source
             cp /tmp/docker-file/Dockerfile /workspace/source
@@ -99,7 +99,7 @@ objects:
               value: /home/tekton
           workingDir: "/"
         - name: build-sources
-          image: image-registry.openshift-image-registry.svc:5000/openshift/maven:3.6.3-jdk-8-slim
+          image: image-registry.openshift-image-registry.svc:5000/openshift/maven:3.6.3-jdk-11-slim
           command:
             - mvn
           args:
