@@ -101,7 +101,7 @@ objects:
                 name: ${APP_NAME}-cm 
             - secretRef:
                 name: ${APP_NAME}-sk
-            image: image-registry.openshift-image-registry.svc:5000/rating/${APP_NAME}
+            image: image-registry.openshift-image-registry.svc:5000/${NAME_SPACE}/${APP_NAME}
             imagePullPolicy: Always
             name: ${APP_NAME}
             ports:
@@ -160,7 +160,7 @@ objects:
       type: image
       params:
       - name: url
-        value: "image-registry.openshift-image-registry.svc:5000/rating/${APP_NAME}:latest"
+        value: "image-registry.openshift-image-registry.svc:5000/${NAME_SPACE}/${APP_NAME}:latest"
 
   - apiVersion: tekton.dev/v1alpha1
     kind: PipelineResource
@@ -170,7 +170,7 @@ objects:
       type: image
       params:
       - name: url
-        value: "image-registry.openshift-image-registry.svc:5000/rating/${APP_NAME}:rc"
+        value: "image-registry.openshift-image-registry.svc:5000/${NAME_SPACE}/${APP_NAME}:rc"
 
   - apiVersion: tekton.dev/v1alpha1
     kind: PipelineRun
@@ -191,6 +191,11 @@ objects:
           name: ${APP_NAME}-image
 
 parameters:
+  -
+    description: "Project Name Space"
+    displayName: "Project Name"
+    name: NAME_SPACE
+    required: true
   -
     description: "Name of the deployable application."
     displayName: "Application Name"

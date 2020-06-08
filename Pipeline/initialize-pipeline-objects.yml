@@ -227,8 +227,7 @@ objects:
       Dockerfile: |
         FROM image-registry.openshift-image-registry.svc:5000/openshift/jdk-ubi-minimal:8.1
         LABEL git-commit=$GIT_COMMIT
-        COPY ./target/lib/* /deployments/lib/
-        COPY ./target/app-runner.jar /deployments/app.jar
+        COPY ./target/app.jar /deployments/app.jar
         EXPOSE 8080
         USER 1001
         ENTRYPOINT [ "/deployments/run-java.sh" ]
