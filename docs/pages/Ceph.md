@@ -63,6 +63,12 @@ Follow these steps to deploy a Ceph cluster:
 
 1. Finally, patch the `imageregistry` operator to use the PVC that you just created:
 
+    If you previously added `emptyDir` as a storage type to the Registry, you need to remove it first:
+       
+       oc patch configs.imageregistry.operator.openshift.io cluster --type json -p '[{ "op": "remove", "path": "/spec/storage/emptyDir" }]'
+       
+    Now patch it to use the new PVC:
+    
        oc patch configs.imageregistry.operator.openshift.io cluster --type merge --patch '{"spec":{"rolloutStrategy":"Recreate","managementState":"Managed","storage":{"pvc":{"claim":"registry-pvc"}}}}'
 
 __You just created a Ceph cluster and bound your image registry to a Persistent Volume!__
