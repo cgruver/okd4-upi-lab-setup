@@ -1,6 +1,8 @@
-# Installing OKD4.X with User Provisioned Infrastructure. Libvirt, iPXE, and FCOS
+# Installing OKD4.X with User Provisioned Infrastructure.
 
-## I have written this from my own lab configuration. I am doing clean runs in another environment, and will continue to push fixes and clarifications as I encounter issues.  Open issues if you encounter problems.  I am sure there are still plenty of bugs.  
+## Libvirt, iPXE, and Fedora CoreOS
+
+### I have written this from my own lab configuration. I am doing clean runs in another environment, and will continue to push fixes and clarifications as I encounter issues.  Open issues if you encounter problems.  I am sure there are still plenty of bugs.  
 
 __If you want to connect with a team of OpenShift enthusiasts, join us in the OKD Working Group:__
 
