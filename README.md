@@ -36,3 +36,4 @@ After deployment is complete, here are some things to do with your cluster:
 1. [Create a MariaDB Galera StatefulSet](docs/pages/MariaDB.md)
 1. [Updating Your Cluster](docs/pages/UpdateOKD.md)
 1. Coming soon...  Adding additional worker nodes, Tekton pipeline for Quarkus and Spring Boot applications.
+1. [Gracefully shut down your cluster](docs/pages/ShuttingDown.md)
