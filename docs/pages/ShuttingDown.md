@@ -32,13 +32,21 @@ Shutdown the Image Registry:
 
     oc patch configs.imageregistry.operator.openshift.io cluster --type merge --patch '{"spec":{"managementState":"Removed"}}'
 
+Cordon, and Drain the `worker` nodes:  (This will take a while, be patient)
+
     for i in 0 1 2 ; do oc adm cordon okd4-worker-${i}.${LAB_DOMAIN} ; done
 
     for i in 0 1 2 ; do oc adm drain okd4-worker-${i}.${LAB_DOMAIN} --ignore-daemonsets --force --grace-period=60 --delete-local-data &; done
 
+Shutdown the worker nodes: (Wait for them to all shut down before proceeding)
+
     for i in 0 1 2 ; do ssh core@okd4-worker-${i}.${LAB_DOMAIN} "sudo shutdown -h now"; done
 
+Shutdown the master nodes: (Wait for them to all shut down before proceeding)
+
     for i in 0 1 2 ; do ssh core@okd4-master-${i}.${LAB_DOMAIN} "sudo shutdown -h now"; done
+
+Shutdown the load balancer:
 
     ssh root@okd4-lb01 "shutdown -h now"
 
