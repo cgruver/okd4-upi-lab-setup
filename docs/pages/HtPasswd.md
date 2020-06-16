@@ -21,6 +21,7 @@ These instructions will help you set up an Identity provider so that you can rem
        oc apply -f ${OKD4_LAB_PATH}/htpasswd-cr.yml
 
 1. Make the user `admin` a Cluster Administrator:
+
        oc adm policy add-cluster-role-to-user cluster-admin admin
 
 1. Now, log into the web console as your new admin user to verify access.  Select the `Htpasswd` provider when you log in.
