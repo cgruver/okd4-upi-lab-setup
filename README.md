@@ -8,7 +8,7 @@
 
 ### For your own deployment use OKD 4 Beta 5, with FCOS 31.
 
-### I will update this after I successfully deply 4.5 or 4.6.
+### I will update this after I successfully deploy 4.5 or 4.6.
 
 __If you want to connect with a team of OpenShift enthusiasts, join us in the OKD Working Group:__
 
