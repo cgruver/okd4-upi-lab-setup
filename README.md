@@ -4,7 +4,7 @@
 
 ### I have written this from my own lab configuration. I am doing clean runs in another environment, and will continue to push fixes and clarifications as I encounter issues.  Open issues if you encounter problems.  I am sure there are still plenty of bugs.  
 
-### Note: The helper scripts that I included for OKD Deployment are currently OKD 4.4 specific.  I have not yet successfully deployed a 4.5 cluster with FCOS 32.
+### Note: I have not yet successfully deployed a 4.5 cluster with FCOS 32.
 
 ### For your own deployment use OKD 4 Beta 5, with FCOS 31.
 
