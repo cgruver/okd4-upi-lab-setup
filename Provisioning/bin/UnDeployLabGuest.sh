@@ -21,7 +21,7 @@ var=$(ssh root@${HOST_NODE}.${LAB_DOMAIN} "virsh -q domiflist ${HOSTNAME} | grep
 NET_MAC=$(echo ${var} | cut -d" " -f5)
 
 # Remove the iPXE boot file
-ssh root@${INSTALL_HOST_IP} "rm -f /var/lib/tftpboot/ipxe/${NET_MAC//:/-}.ipxe"
+ssh root@${PXE_HOST} "rm -f /var/lib/tftpboot/ipxe/${NET_MAC//:/-}.ipxe"
 
 # Destroy the VM
 ssh root@${HOST_NODE}.${LAB_DOMAIN} "virsh destroy ${HOSTNAME}"

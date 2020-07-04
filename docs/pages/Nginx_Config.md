@@ -23,15 +23,15 @@ Install and start Nginx:
 
 Create directories to hold all of the RPMs:
 
-    mkdir -p /usr/share/nginx/html/repos/{base,centosplus,extras,updates,kvm-common,epel}
+    mkdir -p ${REPO_PATH}/{base,centosplus,extras,updates,kvm-common,epel}
 
 Synch the repositories into the directories we just created:  (This will take a while)
 
     LOCAL_REPOS="base centosplus extras updates epel kvm-common"
     for REPO in ${LOCAL_REPOS}
     do
-        reposync -l -g -d -m --repoid=${REPO} --newest-only --download-metadata --download_path=/usr/share/nginx/html/repos/
-        createrepo /usr/share/nginx/html/repos/${REPO}/  
+        reposync -l -g -d -m --repoid=${REPO} --newest-only --download-metadata --download_path=${REPO_PATH}/
+        createrepo ${REPO_PATH}/${REPO}/  
     done
 
 Our Nginx server is now ready to serve up CentOS RPMs.
@@ -42,8 +42,8 @@ To refresh your RPM repositories, run the above script again, or better yet, cre
 
 Now, we are going to set up the artifacts for host installation.  This will include FCOS via `ignition`, and CentOS via `kickstart`.
 
-    mkdir -p /usr/share/nginx/html/install/{centos,fcos,firstboot,kickstart,hostconfig,postinstall}
-    mkdir /usr/share/nginx/html/install/fcos/ignition
+    mkdir -p ${INSTALL_ROOT}/{centos,fcos,firstboot,kickstart,hostconfig,postinstall}
+    mkdir ${INSTALL_ROOT}/fcos/ignition
 
 ### CentOS:
 
@@ -93,9 +93,9 @@ Now, we are going to set up the artifacts for host installation.  This will incl
 
     Copy the prepared files into place
     
-       scp -r ./tmp-work/kickstart root@${INSTALL_HOST_IP}:${INSTALL_ROOT}
-       scp -r ./tmp-work/firstboot root@${INSTALL_HOST_IP}:${INSTALL_ROOT}
-       scp -r ./tmp-work/postinstall root@${INSTALL_HOST_IP}:${INSTALL_ROOT}
+       scp -r ./tmp-work/kickstart root@${INSTALL_HOST}:${INSTALL_ROOT}
+       scp -r ./tmp-work/firstboot root@${INSTALL_HOST}:${INSTALL_ROOT}
+       scp -r ./tmp-work/postinstall root@${INSTALL_HOST}:${INSTALL_ROOT}
        rm -rf ./tmp-work
 
 ### FCOS:
@@ -115,11 +115,12 @@ Now, we are going to set up the artifacts for host installation.  This will incl
 
 1. Download the FCOS images for iPXE booting:
 
-       curl -o ${INSTALL_ROOT}/fcos/vmlinuz https://builds.coreos.fedoraproject.org/prod/streams/${FCOS_STREAM}/builds/${FCOS_VER}/x86_64/fedora-coreos-${FCOS_VER}-live-kernel-x86_64
-       curl -o ${INSTALL_ROOT}/fcos/initrd https://builds.coreos.fedoraproject.org/prod/streams/${FCOS_STREAM}/builds/${FCOS_VER}/x86_64/fedora-coreos-${FCOS_VER}-live-initramfs.x86_64.img
-       curl -o ${INSTALL_ROOT}/fcos/install.xz https://builds.coreos.fedoraproject.org/prod/streams/${FCOS_STREAM}/builds/${FCOS_VER}/x86_64/fedora-coreos-${FCOS_VER}-metal.x86_64.raw.xz
-       curl -o ${INSTALL_ROOT}/fcos/install.xz.sig https://builds.coreos.fedoraproject.org/prod/streams/${FCOS_STREAM}/builds/${FCOS_VER}/x86_64/fedora-coreos-${FCOS_VER}-metal.x86_64.raw.xz.sig
+       mkdir /tmp/fcos
+       curl -o /tmp/fcos/vmlinuz https://builds.coreos.fedoraproject.org/prod/streams/${FCOS_STREAM}/builds/${FCOS_VER}/x86_64/fedora-coreos-${FCOS_VER}-live-kernel-x86_64
+       curl -o /tmp/fcos/initrd https://builds.coreos.fedoraproject.org/prod/streams/${FCOS_STREAM}/builds/${FCOS_VER}/x86_64/fedora-coreos-${FCOS_VER}-live-initramfs.x86_64.img
+       curl -o /tmp/fcos/install.xz https://builds.coreos.fedoraproject.org/prod/streams/${FCOS_STREAM}/builds/${FCOS_VER}/x86_64/fedora-coreos-${FCOS_VER}-metal.x86_64.raw.xz
+       curl -o $/tmp/fcos/install.xz.sig https://builds.coreos.fedoraproject.org/prod/streams/${FCOS_STREAM}/builds/${FCOS_VER}/x86_64/fedora-coreos-${FCOS_VER}-metal.x86_64.raw.xz.sig
+       scp -r /tmp/fcos root@${INSTALL_HOST}:${INSTALL_ROOT}
+       rm -rf /tmp/fcos
 
 Now, continue on to [DHCP Setup](DHCP.md)
-
-

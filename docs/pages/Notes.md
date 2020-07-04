@@ -2,7 +2,7 @@
 
 Reset the HA Proxy configuration for a new cluster build:
 
-    ssh okd4-lb01 "curl -o /etc/haproxy/haproxy.cfg http://${INSTALL_HOST_IP}/install/postinstall/haproxy.cfg && systemctl restart haproxy"
+    ssh okd4-lb01 "curl -o /etc/haproxy/haproxy.cfg http://${INSTALL_HOST}/install/postinstall/haproxy.cfg && systemctl restart haproxy"
     
 Upgrade:
 

@@ -15,4 +15,4 @@ rm -rf ${OKD4_LAB_PATH}/okd4-install-dir
 mkdir ${OKD4_LAB_PATH}/okd4-install-dir
 cp ${OKD4_LAB_PATH}/install-config-upi.yaml ${OKD4_LAB_PATH}/okd4-install-dir/install-config.yaml
 openshift-install --dir=${OKD4_LAB_PATH}/okd4-install-dir create ignition-configs
-scp -r ${OKD4_LAB_PATH}/okd4-install-dir/*.ign root@${INSTALL_HOST_IP}:${INSTALL_ROOT}/fcos/ignition/
+scp -r ${OKD4_LAB_PATH}/okd4-install-dir/*.ign root@${INSTALL_HOST}:${INSTALL_ROOT}/fcos/ignition/

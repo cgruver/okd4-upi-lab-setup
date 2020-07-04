@@ -37,7 +37,7 @@ Assuming your MAC is: `1C:69:7A:02:B6:C2` you will create a file named `1c-69-7a
 
 Now, push that file to your install HTTP server:
 
-    scp 1c697a02b6c2 root@${INSTALL_HOST_IP}:${INSTALL_ROOT}/hostconfig
+    scp 1c697a02b6c2 root@${INSTALL_HOST}:${INSTALL_ROOT}/hostconfig
 
 Finally, make sure that you have created DNS `A` and `PTR` records.  [DNS Setup](DNS_Config.md)
 
