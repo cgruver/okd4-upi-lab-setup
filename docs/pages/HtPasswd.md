@@ -18,7 +18,7 @@ These instructions will help you set up an Identity provider so that you can rem
 
     From the root of this project run:
 
-       oc apply -f ${OKD4_LAB_PATH}/htpasswd-cr.yml
+       oc apply -f ./Provisioning/htpasswd-cr.yaml
 
 1. Make the user `admin` a Cluster Administrator:
 
