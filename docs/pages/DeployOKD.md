@@ -337,6 +337,10 @@ I have provided a set of utility scripts to automate a lot of the tasks associat
 
 ### Now let's sit back and watch the install:
 
+__Note: It is normal to see logs which look like errors while `bootkube` and `kublet` are waiting for resources to be provisioned.__
+
+__Don't be alarmed if you see streams of `connection refused` errors for a minute or two.__  If the errors persist for more than a few minutes, then you might have real issues, but be patient.
+
 * To watch a node boot and install:
   * Bootstrap node from the Bastion host:
   
@@ -393,11 +397,9 @@ Log in as `kubeadmin` with the password from the output at the completion of the
 
 __If you forget the password for this initial account, you can find it in the file: `${OKD4_LAB_PATH}/okd4-install-dir/auth/kubeadmin-password`
 
-__Note: the first time you try to log in, you may have to wait a couple of minutes for all of the console resources to initialize.__
+__Note: the first time you try to log in, you may have to wait a bit for all of the console resources to initialize.__
 
-You will have to accept the certs for your new cluster, and you may see a screen that looks like:
-
-![OKD Console Error](images/ConsoleError.png)
+You will have to accept the certs for your new cluster.
 
 ### Issue commands against your new cluster:
 

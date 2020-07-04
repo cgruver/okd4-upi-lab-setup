@@ -1,14 +1,8 @@
 # Installing OKD4.X with User Provisioned Infrastructure.
 
-## Libvirt, iPXE, and Fedora CoreOS
+## I have written this from my own lab configuration.
 
-### I have written this from my own lab configuration. I am doing clean runs in another environment, and will continue to push fixes and clarifications as I encounter issues.  Open issues if you encounter problems.  I am sure there are still plenty of bugs.  
-
-### Note: I have not yet successfully deployed a 4.5 cluster with FCOS 32.
-
-### For your own deployment use OKD 4 Beta 5, with FCOS 31.
-
-### I will update this after I successfully deploy 4.5 or 4.6.
+### Refactored for OKD 4.5 cluster with FCOS 32.  Still testing!  I will continue to push fixes and clarifications as I encounter issues.  Open issues if you encounter problems.  I am sure there are still plenty of bugs.  
 
 __If you want to connect with a team of OpenShift enthusiasts, join us in the OKD Working Group:__
 
