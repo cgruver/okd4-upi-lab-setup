@@ -1,5 +1,8 @@
 # Installing OKD4.X with User Provisioned Infrastructure.
 
+## Note: This setup will not work for the OKD 4 GA release that just dropped.  FCOS made some changes to how network interfaces are configured.  This project is being updated to accomodate those changes.  For now use OKD 4 Beta 6 if you are following this guide.
+
+
 ## I have written this from my own lab configuration.
 
 ### Refactored for OKD 4.5 cluster with FCOS 32.  Still testing!  I will continue to push fixes and clarifications as I encounter issues.  Open issues if you encounter problems.  I am sure there are still plenty of bugs.  
