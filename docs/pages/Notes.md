@@ -86,3 +86,61 @@ iSCSI:
     for i in 0 1 2 ; do ssh -o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null core@okd4-prd-master-${i}.${LAB_DOMAIN} "sudo bash -c \"echo InitiatorName=iqn.$(hostname) > /etc/iscsi/initiatorname.iscsi\" && sudo systemctl enable iscsid --now"; done
 
     for i in 0 1 2 3 4 5 ; do ssh -o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null core@okd4-prd-worker-${i}.${LAB_DOMAIN} "sudo bash -c \"echo InitiatorName=iqn.$(hostname) > /etc/iscsi/initiatorname.iscsi\" && sudo systemctl enable iscsid --now"; done
+
+FCCT:
+
+    wget https://github.com/coreos/fcct/releases/download/v0.6.0/fcct-x86_64-unknown-linux-gnu
+    mv fcct-x86_64-unknown-linux-gnu ~/bin/lab_bin/fcct 
+    chmod 750 ~/bin/lab_bin/fcct
+
+```
+# Merge some tweaks/bugfixes with the master Ignition config
+variant: fcos
+version: 1.1.0
+ignition:
+  config:
+    merge:
+      - local: ./files/master.ign
+systemd:                        
+  units:                        
+  # we don't want docker starting
+  # https://github.com/openshift/okd/issues/243
+  - name: docker.service
+    mask: true
+storage:
+  files:
+    # Disable zincati, this should be removed in the next OKD beta
+    # https://github.com/openshift/machine-config-operator/pull/1890
+    # https://github.com/openshift/okd/issues/215
+    - path: /etc/zincati/config.d/90-disable-feature.toml
+      contents:
+        inline: |
+          [updates]
+          enabled = false
+    - path: /etc/systemd/network/25-nic0.link
+      mode: 0644
+      contents:
+        inline: |
+          [Match]
+          MACAddress=${NET_MAC_0}
+          [Link]
+          Name=nic0
+    - path: /etc/NetworkManager/system-connections/nic0.nmconnection
+      mode: 0600
+      overwrite: true
+      contents:
+        inline: |
+          [connection]
+          type=ethernet
+          interface-name=nic0
+
+          [ethernet]
+          mac-address=<insert MAC address>
+
+          [ipv4]
+          method=manual
+          addresses=192.0.2.10/24
+          gateway=192.0.2.1
+          dns=192.168.124.1;1.1.1.1;8.8.8.8
+          dns-search=redhat.com
+```
