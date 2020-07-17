@@ -48,7 +48,6 @@ This project has some files already prepared for you.  They are located in ./Pro
 |||
 |-|-|
 | boot.ipxe | This is the initial iPXE bootstrap file.  It has logic in it to look for a file with the booting host's MAC address.  Otherwise it pulls the default.ipxe file. |
-| fcos-okd4.ipxe | This is the iPXE file that will boot an FCOS image.  The deployment scripts that you will use later, will configure a copy of this file for booting Bootstrap, Master, or Worker OKD nodes. |
 | default.ipxe | This file will initiate a kickstart install of CentOS 7 for non-OKD hosts. __This is not working yet__ |
 | grub.cfg | Until I get iPXE working with intel NUC, we'll be using UEFI |
 
