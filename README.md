@@ -1,6 +1,6 @@
 # Installing OKD4.X with User Provisioned Infrastructure.
 
-## Note: This setup will not work for the OKD 4 GA release that just dropped.  FCOS made some changes to how network interfaces are configured.  This project is being updated to accomodate those changes.  For now use OKD 4 Beta 6 if you are following this guide.
+## Note: Updated to support the OKD 4 GA release that just dropped.  FCOS made some changes to how network interfaces are configured.  This project is being updated to accomodate those changes.  The deployment script has been modified to inject NIC configuration into the ignition files for the OKD nodes.  The documentation will be updated soon.
 
 
 ## I have written this from my own lab configuration.
