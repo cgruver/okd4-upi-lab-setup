@@ -66,7 +66,6 @@ From the root directory of this project, execute the following:
     cp ./tmp-work/default.ipxe /var/lib/tftpboot/ipxe/default.ipxe
     cp ./tmp-work/grub.cfg /var/lib/tftpboot
     mkdir -p ${OKD4_LAB_PATH}/ipxe-templates
-    cp ./tmp-work/fcos-okd4.ipxe ${OKD4_LAB_PATH}/ipxe-templates/fcos-okd4.ipxe
     cp ./tmp-work/lab-guest.ipxe ${OKD4_LAB_PATH}/ipxe-templates/lab-guest.ipxe
     rm -rf ./tmp-work
 

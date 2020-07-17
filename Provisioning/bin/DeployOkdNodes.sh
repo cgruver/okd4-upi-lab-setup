@@ -1,5 +1,7 @@
 #!/bin/bash
 
+set -x
+
 # This script will set up the infrastructure to deploy an OKD 4.X cluster
 # Follow the documentation at https://github.com/cgruver/okd4-UPI-Lab-Setup
 PULL_RELEASE=false
@@ -59,7 +61,7 @@ function configIgnition() {
   local ip_addr=${1}
   local host_name=${2}
   local mac=${3}
-  local role={$4}
+  local role=${4}
 
 cat << EOF > ${OKD4_LAB_PATH}/ipxe-work-dir/ignition/${mac//:/-}.yml
 variant: fcos
@@ -71,6 +73,7 @@ ignition:
 storage:
   files:
     - path: /etc/zincati/config.d/90-disable-feature.toml
+      mode: 0644
       contents:
         inline: |
           [updates]
@@ -101,7 +104,7 @@ storage:
           gateway=${LAB_GATEWAY}
           dns=${LAB_NAMESERVER}
           dns-search=${LAB_DOMAIN}
-   - path: /etc/hostname
+    - path: /etc/hostname
       mode: 0420
       overwrite: true
       contents:
@@ -123,6 +126,12 @@ initrd ${INSTALL_URL}/fcos/initrd
 boot
 EOF
 }
+
+# Retreive fcct
+mkdir -p ${OKD4_LAB_PATH}/ipxe-work-dir/ignition
+wget https://github.com/coreos/fcct/releases/download/v0.6.0/fcct-x86_64-unknown-linux-gnu
+mv fcct-x86_64-unknown-linux-gnu ${OKD4_LAB_PATH}/ipxe-work-dir/fcct 
+chmod 750 ${OKD4_LAB_PATH}/ipxe-work-dir/fcct
 
 # Pull the OKD release tooling identified by ${OKD_REGISTRY}:${OKD_RELEASE}.  i.e. OKD_REGISTRY=registry.svc.ci.openshift.org/origin/release, OKD_RELEASE=4.4.0-0.okd-2020-03-03-170958
 if [ ${PULL_RELEASE} == "true" ]
@@ -154,7 +163,6 @@ openshift-install --dir=${OKD4_LAB_PATH}/okd4-install-dir create ignition-config
 
 
 # Create Virtual Machines from the inventory file
-mkdir -p ${OKD4_LAB_PATH}/ipxe-work-dir/ignition
 for VARS in $(cat ${INVENTORY} | grep -v "#")
 do
   HOST_NODE=$(echo ${VARS} | cut -d',' -f1)
@@ -201,7 +209,7 @@ do
 
   # Create node specific ignition files
   configIgnition ${IP_01} ${HOSTNAME}.${LAB_DOMAIN} ${NET_MAC_0} ${ROLE}
-  cat ${OKD4_LAB_PATH}/ipxe-work-dir/ignition/${NET_MAC_0//:/-}.yml | fcct -d ${OKD4_LAB_PATH}/ipxe-work-dir/ignition/ -o ${OKD4_LAB_PATH}/ipxe-work-dir/ignition/${NET_MAC_0//:/-}.ign
+  cat ${OKD4_LAB_PATH}/ipxe-work-dir/ignition/${NET_MAC_0//:/-}.yml | ${OKD4_LAB_PATH}/ipxe-work-dir/fcct -d ${OKD4_LAB_PATH}/ipxe-work-dir/ignition/ -o ${OKD4_LAB_PATH}/ipxe-work-dir/ignition/${NET_MAC_0//:/-}.ign
 
   # Create and deploy the iPXE boot file for this VM
   configIpxe ${NET_MAC_0}
@@ -217,4 +225,4 @@ ssh root@${INSTALL_HOST} "chmod 644 ${INSTALL_ROOT}/fcos/ignition/${CLUSTER_NAME
 scp -r ${OKD4_LAB_PATH}/ipxe-work-dir/*.ipxe root@${PXE_HOST}:/var/lib/tftpboot/ipxe/
 
 # Clean up
-# rm -rf ${OKD4_LAB_PATH}/ipxe-work-dir
+rm -rf ${OKD4_LAB_PATH}/ipxe-work-dir
