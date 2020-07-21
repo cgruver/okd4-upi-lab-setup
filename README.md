@@ -1,11 +1,8 @@
 # Installing OKD4.X with User Provisioned Infrastructure.
 
+## I have written this from my own lab configuration.  So, it is oppinionated toward a libvirt/KVM installation.
+
 ## Note: Updated to support the OKD 4 GA release that just dropped.  FCOS made some changes to how network interfaces are configured.  This project is being updated to accomodate those changes.  The deployment script has been modified to inject NIC configuration into the ignition files for the OKD nodes.  The documentation will be updated soon.
-
-
-## I have written this from my own lab configuration.
-
-### Refactored for OKD 4.5 cluster with FCOS 32.  Still testing!  I will continue to push fixes and clarifications as I encounter issues.  Open issues if you encounter problems.  I am sure there are still plenty of bugs.  
 
 __If you want to connect with a team of OpenShift enthusiasts, join us in the OKD Working Group:__
 
@@ -13,7 +10,7 @@ https://github.com/openshift/okd
 
 https://github.com/openshift/community
 
-### If you created a fork of this project, you will want to re-sync with this repository.  I am fixing issues while testing, and adding new features.  
+### If you create a fork of this project, you will want to re-sync with this repository periodically.  I am constantly fixing issues, refactoring, and adding new features.  Open an issue if you encounter problems.
 
 Read the [Tutorial on GitHub Pages](https://cgruver.github.io/okd4-upi-lab-setup/)
 
