@@ -1,8 +1,10 @@
 # Installing OKD4.X with User Provisioned Infrastructure.
 
-## I have written this from my own lab configuration.  So, it is oppinionated toward a libvirt/KVM installation.
+### Or, more precisely...  How to build your own desktop datacenter from scratch.
 
-## Note: Updated to support the OKD 4 GA release that just dropped.  FCOS made some changes to how network interfaces are configured.  This project is being updated to accomodate those changes.  The deployment script has been modified to inject NIC configuration into the ignition files for the OKD nodes.  The documentation will be updated soon.
+## I have written this guide from my own lab configuration.  So, it is oppinionated toward a libvirt/KVM installation on CentOS 7.
+
+## Note: Updated to support the OKD 4.5 GA release that just dropped.  FCOS made some changes to how network interfaces are configured.  This project is being updated to accomodate those changes.  The deployment script has been modified to inject NIC configuration into the ignition files for the OKD nodes.  The documentation will be updated soon.
 
 __If you want to connect with a team of OpenShift enthusiasts, join us in the OKD Working Group:__
 
@@ -12,7 +14,7 @@ https://github.com/openshift/community
 
 ### If you create a fork of this project, you will want to re-sync with this repository periodically.  I am constantly fixing issues, refactoring, and adding new features.  Open an issue if you encounter problems.
 
-Read the [Tutorial on GitHub Pages](https://cgruver.github.io/okd4-upi-lab-setup/)
+__Read the [Tutorial on GitHub Pages](https://cgruver.github.io/okd4-upi-lab-setup/)__
 
 Or, follow the directions in each section here:
 
