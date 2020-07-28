@@ -56,8 +56,15 @@ IP_CONFIG="ip=${IP_01}::${LAB_GATEWAY}:${LAB_NETMASK}:${HOSTNAME}.${LAB_DOMAIN}:
 
 # Create and deploy the iPXE boot file for this VM
 # The value of GUEST_ROLE must correspond to a kickstart file located at ${INSTALL_URL}/kickstart/${GUEST_ROLE}.ks
-sed "s|%%IP_CONFIG%%|${IP_CONFIG}|g" ${OKD4_LAB_PATH}/ipxe-templates/lab-guest.ipxe > ${OKD4_LAB_PATH}/ipxe-work-dir/${NET_MAC//:/-}.ipxe
-sed -i "s|%%GUEST_ROLE%%|${GUEST_ROLE}|g" ${OKD4_LAB_PATH}/ipxe-work-dir/${NET_MAC//:/-}.ipxe
+cat << EOF > ${OKD4_LAB_PATH}/ipxe-work-dir/${NET_MAC//:/-}.ipxe
+#!ipxe
+
+kernel ${INSTALL_URL}/centos/isolinux/vmlinuz ${IP_CONFIG} inst.ks=${INSTALL_URL}/kickstart/${GUEST_ROLE}.ks inst.repo=${INSTALL_URL}/centos console=ttyS0
+initrd ${INSTALL_URL}/centos/isolinux/initrd.img
+
+boot
+EOF
+
 scp ${OKD4_LAB_PATH}/ipxe-work-dir/${NET_MAC//:/-}.ipxe root@${PXE_HOST}:/var/lib/tftpboot/ipxe/${NET_MAC//:/-}.ipxe
 
 # Create a virtualBMC instance for this VM
