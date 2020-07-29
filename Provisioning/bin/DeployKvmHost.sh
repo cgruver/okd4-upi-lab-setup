@@ -14,10 +14,6 @@ case $i in
     NET_MAC="${i#*=}"
     shift
     ;;
-    -r=*|--role=*)
-    ROLE="${i#*=}"
-    shift
-    ;;
     -d=*|--diskList=*)
     DISK="${i#*=}"
     shift
