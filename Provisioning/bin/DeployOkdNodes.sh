@@ -9,6 +9,7 @@ USE_MIRROR=false
 IP_CONFIG_1=""
 IP_CONFIG_2=""
 IP_CONFIG=""
+LB_IP_LIST=""
 CLUSTER_NAME="okd4"
 
 for i in "$@"
@@ -56,7 +57,7 @@ case $i in
 esac
 done
 
-function configIgnition() {
+function configOkdNode() {
     
   local ip_addr=${1}
   local host_name=${2}
@@ -111,11 +112,6 @@ storage:
         inline: |
           ${host_name}
 EOF
-}
-
-function configIpxe() {
-
-  local mac=${1}
 
 cat << EOF > ${OKD4_LAB_PATH}/ipxe-work-dir/${mac//:/-}.ipxe
 #!ipxe
@@ -125,6 +121,193 @@ initrd ${INSTALL_URL}/fcos/initrd
 
 boot
 EOF
+
+}
+
+function createLbHostList() {
+
+  local port=${1}
+  
+  rm -f ${OKD4_LAB_PATH}/ipxe-work-dir/tmpFile
+  # Get the list of master & bootstrap IPs for the HA Proxy configuration
+  for VARS in $(cat ${INVENTORY} | grep -v "#" | grep -v "HA-PROXY")
+  do
+    HOSTNAME=$(echo ${VARS} | cut -d',' -f2)
+    ROLE=$(echo ${VARS} | cut -d',' -f8)
+    if [[ ${ROLE} == "bootstrap" ]] || [[ ${ROLE} == "master" ]]
+    then
+      NODE_IP=$(dig ${HOSTNAME}.${LAB_DOMAIN} +short)
+      echo "    server ${HOSTNAME} ${NODE_IP}:${port} check weight 1" >> ${OKD4_LAB_PATH}/ipxe-work-dir/tmpFile
+    fi
+  done
+
+}
+
+function configLbNode() {
+
+  local ip_addr=${1}
+  local host_name=${2}
+  local mac=${3}
+
+# Create the iPXE boot file for this host
+cat << EOF > ${OKD4_LAB_PATH}/ipxe-work-dir/${mac//:/-}.ipxe
+#!ipxe
+
+kernel ${INSTALL_URL}/centos/isolinux/vmlinuz net.ifnames=1 ifname=nic0:${mac} ip=${ip_addr}::${LAB_GATEWAY}:${LAB_NETMASK}:${host_name}.${LAB_DOMAIN}:nic0:none nameserver=${LAB_NAMESERVER} inst.ks=${INSTALL_URL}/kickstart/${mac//:/-}.ks inst.repo=${INSTALL_URL}/centos initrd=initrd.img
+initrd ${INSTALL_URL}/centos/isolinux/initrd.img
+
+boot
+EOF
+
+# Create the Kickstart file
+cat << EOF > ${OKD4_LAB_PATH}/ipxe-work-dir/${mac//:/-}.ks
+#version=RHEL8
+cmdline
+keyboard --vckeymap=us --xlayouts='us'
+lang en_US.UTF-8
+repo --name="Minimal" --baseurl=${INSTALL_URL}/centos/Minimal
+url --url="${INSTALL_URL}/centos"
+firstboot --disable
+skipx
+services --enabled="chronyd"
+timezone America/New_York --isUtc
+
+# Disk partitioning information
+ignoredisk --only-use=sda
+bootloader --append=" crashkernel=auto" --location=mbr --boot-drive=sda
+clearpart --drives=sda --all --initlabel
+zerombr
+part /boot --fstype="xfs" --ondisk=sda --size=1024
+part /boot/efi --fstype="efi" --ondisk=sda --size=600 --fsoptions="umask=0077,shortname=winnt"
+${PART_INFO}
+logvol swap  --fstype="swap" --size=16064 --name=swap --vgname=centos
+logvol /  --fstype="xfs" --grow --maxsize=2000000 --size=1024 --name=root --vgname=centos
+
+eula --agreed
+
+%packages
+@^minimal-environment
+kexec-tools
+%end
+
+%addon com_redhat_kdump --enable --reserve-mb='auto'
+
+%end
+
+%anaconda
+pwpolicy root --minlen=6 --minquality=1 --notstrict --nochanges --notempty
+pwpolicy user --minlen=6 --minquality=1 --notstrict --nochanges --emptyok
+pwpolicy luks --minlen=6 --minquality=1 --notstrict --nochanges --notempty
+%end
+
+%post
+set -x
+dnf -y install yum-utils
+yum-config-manager --disable AppStream
+yum-config-manager --disable BaseOS
+yum-config-manager --disable extras
+yum-config-manager --add-repo ${INSTALL_URL}/postinstall/local-repos.repo
+
+mkdir -p /root/.ssh
+chmod 700 /root/.ssh
+curl -o /root/.ssh/authorized_keys ${INSTALL_URL}/postinstall/authorized_keys
+chmod 600 /root/.ssh/authorized_keys
+
+yum -y install net-tools bind-utils bridge-utils bash-completion kexec-tools haproxy policycoreutils-python
+dnf -y update
+curl -o /etc/haproxy/haproxy.cfg ${INSTALL_URL}/postinstall/haproxy.${host_name}.cfg
+curl -o /etc/chrony.conf ${INSTALL_URL}/postinstall/chrony.conf
+
+firewall-cmd --add-port=80/tcp --permanent
+firewall-cmd --add-port=8080/tcp --permanent
+firewall-cmd --add-port=443/tcp --permanent
+firewall-cmd --add-port=6443/tcp --permanent
+firewall-cmd --add-port=22623/tcp --permanent
+firewall-cmd --reload
+
+setenforce 0
+systemctl start haproxy
+systemctl enable haproxy
+grep haproxy /var/log/audit/audit.log | audit2allow -M haproxy
+semodule -i haproxy.pp
+
+%end
+
+reboot
+EOF
+
+# Create the haproxy.cfg file
+
+  createLbHostList 6443
+  API_LIST=$(cat ${OKD4_LAB_PATH}/ipxe-work-dir/tmpFile)
+  createLbHostList 22623
+  MC_LIST=$(cat ${OKD4_LAB_PATH}/ipxe-work-dir/tmpFile)
+  createLbHostList 80
+  APPS_LIST=$(cat ${OKD4_LAB_PATH}/ipxe-work-dir/tmpFile | grep -v bootstrap)
+  createLbHostList 443
+  APPS_SSL_LIST=$(cat ${OKD4_LAB_PATH}/ipxe-work-dir/tmpFile | grep -v bootstrap)
+
+cat << EOF > ${OKD4_LAB_PATH}/ipxe-work-dir/haproxy.${host_name}.cfg
+global
+
+    log         127.0.0.1 local2
+
+    chroot      /var/lib/haproxy
+    pidfile     /var/run/haproxy.pid
+    maxconn     50000
+    user        haproxy
+    group       haproxy
+    daemon
+
+    stats socket /var/lib/haproxy/stats
+
+defaults
+    mode                    http
+    log                     global
+    option                  dontlognull
+    option forwardfor       except 127.0.0.0/8
+    option                  redispatch
+    retries                 3
+    timeout http-request    10s
+    timeout queue           1m
+    timeout connect         10s
+    timeout client          10m
+    timeout server          10m
+    timeout http-keep-alive 10s
+    timeout check           10s
+    maxconn                 50000
+
+listen okd4-api 0.0.0.0:6443
+    balance roundrobin
+    option                  tcplog
+    mode tcp
+    option tcpka
+    option ssl-hello-chk
+${API_LIST}
+
+listen okd4-mc 0.0.0.0:22623
+    balance roundrobin
+    option                  tcplog
+    mode tcp
+    option tcpka
+${MC_LIST}
+
+listen okd4-apps 0.0.0.0:80
+    balance source
+    option                  tcplog
+    mode tcp
+    option tcpka
+${APPS_LIST}
+
+listen okd4-apps-ssl 0.0.0.0:443
+    balance source
+    option                  tcplog
+    mode tcp
+    option tcpka
+    option ssl-hello-chk
+${APPS_SSL_LIST}
+EOF
+
 }
 
 # Retreive fcct
@@ -146,7 +329,7 @@ then
   cd ..
   rm -rf okd-release-tmp
 fi
-if [ ${USE_MIRROR} == "true" ]
+if [[ ${USE_MIRROR} == "true" ]]
 then
   ssh root@${LAB_NAMESERVER} 'sed -i "s|;sinkhole|registry.svc.ci.openshift.org|g" /etc/named/zones/db.sinkhole && systemctl restart named'
 fi
@@ -161,9 +344,8 @@ sed -i "s|%%OKD_VER%%|${OKD_VER}|g" ${OKD4_LAB_PATH}/okd4-install-dir/install-co
 sed -i "s|%%CLUSTER_NAME%%|${CLUSTER_NAME}|g" ${OKD4_LAB_PATH}/okd4-install-dir/install-config.yaml
 openshift-install --dir=${OKD4_LAB_PATH}/okd4-install-dir create ignition-configs
 
-
 # Create Virtual Machines from the inventory file
-for VARS in $(cat ${INVENTORY} | grep -v "#")
+for VARS in $(cat ${INVENTORY} | grep -v "#" | grep -v "HA-PROXY")
 do
   HOST_NODE=$(echo ${VARS} | cut -d',' -f1)
   HOSTNAME=$(echo ${VARS} | cut -d',' -f2)
@@ -186,7 +368,7 @@ do
   IP_01=$(dig ${HOSTNAME}.${LAB_DOMAIN} +short)
   NET_DEVICE="--network bridge=br0"
 
-  if [ ${NICS} == "2" ]
+  if [[ ${NICS} == "2" ]]
   then
     NET_DEVICE="--network bridge=br0 --network bridge=br1"
     # IP address for eth1 is the same as eth0 with the third octet incremented by 1.  i.e. eth0=10.11.11.10, eth1=10.11.12.10
@@ -207,13 +389,15 @@ do
   var=$(ssh root@${HOST_NODE}.${LAB_DOMAIN} "virsh -q domiflist ${HOSTNAME} | grep br0")
   NET_MAC_0=$(echo ${var} | cut -d" " -f5)
 
-  # Create node specific ignition files
-  configIgnition ${IP_01} ${HOSTNAME}.${LAB_DOMAIN} ${NET_MAC_0} ${ROLE}
-  cat ${OKD4_LAB_PATH}/ipxe-work-dir/ignition/${NET_MAC_0//:/-}.yml | ${OKD4_LAB_PATH}/ipxe-work-dir/fcct -d ${OKD4_LAB_PATH}/ipxe-work-dir/ignition/ -o ${OKD4_LAB_PATH}/ipxe-work-dir/ignition/${NET_MAC_0//:/-}.ign
-
-  # Create and deploy the iPXE boot file for this VM
-  configIpxe ${NET_MAC_0}
-
+  if [[ ${ROLE} != "ha-proxy" ]]
+  then
+    # Create node specific files
+    configOkdNode ${IP_01} ${HOSTNAME}.${LAB_DOMAIN} ${NET_MAC_0} ${ROLE}
+    cat ${OKD4_LAB_PATH}/ipxe-work-dir/ignition/${NET_MAC_0//:/-}.yml | ${OKD4_LAB_PATH}/ipxe-work-dir/fcct -d ${OKD4_LAB_PATH}/ipxe-work-dir/ignition/ -o ${OKD4_LAB_PATH}/ipxe-work-dir/ignition/${NET_MAC_0//:/-}.ign
+  else
+    # Create the HA Proxy LB Server
+    configLbNode ${IP_01} ${HOSTNAME}.${LAB_DOMAIN} ${NET_MAC_0}
+  fi
   # Create a virtualBMC instance for this VM
   vbmc add --username admin --password password --port ${VBMC_PORT} --address ${BASTION_HOST} --libvirt-uri qemu+ssh://root@${HOST_NODE}.${LAB_DOMAIN}/system ${HOSTNAME}
   vbmc start ${HOSTNAME}
