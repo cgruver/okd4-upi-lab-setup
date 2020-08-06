@@ -2,7 +2,7 @@
 
 ### Or, more precisely...  How to build your own desktop datacenter from scratch.
 
-## I have written this guide from my own lab configuration.  So, it is oppinionated toward a libvirt/KVM installation on CentOS 7.
+## I have written this guide from my own lab configuration.  So, it is oppinionated toward a libvirt/KVM installation on CentOS 7 --- Upgrading to CentOS 8, merging changes soon.
 
 ## Note: Updated to support the OKD 4.5 GA release that just dropped.  FCOS made some changes to how network interfaces are configured.  This project is being updated to accomodate those changes.  The deployment script has been modified to inject NIC configuration into the ignition files for the OKD nodes.  The documentation will be updated soon.
 
