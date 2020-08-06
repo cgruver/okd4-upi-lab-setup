@@ -83,6 +83,7 @@ Now, we are going to set up the artifacts for host installation.  This will incl
        done
 
        sed -i "s|%%REPO_URL%%|${REPO_URL}|g" ./tmp-work/postinstall/local-repos.repo
+       sed -i "s|%%LAB_NAMESERVER%%|${LAB_NAMESERVER}|g" ./tmp-work/postinstall/chrony.conf
 
     Copy your public SSH key
 
