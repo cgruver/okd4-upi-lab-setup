@@ -77,8 +77,8 @@ cat << EOF > ${OKD4_LAB_PATH}/ipxe-work-dir/${NET_MAC//:/-}.ks
 cmdline
 keyboard --vckeymap=us --xlayouts='us'
 lang en_US.UTF-8
-repo --name="Minimal" --baseurl=${INSTALL_URL}/centos-8/Minimal
-url --url="${INSTALL_URL}/centos-8"
+repo --name="Minimal" --baseurl=${INSTALL_URL}/centos/Minimal
+url --url="${INSTALL_URL}/centos"
 rootpw --iscrypted ${LAB_PWD}
 firstboot --disable
 skipx
@@ -120,8 +120,8 @@ pwpolicy luks --minlen=6 --minquality=1 --notstrict --nochanges --notempty
 
 %post
 dnf -y install yum-utils
-yum-config-manager --disable base
-yum-config-manager --disable updates
+yum-config-manager --disable AppStream
+yum-config-manager --disable BaseOS
 yum-config-manager --disable extras
 yum-config-manager --add-repo ${INSTALL_URL}/postinstall/local-repos.repo
 
