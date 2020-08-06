@@ -12,6 +12,7 @@ __If you set up your lab router on the 10.11.11/24 network.  Then you can use th
 
 Do the following, from the root of this project:
 
+    mv /etc/named.conf /etc/named.conf.orig
     cp ./DNS/named.conf /etc
     cp -r ./DNS/named /etc
     
@@ -68,8 +69,7 @@ Now that we are done with the configuration let's enable DNS and start it up.
 
     firewall-cmd --permanent --add-service=dns
     firewall-cmd --reload
-    systemctl enable named
-    systemctl start named
+    systemctl enable named --now
 
 You can now test DNS resolution.  Try some `pings` or `dig` commands.
 

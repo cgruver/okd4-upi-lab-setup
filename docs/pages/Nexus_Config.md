@@ -4,7 +4,7 @@ We are now going to install [Sonatype Nexus](https://www.sonatype.com/nexus-repo
 
 Nexus requires Java, so let's install that now if it was not installed during the initial system build:
 
-    yum -y install java-1.8.0-openjdk.x86_64
+    dnf -y install java-11-openjdk.x86_64
 
 Now, we'll install Nexus:
 
@@ -71,7 +71,8 @@ Before we start Nexus, let's go ahead a set up TLS so that our connections are s
 
         openssl pkcs12 -export -in nexus.crt -inkey nexus.key -name "${LAB_DOMAIN}" -out nexus.p12
         keytool -importkeystore -deststorepass password -destkeystore keystore.jks -srckeystore nexus.p12 -srcstoretype PKCS12
-        keytool -importkeystore -srckeystore keystore.jks -destkeystore keystore.jks -deststoretype pkcs12
+        
+        # redundant keytool -importkeystore -srckeystore keystore.jks -destkeystore keystore.jks -deststoretype pkcs12
 
         cp keystore.jks /usr/local/nexus/nexus-3/etc/ssl/keystore.jks
         chown nexus:nexus /usr/local/nexus/nexus-3/etc/ssl/keystore.jks

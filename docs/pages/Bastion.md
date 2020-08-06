@@ -10,9 +10,9 @@ The bastion host serves:
 
 I recommend using a bare-metal host for your Bastion.  It will also run the load-balancer VM and Bootstrap VM for your cluster.  I am using a [NUC8i3BEK](https://ark.intel.com/content/www/us/en/ark/products/126149/intel-nuc-kit-nuc8i3bek.html) with 32GB of RAM for my Bastion host. This little box with 32GB of RAM is perfect for this purpose, and also very portable for throwing in a bag to take my dev environment with me.  My OpenShift build environment is also installed on the Bastion host.
 
-You need to start with a minimal CentOS 7 install. (__This tutorial assumes that you are comfortable installing a Linux OS.__)
+You need to start with a minimal CentOS 8 install. (__This tutorial assumes that you are comfortable installing a Linux OS.__)
 
-    wget https://buildlogs.centos.org/rolling/7/isos/x86_64/CentOS-7-x86_64-Minimal.iso
+Download the minimal install ISO from: http://isoredirect.centos.org/centos/8/isos/x86_64/
 
 I use [balenaEtcher](https://www.balena.io/etcher/) to create a bootable USB key from a CentOS ISO.
 
@@ -47,19 +47,10 @@ Shutdown the host and disconnect the keyboard, mouse, and display.  Your host is
 
 Install some added packages:
 
-1. We're going to use the kvm-common repository to ensure we get a new enough version of KVM.
+1. Install the packages that we are going to need.
 
-       cat << EOF > /etc/yum.repos.d/kvm-common.repo
-       [kvm-common]
-       name=KVM Common
-       baseurl=http://mirror.centos.org/centos/7/virt/x86_64/kvm-common/
-       gpgcheck=0
-       enabled=1
-       EOF
-
-1. Now install the packages that we are going to need.
-
-       yum -y install wget gcc git net-tools bind bind-utils bash-completion nfs-utils rsync ipmitool python3-pip yum-utils qemu-kvm libvirt libvirt-python libguestfs-tools virt-install iscsi-initiator-utils createrepo docker libassuan-devel java-1.8.0-openjdk.x86_64 epel-release ipxe-bootimgs python36-devel libvirt-devel httpd-tools
+       dnf -y module install virt
+       dnf -y install wget gcc git net-tools bind bind-utils bash-completion rsync ipmitool python3-pip yum-utils libguestfs-tools virt-install createrepo java-11-openjdk.x86_64 epel-release ipxe-bootimgs python36-devel libvirt-devel httpd-tools
 
 1. Install Virtual BMC:
 
@@ -92,8 +83,7 @@ Install some added packages:
 
     Enable the vbmcd service:
 
-       systemctl enable vbmcd.service
-       systemctl start vbmcd.service
+       systemctl enable vbmcd.service --now
 
 Clone this project:
 

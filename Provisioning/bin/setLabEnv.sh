@@ -1,6 +1,6 @@
 #!/bin/bash
 
-export PATH=/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/root/bin:/bin:/root/go/bin:/root/bin:~/bin/lab_bin
+export PATH=$PATH:/root/bin:~/bin/lab_bin
 export LAB_DOMAIN=your.domian.org
 export BASTION_HOST=10.11.11.10
 export INSTALL_HOST=10.11.11.10

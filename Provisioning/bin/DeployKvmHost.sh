@@ -26,10 +26,16 @@ done
 
 DISK_1=$(echo ${DISK} | cut -d"," -f 1)
 DISK_2=$(echo ${DISK} | cut -d"," -f 2)
+if [[ ${DISK_1} == ${DISK_2} ]]
+then
+  DISK_2=""
+fi
+
+LAB_PWD=$(cat ${OKD4_LAB_PATH}/lab_pwd)
 
 function createPartInfo() {
 
-if [ ${DISK_2 == "" }]
+if [[ ${DISK_2} == "" ]]
 then
 cat <<EOF
 part pv.1 --fstype="lvmpv" --ondisk=${DISK_1} --size=1024 --grow --maxsize=2000000
@@ -123,7 +129,8 @@ mkdir -p /root/.ssh
 chmod 700 /root/.ssh
 curl -o /root/.ssh/authorized_keys ${INSTALL_URL}/postinstall/authorized_keys
 chmod 600 /root/.ssh/authorized_keys
-dnf -y install wget git net-tools bind-utils bash-completion nfs-utils rsync qemu-kvm libvirt libvirt-python libguestfs-tools virt-install iscsi-initiator-utils
+dnf -y module install virt
+dnf -y install wget git net-tools bind-utils bash-completion nfs-utils rsync libvirt-python libguestfs-tools virt-install iscsi-initiator-utils
 dnf -y update
 echo "InitiatorName=iqn.$(hostname)" > /etc/iscsi/initiatorname.iscsi
 echo "options kvm_intel nested=1" >> /etc/modprobe.d/kvm.conf
@@ -140,6 +147,7 @@ chmod 700 /root/bin/rebuildhost.sh
 curl -o /etc/chrony.conf ${INSTALL_URL}/postinstall/chrony.conf
 %end
 
+reboot
 
 EOF
 
