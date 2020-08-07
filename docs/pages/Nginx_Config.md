@@ -41,6 +41,11 @@ Now, we are going to set up the artifacts for host installation.  This will incl
     mkdir -p ${INSTALL_ROOT}/{centos,fcos,firstboot,kickstart,hostconfig,postinstall}
     mkdir ${INSTALL_ROOT}/fcos/ignition
 
+Create encrypted passwords to be used in your KVM host and Guest installations:
+
+    openssl passwd -1 'guest-root-password' > ${OKD4_LAB_PATH}/lab_guest_pw
+    openssl passwd -1 'host-root-password' > ${OKD4_LAB_PATH}/lab_host_pw
+
 ### CentOS:
 
 1. Deploy the Minimal ISO files.

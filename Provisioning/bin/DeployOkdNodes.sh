@@ -11,6 +11,7 @@ IP_CONFIG_2=""
 IP_CONFIG=""
 LB_IP_LIST=""
 CLUSTER_NAME="okd4"
+LAB_PWD=$(cat ${OKD4_LAB_PATH}/lab_guest_pw)
 
 for i in "$@"
 do
@@ -116,7 +117,7 @@ EOF
 cat << EOF > ${OKD4_LAB_PATH}/ipxe-work-dir/${mac//:/-}.ipxe
 #!ipxe
 
-kernel ${INSTALL_URL}/fcos/vmlinuz net.ifnames=1 rd.neednet=1 coreos.inst=yes coreos.inst.install_dev=sda coreos.inst.image_url=${INSTALL_URL}/fcos/install.xz coreos.inst.ignition_url=${INSTALL_URL}/fcos/ignition/${CLUSTER_NAME}/${mac//:/-}.ign coreos.inst.platform_id=qemu console=ttyS0
+kernel ${INSTALL_URL}/fcos/vmlinuz edd=off net.ifnames=1 rd.neednet=1 coreos.inst=yes coreos.inst.install_dev=sda coreos.inst.image_url=${INSTALL_URL}/fcos/install.xz coreos.inst.ignition_url=${INSTALL_URL}/fcos/ignition/${CLUSTER_NAME}/${mac//:/-}.ign coreos.inst.platform_id=qemu console=ttyS0
 initrd ${INSTALL_URL}/fcos/initrd
 
 boot
@@ -157,7 +158,7 @@ function configLbNode() {
 cat << EOF > ${OKD4_LAB_PATH}/ipxe-work-dir/${mac//:/-}.ipxe
 #!ipxe
 
-kernel ${INSTALL_URL}/centos/isolinux/vmlinuz net.ifnames=1 ifname=nic0:${mac} ip=${ip_addr}::${LAB_GATEWAY}:${LAB_NETMASK}:${host_name}.${LAB_DOMAIN}:nic0:none nameserver=${LAB_NAMESERVER} inst.ks=${INSTALL_URL}/kickstart/${mac//:/-}.ks inst.repo=${INSTALL_URL}/centos initrd=initrd.img
+kernel ${INSTALL_URL}/centos/isolinux/vmlinuz edd=off net.ifnames=1 ifname=nic0:${mac} ip=${ip_addr}::${LAB_GATEWAY}:${LAB_NETMASK}:${host_name}.${LAB_DOMAIN}:nic0:none nameserver=${LAB_NAMESERVER} inst.ks=${INSTALL_URL}/kickstart/${mac//:/-}.ks inst.repo=${INSTALL_URL}/centos initrd=initrd.img console=ttyS0
 initrd ${INSTALL_URL}/centos/isolinux/initrd.img
 
 boot
@@ -171,6 +172,7 @@ keyboard --vckeymap=us --xlayouts='us'
 lang en_US.UTF-8
 repo --name="Minimal" --baseurl=${INSTALL_URL}/centos/Minimal
 url --url="${INSTALL_URL}/centos"
+rootpw --iscrypted ${LAB_PWD}
 firstboot --disable
 skipx
 services --enabled="chronyd"
@@ -183,7 +185,8 @@ clearpart --drives=sda --all --initlabel
 zerombr
 part /boot --fstype="xfs" --ondisk=sda --size=1024
 part /boot/efi --fstype="efi" --ondisk=sda --size=600 --fsoptions="umask=0077,shortname=winnt"
-${PART_INFO}
+part pv.1 --fstype="lvmpv" --ondisk=sda --size=1024 --grow --maxsize=2000000
+volgroup centos --pesize=4096 pv.1
 logvol swap  --fstype="swap" --size=16064 --name=swap --vgname=centos
 logvol /  --fstype="xfs" --grow --maxsize=2000000 --size=1024 --name=root --vgname=centos
 
