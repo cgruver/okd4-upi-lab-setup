@@ -220,21 +220,20 @@ chmod 700 /root/.ssh
 curl -o /root/.ssh/authorized_keys ${INSTALL_URL}/postinstall/authorized_keys
 chmod 600 /root/.ssh/authorized_keys
 
-yum -y install net-tools bind-utils bridge-utils bash-completion kexec-tools haproxy policycoreutils-python
+dnf -y install net-tools bind-utils bash-completion kexec-tools haproxy policycoreutils-python-utils
 dnf -y update
 curl -o /etc/haproxy/haproxy.cfg ${INSTALL_URL}/postinstall/haproxy.${host_name}.cfg
 curl -o /etc/chrony.conf ${INSTALL_URL}/postinstall/chrony.conf
 
-firewall-cmd --add-port=80/tcp --permanent
-firewall-cmd --add-port=8080/tcp --permanent
-firewall-cmd --add-port=443/tcp --permanent
-firewall-cmd --add-port=6443/tcp --permanent
-firewall-cmd --add-port=22623/tcp --permanent
-firewall-cmd --reload
+firewall-offline-cmd --add-port=80/tcp --permanent
+firewall-offline-cmd --add-port=8080/tcp --permanent
+firewall-offline-cmd --add-port=443/tcp --permanent
+firewall-offline-cmd --add-port=6443/tcp --permanent
+firewall-offline-cmd --add-port=22623/tcp --permanent
+firewall-offline-cmd --reload
 
 setenforce 0
-systemctl start haproxy
-systemctl enable haproxy
+systemctl enable haproxy --now
 grep haproxy /var/log/audit/audit.log | audit2allow -M haproxy
 semodule -i haproxy.pp
 
