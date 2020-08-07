@@ -70,7 +70,7 @@ version: 1.1.0
 ignition:
   config:
     merge:
-      - local: ${OKD4_LAB_PATH}/okd4-install-dir/${role}.ign
+      - local: ${role}.ign
 storage:
   files:
     - path: /etc/zincati/config.d/90-disable-feature.toml
@@ -308,6 +308,9 @@ listen okd4-apps-ssl 0.0.0.0:443
 ${APPS_SSL_LIST}
 EOF
 
+  scp ${OKD4_LAB_PATH}/ipxe-work-dir/${mac//:/-}.ks root@${INSTALL_HOST}:${INSTALL_ROOT}/install/kickstart/${mac//:/-}.ks
+  scp ${OKD4_LAB_PATH}/ipxe-work-dir/haproxy.${host_name}.cfg root@${INSTALL_HOST}:${INSTALL_ROOT}/install/postinstall/haproxy.${host_name}.cfg
+
 }
 
 # Retreive fcct
@@ -345,7 +348,7 @@ sed -i "s|%%CLUSTER_NAME%%|${CLUSTER_NAME}|g" ${OKD4_LAB_PATH}/okd4-install-dir/
 openshift-install --dir=${OKD4_LAB_PATH}/okd4-install-dir create ignition-configs
 
 # Create Virtual Machines from the inventory file
-for VARS in $(cat ${INVENTORY} | grep -v "#" | grep -v "HA-PROXY")
+for VARS in $(cat ${INVENTORY} | grep -v "#")
 do
   HOST_NODE=$(echo ${VARS} | cut -d',' -f1)
   HOSTNAME=$(echo ${VARS} | cut -d',' -f2)
@@ -393,7 +396,7 @@ do
   then
     # Create node specific files
     configOkdNode ${IP_01} ${HOSTNAME}.${LAB_DOMAIN} ${NET_MAC_0} ${ROLE}
-    cat ${OKD4_LAB_PATH}/ipxe-work-dir/ignition/${NET_MAC_0//:/-}.yml | ${OKD4_LAB_PATH}/ipxe-work-dir/fcct -d ${OKD4_LAB_PATH}/ipxe-work-dir/ignition/ -o ${OKD4_LAB_PATH}/ipxe-work-dir/ignition/${NET_MAC_0//:/-}.ign
+    cat ${OKD4_LAB_PATH}/ipxe-work-dir/ignition/${NET_MAC_0//:/-}.yml | ${OKD4_LAB_PATH}/ipxe-work-dir/fcct -d ${OKD4_LAB_PATH}/okd4-install-dir/ -o ${OKD4_LAB_PATH}/ipxe-work-dir/ignition/${NET_MAC_0//:/-}.ign
   else
     # Create the HA Proxy LB Server
     configLbNode ${IP_01} ${HOSTNAME}.${LAB_DOMAIN} ${NET_MAC_0}

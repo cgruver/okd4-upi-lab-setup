@@ -17,4 +17,4 @@ export OKD4_LAB_PATH=/root/okd4-lab
 export OKD_REGISTRY=registry.svc.ci.openshift.org/origin/release
 export LOCAL_REGISTRY=nexus.${LAB_DOMAIN}:5001
 export LOCAL_REPOSITORY=origin
-export LOCAL_SECRET_JSON=${OKD4_LAB_PATH}/pull-secret.json
+export LOCAL_SECRET_JSON=${OKD4_LAB_PATH}/pull_secret.json

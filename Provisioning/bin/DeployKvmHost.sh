@@ -130,7 +130,7 @@ chmod 700 /root/.ssh
 curl -o /root/.ssh/authorized_keys ${INSTALL_URL}/postinstall/authorized_keys
 chmod 600 /root/.ssh/authorized_keys
 dnf -y module install virt
-dnf -y install wget git net-tools bind-utils bash-completion nfs-utils rsync libvirt-python libguestfs-tools virt-install iscsi-initiator-utils
+dnf -y install wget git net-tools bind-utils bash-completion nfs-utils rsync libguestfs-tools virt-install iscsi-initiator-utils
 dnf -y update
 echo "InitiatorName=iqn.$(hostname)" > /etc/iscsi/initiatorname.iscsi
 echo "options kvm_intel nested=1" >> /etc/modprobe.d/kvm.conf

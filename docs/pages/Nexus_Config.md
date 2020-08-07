@@ -104,7 +104,7 @@ We need to create a hosted Docker registry to hold the mirror of the OKD images 
 1. Select the gear icon from the top bar, in between a cube icon and the search dialog.
 1. Select `Repositories` from the left menu bar.
 
-    ![Nexus Admin](images/Nexus&#32;Admin.png)
+    ![Nexus Admin](images/NexusAdmin.png)
 
 1. Select `+ Create repository`
 1. Select `docker (hosted)`
@@ -116,5 +116,11 @@ We need to create a hosted Docker registry to hold the mirror of the OKD images 
     ![Nexus OKD Repo](images/CreateOriginRepo.png)
 
 1. Click `Create repository` at the bottom of the page.
+1. Now expand the `Security` menu on the left and select `Realms`
+1. Add `Docker Bearer Token Realm` to the list of active `Realms`
+
+    ![Realms](images/NexusRealms.png)
+
+1. Click `Save`
 
 Now we need to deploy at least one KVM host for our cluster: [Build KVM Host/s](Deploy_KVM_Host.md)
