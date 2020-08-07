@@ -31,7 +31,7 @@ then
   DISK_2=""
 fi
 
-LAB_PWD=$(cat ${OKD4_LAB_PATH}/lab_pwd)
+LAB_PWD=$(cat ${OKD4_LAB_PATH}/lab_host_pw)
 
 function createPartInfo() {
 
