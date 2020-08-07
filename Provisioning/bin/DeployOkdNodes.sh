@@ -225,12 +225,11 @@ dnf -y update
 curl -o /etc/haproxy/haproxy.cfg ${INSTALL_URL}/postinstall/haproxy.${host_name}.cfg
 curl -o /etc/chrony.conf ${INSTALL_URL}/postinstall/chrony.conf
 
-firewall-offline-cmd --add-port=80/tcp --permanent
-firewall-offline-cmd --add-port=8080/tcp --permanent
-firewall-offline-cmd --add-port=443/tcp --permanent
-firewall-offline-cmd --add-port=6443/tcp --permanent
-firewall-offline-cmd --add-port=22623/tcp --permanent
-firewall-offline-cmd --reload
+firewall-offline-cmd --add-port=80/tcp 
+firewall-offline-cmd --add-port=8080/tcp 
+firewall-offline-cmd --add-port=443/tcp 
+firewall-offline-cmd --add-port=6443/tcp 
+firewall-offline-cmd --add-port=22623/tcp 
 
 setenforce 0
 systemctl enable haproxy --now
@@ -271,7 +270,6 @@ defaults
     mode                    http
     log                     global
     option                  dontlognull
-    option forwardfor       except 127.0.0.0/8
     option                  redispatch
     retries                 3
     timeout http-request    10s
@@ -283,7 +281,8 @@ defaults
     timeout check           10s
     maxconn                 50000
 
-listen okd4-api 0.0.0.0:6443
+listen okd4-api 
+    bind 0.0.0.0:6443
     balance roundrobin
     option                  tcplog
     mode tcp
@@ -291,21 +290,24 @@ listen okd4-api 0.0.0.0:6443
     option ssl-hello-chk
 ${API_LIST}
 
-listen okd4-mc 0.0.0.0:22623
+listen okd4-mc 
+    bind 0.0.0.0:22623
     balance roundrobin
     option                  tcplog
     mode tcp
     option tcpka
 ${MC_LIST}
 
-listen okd4-apps 0.0.0.0:80
+listen okd4-apps 
+    bind 0.0.0.0:80
     balance source
     option                  tcplog
     mode tcp
     option tcpka
 ${APPS_LIST}
 
-listen okd4-apps-ssl 0.0.0.0:443
+listen okd4-apps-ssl 
+    bind 0.0.0.0:443
     balance source
     option                  tcplog
     mode tcp
