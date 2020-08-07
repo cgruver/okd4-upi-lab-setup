@@ -1,5 +1,5 @@
 # KVM_HOST_NODE,GUEST_HOSTNAME,MEMORY,CPU,ROOT_VOL,DATA_VOL,NUM_OF_NICS,ROLE,VBMC_PORT
-bastion,okd4-lb01,4096,1,50,0,1,ha-proxy,2668
+bastion,okd4-lb01,4096,1,50,0,1,ha-proxy,6228
 bastion,okd4-bootstrap,16384,4,50,0,1,bootstrap,6229
 kvm-host01,okd4-master-0,20480,4,100,0,1,master,6230
 kvm-host01,okd4-master-1,20480,4,100,0,1,master,6231

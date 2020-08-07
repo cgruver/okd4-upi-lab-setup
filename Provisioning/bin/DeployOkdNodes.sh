@@ -127,17 +127,21 @@ EOF
 function createLbHostList() {
 
   local port=${1}
+  local host_name=""
+  local role=""
+  local vars=""
+  local node_ip=""
   
   rm -f ${OKD4_LAB_PATH}/ipxe-work-dir/tmpFile
   # Get the list of master & bootstrap IPs for the HA Proxy configuration
-  for VARS in $(cat ${INVENTORY} | grep -v "#" | grep -v "HA-PROXY")
+  for vars in $(cat ${INVENTORY} | grep -v "#" | grep -v "HA-PROXY")
   do
-    HOSTNAME=$(echo ${VARS} | cut -d',' -f2)
-    ROLE=$(echo ${VARS} | cut -d',' -f8)
-    if [[ ${ROLE} == "bootstrap" ]] || [[ ${ROLE} == "master" ]]
+    host_name=$(echo ${vars} | cut -d',' -f2)
+    role=$(echo ${vars} | cut -d',' -f8)
+    if [[ ${role} == "bootstrap" ]] || [[ ${role} == "master" ]]
     then
-      NODE_IP=$(dig ${HOSTNAME}.${LAB_DOMAIN} +short)
-      echo "    server ${HOSTNAME} ${NODE_IP}:${port} check weight 1" >> ${OKD4_LAB_PATH}/ipxe-work-dir/tmpFile
+      NODE_IP=$(dig ${host_name}.${LAB_DOMAIN} +short)
+      echo "    server ${host_name} ${node_ip}:${port} check weight 1" >> ${OKD4_LAB_PATH}/ipxe-work-dir/tmpFile
     fi
   done
 
@@ -308,8 +312,8 @@ listen okd4-apps-ssl 0.0.0.0:443
 ${APPS_SSL_LIST}
 EOF
 
-  scp ${OKD4_LAB_PATH}/ipxe-work-dir/${mac//:/-}.ks root@${INSTALL_HOST}:${INSTALL_ROOT}/install/kickstart/${mac//:/-}.ks
-  scp ${OKD4_LAB_PATH}/ipxe-work-dir/haproxy.${host_name}.cfg root@${INSTALL_HOST}:${INSTALL_ROOT}/install/postinstall/haproxy.${host_name}.cfg
+  scp ${OKD4_LAB_PATH}/ipxe-work-dir/${mac//:/-}.ks root@${INSTALL_HOST}:${INSTALL_ROOT}/kickstart/${mac//:/-}.ks
+  scp ${OKD4_LAB_PATH}/ipxe-work-dir/haproxy.${host_name}.cfg root@${INSTALL_HOST}:${INSTALL_ROOT}/postinstall/haproxy.${host_name}.cfg
 
 }
 
