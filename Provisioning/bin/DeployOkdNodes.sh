@@ -231,14 +231,29 @@ firewall-offline-cmd --add-port=443/tcp
 firewall-offline-cmd --add-port=6443/tcp 
 firewall-offline-cmd --add-port=22623/tcp 
 
-setenforce 0
-systemctl enable haproxy --now
-grep haproxy /var/log/audit/audit.log | audit2allow -M haproxy
-semodule -i haproxy.pp
+curl -o /root/firstboot.sh ${INSTALL_URL}/firstboot/haproxy.${host_name}.fb
+chmod 750 /root/firstboot.sh
+echo "@reboot root /bin/bash /root/firstboot.sh" >> /etc/crontab
 
 %end
 
 reboot
+EOF
+
+# Create the firstboot script
+
+cat << EOF > ${OKD4_LAB_PATH}/ipxe-work-dir/haproxy.${host_name}.fb
+
+setenforce 0
+systemctl enable haproxy --now
+grep haproxy /var/log/audit/audit.log | audit2allow -M haproxy
+semodule -i haproxy.pp
+setenforce 1
+/bin/cat /etc/crontab | /bin/grep -v firstboot > /etc/crontab.tmp
+/bin/rm -f /etc/crontab
+/bin/mv /etc/crontab.tmp /etc/crontab
+rm -f $0
+
 EOF
 
 # Create the haproxy.cfg file
@@ -317,6 +332,7 @@ ${APPS_SSL_LIST}
 EOF
 
   scp ${OKD4_LAB_PATH}/ipxe-work-dir/${mac//:/-}.ks root@${INSTALL_HOST}:${INSTALL_ROOT}/kickstart/${mac//:/-}.ks
+  scp ${OKD4_LAB_PATH}/ipxe-work-dir/haproxy.${host_name}.fb root@${INSTALL_HOST}:${INSTALL_ROOT}/firstboot/haproxy.${host_name}.fb
   scp ${OKD4_LAB_PATH}/ipxe-work-dir/haproxy.${host_name}.cfg root@${INSTALL_HOST}:${INSTALL_ROOT}/postinstall/haproxy.${host_name}.cfg
 
 }
