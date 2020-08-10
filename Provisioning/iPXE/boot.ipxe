@@ -17,5 +17,5 @@ echo IPv6 DNS: ${dns6}
 echo Domain: ${domain}
 echo ========================================================
 
-chain --replace --autofree ipxe/${mac:hexhyp}.ipxe ||
-chain --replace --autofree ipxe/default.ipxe
+chain --replace --autofree ipxe/${mac:hexhyp}.ipxe
+

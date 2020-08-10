@@ -134,13 +134,8 @@ dnf -y install wget git net-tools bind-utils bash-completion nfs-utils rsync lib
 dnf -y update
 echo "InitiatorName=iqn.$(hostname)" > /etc/iscsi/initiatorname.iscsi
 echo "options kvm_intel nested=1" >> /etc/modprobe.d/kvm.conf
-systemctl enable libvirtd --now
+systemctl enable libvirtd
 mkdir /VirtualMachines
-virsh pool-destroy default
-virsh pool-undefine default
-virsh pool-define-as --name default --type dir --target /VirtualMachines
-virsh pool-autostart default
-virsh pool-start default
 mkdir -p /root/bin
 curl -o /root/bin/rebuildhost.sh ${INSTALL_URL}/postinstall/rebuildhost.sh
 chmod 700 /root/bin/rebuildhost.sh

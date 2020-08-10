@@ -147,7 +147,7 @@ storage:
 iPXE:
 
 ```
-wget wget http://boot.ipxe.org/ipxe.efi
+wget http://boot.ipxe.org/ipxe.efi
 ```
 
 ```

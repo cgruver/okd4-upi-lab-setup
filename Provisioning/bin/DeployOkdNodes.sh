@@ -141,7 +141,7 @@ function createLbHostList() {
     role=$(echo ${vars} | cut -d',' -f8)
     if [[ ${role} == "bootstrap" ]] || [[ ${role} == "master" ]]
     then
-      NODE_IP=$(dig ${host_name}.${LAB_DOMAIN} +short)
+      node_ip=$(dig ${host_name}.${LAB_DOMAIN} +short)
       echo "    server ${host_name} ${node_ip}:${port} check weight 1" >> ${OKD4_LAB_PATH}/ipxe-work-dir/tmpFile
     fi
   done

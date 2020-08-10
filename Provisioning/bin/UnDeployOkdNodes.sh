@@ -23,6 +23,7 @@ do
 
   # Remove the iPXE boot file
   ssh root@${PXE_HOST} "rm -f /var/lib/tftpboot/ipxe/${NET_MAC//:/-}.ipxe"
+  ssh root@${INSTALL_HOST} "rm -f ${INSTALL_ROOT}/fcos/ignition/${CLUSTER_NAME}/${NET_MAC//:/-}.ign"
 
   # Destroy the VM
   ssh root@${HOST_NODE}.${LAB_DOMAIN} "virsh destroy ${HOSTNAME}"
