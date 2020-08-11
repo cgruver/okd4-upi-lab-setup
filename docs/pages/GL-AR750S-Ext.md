@@ -63,7 +63,7 @@ Now we will enable TFTP and PXE: (The VMs will boot via iPXE, and the KVM hosts 
     uci set dhcp.ipxe_boot.networkid='set:ipxe'
     uci set dhcp.ipxe_boot.userclass='iPXE'
     uci set dhcp.uefi=boot
-    uci set dhcp.uefi.filename='tag:efi64,tag:!ipxe,BOOTX64.EFI'
+    uci set dhcp.uefi.filename='tag:efi64,tag:!ipxe,ipxe.efi'
     uci set dhcp.uefi.serveraddress='10.11.11.1'
     uci set dhcp.uefi.servername='pxe'
     uci set dhcp.uefi.force='1'
