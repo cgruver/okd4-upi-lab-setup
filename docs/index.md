@@ -45,7 +45,7 @@ __Follow each of these guides to get setup:__
 1. [Bastion Host](pages/Bastion.md)
 1. [DNS Setup](pages/DNS_Config.md)
 1. [Nginx Setup & RPM Repo sync](pages/Nginx_Config.md)
-1. [PXE Boot with TFTP & DHCP](pages/DHCP.md)
+1. [PXE Boot with TFTP & DHCP](pages/GL-AR750S-Ext.md)
 1. [Sonatype Nexus Setup](pages/Nexus_Config.md)
 1. [Build KVM Host/s](pages/Deploy_KVM_Host.md)
 

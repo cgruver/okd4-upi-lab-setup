@@ -4,8 +4,10 @@ set -x
 
 # This script will set up the infrastructure to deploy an OKD 4.X cluster
 # Follow the documentation at https://github.com/cgruver/okd4-UPI-Lab-Setup
+OKD_REGISTRY=${OKD_STABLE_REGISTRY}
 PULL_RELEASE=false
 USE_MIRROR=false
+NIGHTLY=false
 IP_CONFIG_1=""
 IP_CONFIG_2=""
 IP_CONFIG=""
@@ -50,6 +52,10 @@ case $i in
     ;;
     -p|--pull-release)
     PULL_RELEASE=true
+    shift
+    ;;
+    -n|--nightly)
+    NIGHTLY=true
     shift
     ;;
     *)
@@ -344,9 +350,14 @@ mv fcct-x86_64-unknown-linux-gnu ${OKD4_LAB_PATH}/ipxe-work-dir/fcct
 chmod 750 ${OKD4_LAB_PATH}/ipxe-work-dir/fcct
 
 # Pull the OKD release tooling identified by ${OKD_REGISTRY}:${OKD_RELEASE}.  i.e. OKD_REGISTRY=registry.svc.ci.openshift.org/origin/release, OKD_RELEASE=4.4.0-0.okd-2020-03-03-170958
+if [[ ${NIGHTLY} == "true" ]]
+then
+  OKD_REGISTRY=${OKD_NIGHTLY_REGISTRY}
+fi
+
 if [ ${PULL_RELEASE} == "true" ]
 then
-  ssh root@${LAB_NAMESERVER} 'sed -i "s|registry.svc.ci.openshift.org|;sinkhole|g" /etc/named/zones/db.sinkhole && systemctl restart named'
+  ssh root@${LAB_NAMESERVER} 'sed -i "s|registry.svc.ci.openshift.org|;sinkhole-reg|g" /etc/named/zones/db.sinkhole && sed -i "s|quay.io|;sinkhole-quay|g && systemctl restart named'
   mkdir -p ${OKD4_LAB_PATH}/okd-release-tmp
   cd ${OKD4_LAB_PATH}/okd-release-tmp
   oc adm release extract --command='openshift-install' ${OKD_REGISTRY}:${OKD_RELEASE}
@@ -358,16 +369,23 @@ then
 fi
 if [[ ${USE_MIRROR} == "true" ]]
 then
-  ssh root@${LAB_NAMESERVER} 'sed -i "s|;sinkhole|registry.svc.ci.openshift.org|g" /etc/named/zones/db.sinkhole && systemctl restart named'
+  ssh root@${LAB_NAMESERVER} 'sed -i "s|;sinkhole-reg|registry.svc.ci.openshift.org|g" /etc/named/zones/db.sinkhole && sed -i "s|;sinkhole-quay|quay.io|g" /etc/named/zones/db.sinkhole && systemctl restart named'
 fi
 
 # Create and deploy ignition files
 rm -rf ${OKD4_LAB_PATH}/okd4-install-dir
 mkdir ${OKD4_LAB_PATH}/okd4-install-dir
 cp ${OKD4_LAB_PATH}/install-config-upi.yaml ${OKD4_LAB_PATH}/okd4-install-dir/install-config.yaml
-OKD_PREFIX=$(echo ${OKD_RELEASE} | cut -d"." -f1,2)
-OKD_VER=$(echo ${OKD_RELEASE} | sed  "s|${OKD_PREFIX}.0-0.okd|${OKD_PREFIX}|g")
-sed -i "s|%%OKD_VER%%|${OKD_VER}|g" ${OKD4_LAB_PATH}/okd4-install-dir/install-config.yaml
+if [[ ${NIGHTLY} == "true" ]]
+then
+  OKD_PREFIX=$(echo ${OKD_RELEASE} | cut -d"." -f1,2)
+  OKD_VER=$(echo ${OKD_RELEASE} | sed  "s|${OKD_PREFIX}.0-0.okd|${OKD_PREFIX}|g")
+  sed -i "s|%%OKD_SOURCE_1%%|registry.svc.ci.openshift.org/origin/${OKD_VER}|g" ${OKD4_LAB_PATH}/okd4-install-dir/install-config.yaml
+  sed -i "s|%%OKD_SOURCE_2%%|registry.svc.ci.openshift.org/origin/release|g" ${OKD4_LAB_PATH}/okd4-install-dir/install-config.yaml
+else
+  sed -i "s|%%OKD_SOURCE_1%%|quay.io/openshift/okd|g" ${OKD4_LAB_PATH}/okd4-install-dir/install-config.yaml
+  sed -i "s|%%OKD_SOURCE_2%%|quay.io/openshift/okd-content|g" ${OKD4_LAB_PATH}/okd4-install-dir/install-config.yaml
+fi
 sed -i "s|%%CLUSTER_NAME%%|${CLUSTER_NAME}|g" ${OKD4_LAB_PATH}/okd4-install-dir/install-config.yaml
 openshift-install --dir=${OKD4_LAB_PATH}/okd4-install-dir create ignition-configs
 
@@ -433,7 +451,7 @@ done
 ssh root@${INSTALL_HOST} "mkdir -p ${INSTALL_ROOT}/fcos/ignition/${CLUSTER_NAME}"
 scp -r ${OKD4_LAB_PATH}/ipxe-work-dir/ignition/*.ign root@${INSTALL_HOST}:${INSTALL_ROOT}/fcos/ignition/${CLUSTER_NAME}/
 ssh root@${INSTALL_HOST} "chmod 644 ${INSTALL_ROOT}/fcos/ignition/${CLUSTER_NAME}/*"
-scp -r ${OKD4_LAB_PATH}/ipxe-work-dir/*.ipxe root@${PXE_HOST}:/var/lib/tftpboot/ipxe/
+scp -r ${OKD4_LAB_PATH}/ipxe-work-dir/*.ipxe root@${PXE_HOST}:/data/tftpboot/ipxe/
 
 # Clean up
 rm -rf ${OKD4_LAB_PATH}/ipxe-work-dir

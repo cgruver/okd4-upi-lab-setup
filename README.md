@@ -2,9 +2,11 @@
 
 ### Or, more precisely...  How to build your own desktop datacenter from scratch.
 
-## I have written this guide from my own lab configuration.  So, it is oppinionated toward a libvirt/KVM installation on CentOS 7.
+## I have written this guide from my own lab configuration.  So, it is opinionated toward a libvirt/KVM installation on CentOS 7.
 
-## Note: Updated to support the OKD 4.5 GA release that just dropped.  FCOS made some changes to how network interfaces are configured.  This project is being updated to accomodate those changes.  The deployment script has been modified to inject NIC configuration into the ignition files for the OKD nodes.  The documentation will be updated soon.
+## Note: Updated to support the OKD 4.5 GA release.  FCOS made some changes to how network interfaces are configured.  This project is being updated to accommodate those changes.
+
+## Note: Updated to implement iPXE installation for all hosts.
 
 __If you want to connect with a team of OpenShift enthusiasts, join us in the OKD Working Group:__
 
@@ -22,7 +24,7 @@ Or, follow the directions in each section here:
 1. [Bastion Host](docs/pages/Bastion.md)
 1. [DNS Setup](docs/pages/DNS_Config.md)
 1. [Nginx Setup & RPM Repo sync](docs/pages/Nginx_Config.md)
-1. [PXE Boot with TFTP & DHCP](docs/pages/DHCP.md)
+1. [PXE Boot with TFTP & DHCP](docs/pages/GL-AR750S-Ext.md)
 1. [Sonatype Nexus Setup](docs/pages/Nexus_Config.md)
 1. [Build KVM Hosts](docs/pages/Deploy_KVM_Host.md)
 1. [Deploy OKD](docs/pages/DeployOKD.md)

@@ -126,4 +126,4 @@ Create encrypted passwords to be used in your KVM host and Guest installations:
        scp -r /tmp/fcos root@${INSTALL_HOST}:${INSTALL_ROOT}
        rm -rf /tmp/fcos
 
-Now, continue on to [DHCP Setup](DHCP.md)
+Now, continue on to [DHCP Setup](GL-AR750S-Ext.md)

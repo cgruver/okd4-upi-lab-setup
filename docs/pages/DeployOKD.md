@@ -5,35 +5,11 @@ I have provided a set of utility scripts to automate a lot of the tasks associat
 | | |
 |-|-|
 | `UnDeployLabGuest.sh` | Destroys a guest VM and supporting infrastructure |
-| `DeployOkdNodes.sh` | Creates the Bootstrap, Master, and Worker VMs from an inventory file, (described below) |
+| `DeployOkdNodes.sh` | Creates the HA-Proxy, Bootstrap, Master, and Worker VMs from an inventory file, (described below) |
 | `UnDeployOkdNodes.sh` | Destroys the OKD cluster and all supporting infrastructure |
 | `PowerOnVms.sh` | Helper script that uses IPMI to power on the VMs listed in an inventory file |
 
-1. Deploy the load-balancer: (Replace `bastion` with the hostname of your bastion host if you used a different name.)
-
-       DeployLabGuest.sh -h=okd4-lb01 -n=bastion -r=lb-node -c=2 -m=4096 -d=50 -v=6228
-
-    | | | | |
-    |-|-|-|-|
-    | -h | Sets Hostname: | okd4-lb01 | __*DNS `A` and `PTR` records must exist*__ |
-    | -n | Sets the Hypervisor Host | bastion | |
-    | -r | Sets the kickstart file to lb-node.ks | |
-    | -c | Sets the vCPU count | |
-    | -m | Sets the guest memory | |
-    | -d | Sets the guest root disk volume in GB | |
-    | -v  | Sets the VBMC Port | 6228 | |
-
-    This will create a VM which will do a kickstart install of CentOS with HA-Proxy.  It will pull the haproxy.cfg file that we prepared earlier when we set up Nginx.  If you are curious about the installation, take a look at: 
-
-    | | |
-    |-|-|
-    | `${INSTALL_ROOT}/kickstart/lb-node.ks` | The kickstart file that will direct the installation |
-    | `${INSTALL_ROOT}/firstboot/lb-node.fb` | The script that will execute on the first boot to install haproxy |
-    | `${INSTALL_ROOT}/haproxy.cfg` | The haproxy configuration file for our OKD cluster |
-
-
-
-1. Now let's prepare to deploy the VMs for our OKD cluster by preparing the Cluster VM inventory file:
+1. First, let's prepare to deploy the VMs for our OKD cluster by preparing the Cluster VM inventory file:
 
     This is not an ansible inventory like you might have encountered with OKD 3.11.  This is something I made up for my lab that allows me to quickly create, manage, and destroy virtual machines.
 
@@ -69,13 +45,11 @@ I have provided a set of utility scripts to automate a lot of the tasks associat
 
 1. Retrieve the `oc` command.  We're going to grab an older version of `oc`, but that's OK.  We just need it to retrieve to current versions of `oc` and `openshift-install`
 
-    Go to: `https://github.com/openshift/okd/releases/tag/4.4.0-0.okd-2020-01-28-022517` and retrieve the `openshift-client-linux-4.4.0-0.okd-2020-01-28-022517.tar.gz` archive.
-
-       wget https://github.com/openshift/okd/releases/download/4.4.0-0.okd-2020-01-28-022517/openshift-client-linux-4.4.0-0.okd-2020-01-28-022517.tar.gz
+       wget https://github.com/openshift/okd/releases/download/4.5.0-0.okd-2020-07-14-153706-ga/openshift-client-linux-4.5.0-0.okd-2020-07-14-153706-ga.tar.gz
 
 1. Uncompress the archive and move the `oc` executable to your ~/bin directory.  Make sure ~/bin is in your path.
 
-       tar -xzf openshift-client-linux-4.4.0-0.okd-2020-01-28-022517.tar.gz
+       tar -xzf openshift-client-linux-4.5.0-0.okd-2020-07-14-153706-ga.tar.gz
        mv oc ~/bin
 
     The `DeployOkdNodes.sh` script will pull the correct version of `oc` and `openshift-install` when we run it.  It will over-write older versions in `~/bin`.

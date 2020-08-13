@@ -1,13 +1,6 @@
 ## Adding PXE Boot capability to your Bastion host server
 
-Your DHCP server needs to be able to direct PXE Boot clients to a TFTP server.  This is normally done by configuring a couple of parameters in your DHCP server, which will look something like:
 
-    next-server = 10.11.11.10  # The IP address of your TFTP server
-    filename = "BOOTX64.EFI"
-
-Unfortunately, most home routers don't support the configuration of those parameters.  At this point you have an option.  You can either set up TFTP and DHCP on your bastion host, or you can use an OpenWRT based router.  I have included instructions for setting up the GL.iNET GL-AR750S-Ext or GL-MV1000 Travel Router.  Follow those instructions here: [Travel Router Setup](GL-AR750S-Ext.md)
-
-If you are configuring PXE on the bastion host, the continue on:
 
 First let's install and enable a TFTP server:
 
@@ -34,7 +27,7 @@ Edit the tftp configuration file to enable tftp.  Set `disable = no`
     	wait			= yes
     	user			= root
     	server			= /usr/sbin/in.tftpd
-    	server_args		= -s /var/lib/tftpboot
+    	server_args		= -s /data/tftpboot
     	disable			= no
     	per_source		= 11
     	cps			= 100 2
@@ -54,24 +47,21 @@ This project has some files already prepared for you.  They are located in ./Pro
 From the root directory of this project, execute the following:
 
     mkdir tmp-work
-    mkdir -p /var/lib/tftpboot/networkboot
-    mkdir /var/lib/tftpboot/ipxe
+    mkdir -p /data/tftpboot/networkboot
+    mkdir /data/tftpboot/ipxe
     cp ./Provisioning/iPXE/* ./tmp-work
     for i in $(ls ./tmp-work)
     do
         sed -i "s|%%INSTALL_URL%%|${INSTALL_URL}|g" ./tmp-work/${i}
     done
-    cp ./tmp-work/boot.ipxe /var/lib/tftpboot/boot.ipxe
-    cp ./tmp-work/default.ipxe /var/lib/tftpboot/ipxe/default.ipxe
-    cp ./tmp-work/grub.cfg /var/lib/tftpboot
-    mkdir -p ${OKD4_LAB_PATH}/ipxe-templates
-    cp ./tmp-work/lab-guest.ipxe ${OKD4_LAB_PATH}/ipxe-templates/lab-guest.ipxe
-    rm -rf ./tmp-work
+    cp ./Provisioning/iPXE/boot.ipxe /data/tftpboot/boot.ipxe
 
-    cp ${INSTALL_ROOT}/centos/EFI/BOOT/grubx64.efi /var/lib/tftpboot
-    cp ${INSTALL_ROOT}/centos/EFI/BOOT/BOOTX64.EFI /var/lib/tftpboot
-    cp ${INSTALL_ROOT}/centos/isolinux/vmlinuz /var/lib/tftpboot/networkboot
-    cp ${INSTALL_ROOT}/centos/isolinux/initrd.img /var/lib/tftpboot/networkboot
+    wget http://boot.ipxe.org/ipxe.efi
+    cp ./ipxe.efi /data/tftpboot/ipxe.efi
+    rm -f ./ipxe.efi
+
+    cp ${INSTALL_ROOT}/centos/isolinux/vmlinuz /data/tftpboot/networkboot
+    cp ${INSTALL_ROOT}/centos/isolinux/initrd.img /data/tftpboot/networkboot
 
 __Warning:__ If you set up DHCP on the Bastion host you will either have to disable DHCP in your home router, or put your lab on an isolated network.  
 
@@ -79,7 +69,7 @@ __Warning:__ If you set up DHCP on the Bastion host you will either have to disa
 
 If you are going to set up your own DHCP server on the Bastion host, do the following:
 
-    yum -y install dhcp
+    dnf -y install dhcp
     firewall-cmd --add-service=dhcp --permanent
     firewall-cmd --reload
 

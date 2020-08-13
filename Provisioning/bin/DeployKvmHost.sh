@@ -66,7 +66,7 @@ initrd ${INSTALL_URL}/centos/isolinux/initrd.img
 boot
 EOF
 
-scp ${OKD4_LAB_PATH}/ipxe-work-dir/${NET_MAC//:/-}.ipxe root@${PXE_HOST}:/var/lib/tftpboot/ipxe/${NET_MAC//:/-}.ipxe
+scp ${OKD4_LAB_PATH}/ipxe-work-dir/${NET_MAC//:/-}.ipxe root@${PXE_HOST}:/data/tftpboot/ipxe/${NET_MAC//:/-}.ipxe
 
 # Create the Kickstart file
 

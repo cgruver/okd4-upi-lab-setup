@@ -8,4 +8,5 @@
 ; name servers - NS records
     IN      NS     bastion.%%LAB_DOMAIN%%.
 
-;sinkhole    CNAME    . ;
+;sinkhole-reg     CNAME    . ;
+;sinkhole-quay    CNAME    . ;
