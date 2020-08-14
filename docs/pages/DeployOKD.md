@@ -232,23 +232,23 @@ I have provided a set of utility scripts to automate a lot of the tasks associat
 
 2. Now mirror the OKD images into the local Nexus:
 
-       oc adm -a ${LOCAL_SECRET_JSON} release mirror --from=${OKD_REGISTRY}:${OKD_RELEASE} --to=${LOCAL_REGISTRY}/${LOCAL_REPOSITORY} --to-release-image=${LOCAL_REGISTRY}/${LOCAL_REPOSITORY}:${OKD_RELEASE}
+       oc adm -a ${LOCAL_SECRET_JSON} release mirror --from=${OKD_STABLE_REGISTRY}:${OKD_RELEASE} --to=${LOCAL_REGISTRY}/${LOCAL_REPOSITORY} --to-release-image=${LOCAL_REGISTRY}/${LOCAL_REPOSITORY}:${OKD_RELEASE}
 
     The output should look something like:
 
        Success
-       Update image:  nexus.oscluster.clgcom.org:5001/origin:4.4.0-0.okd-2020-03-11-174228
-       Mirror prefix: nexus.oscluster.clgcom.org:5001/origin
+       Update image:  nexus.your.domain.org:5001/origin:4.5.0-0.okd-2020-08-12-020541
+       Mirror prefix: nexus.your.domain.org:5001/origin
 
        To use the new mirrored repository to install, add the following section to the install-config.yaml:
 
        imageContentSources:
        - mirrors:
-         - nexus.oscluster.clgcom.org:5001/origin
-         source: registry.svc.ci.openshift.org/origin/4.4-2020-03-13-191636
+         - nexus.your.domain.org:5001/origin
+         source: quay.io/openshift/okd
        - mirrors:
-         - nexus.oscluster.clgcom.org:5001/origin
-         source: registry.svc.ci.openshift.org/origin/release
+         - nexus.your.domain.org:5001/origin
+         source: quay.io/openshift/okd-content
 
 
        To use the new mirrored repository for upgrades, use the following to create an ImageContentSourcePolicy:
@@ -260,11 +260,11 @@ I have provided a set of utility scripts to automate a lot of the tasks associat
        spec:
          repositoryDigestMirrors:
          - mirrors:
-           - nexus.oscluster.clgcom.org:5001/origin
-           source: registry.svc.ci.openshift.org/origin/4.4-2020-03-13-191636
+           - nexus.your.domain.org:5001/origin
+           source: quay.io/openshift/okd
          - mirrors:
-           - nexus.oscluster.clgcom.org:5001/origin
-           source: registry.svc.ci.openshift.org/origin/release
+           - nexus.your.domain.org:5001/origin
+           source: quay.io/openshift/okd-content
 
 3. Create the cluster virtual machines and set up for OKD installation:
 
@@ -276,7 +276,7 @@ I have provided a set of utility scripts to automate a lot of the tasks associat
     1. fills in the OKD version and `%%CLUSTER_NAME%%` in the install-config-upi.yaml file and copies that file to the install directory as install-config.yaml.
     1. Invokes the openshift-install command against our install-config to produce ignition files
     1. Copies the ignition files into place for FCOS install
-    1. Sets up for a mirrored install by putting `registry.svc.ci.openshift.org` into a DNS sinkhole.
+    1. Sets up for a mirrored install by putting `quay.io` and `registry.svc.ci.openshift.org` into a DNS sinkhole.
     1. Creates guest VMs based on the inventory file at `${OKD4_LAB_PATH}/guest-inventory/okd4`
     1. Creates iPXE boot files for each VM and copies them to the iPXE server, (your router)
 

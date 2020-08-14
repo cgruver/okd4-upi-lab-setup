@@ -357,7 +357,7 @@ fi
 
 if [ ${PULL_RELEASE} == "true" ]
 then
-  ssh root@${LAB_NAMESERVER} 'sed -i "s|registry.svc.ci.openshift.org|;sinkhole-reg|g" /etc/named/zones/db.sinkhole && sed -i "s|quay.io|;sinkhole-quay|g && systemctl restart named'
+  ssh root@${LAB_NAMESERVER} 'sed -i "s|registry.svc.ci.openshift.org|;sinkhole-reg|g" /etc/named/zones/db.sinkhole && sed -i "s|quay.io|;sinkhole-quay|g" /etc/named/zones/db.sinkhole && systemctl restart named'
   mkdir -p ${OKD4_LAB_PATH}/okd-release-tmp
   cd ${OKD4_LAB_PATH}/okd-release-tmp
   oc adm release extract --command='openshift-install' ${OKD_REGISTRY}:${OKD_RELEASE}
