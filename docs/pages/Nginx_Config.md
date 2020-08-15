@@ -27,7 +27,7 @@ Synch the repositories into the directories we just created:  (This will take a 
     LOCAL_REPOS="BaseOS AppStream centosplus extras epel epel-modular"
     for REPO in ${LOCAL_REPOS}
     do
-        reposync -m --repoid=${REPO} --newest-only --download-metadata -p ${REPO_PATH}/  
+        reposync -m --repoid=${REPO} --newest-only --delete --download-metadata -p ${REPO_PATH}/  
     done
 
 Our Nginx server is now ready to serve up CentOS RPMs.

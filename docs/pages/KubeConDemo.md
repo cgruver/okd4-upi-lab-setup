@@ -10,6 +10,10 @@ Watch it Boot:
 
     virsh console okd4-bootstrap
 
+Start Master Nodes:
+
+    for i in 6230 6231 6232; do   ipmitool -I lanplus -H10.11.11.10 -p${i} -Uadmin -Ppassword chassis power on; sleep 3; done
+
 Watch Bootstrap logs:
 
     ssh -o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null core@okd4-bootstrap.clg.lab "journalctl -b -f -u bootkube.service"
@@ -17,10 +21,6 @@ Watch Bootstrap logs:
 Monitor Bootstrap Progress:
 
     openshift-install --dir=${OKD4_LAB_PATH}/okd4-install-dir wait-for bootstrap-complete --log-level debug
-
-Start Master Nodes:
-
-    for i in 6230 6231 6232; do   ipmitool -I lanplus -H10.11.11.10 -p${i} -Uadmin -Ppassword chassis power on; sleep 3; done
 
 Remove Bootstrap Node:
 

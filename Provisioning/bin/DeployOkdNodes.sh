@@ -42,7 +42,7 @@ case $i in
     LAB_NAMESERVER="${i#*=}"
     shift # past argument with no value
     ;;
-    -n=*|--name=*)
+    -cn=*|--name=*)
     CLUSTER_NAME="${i#*=}"
     shift
     ;;
