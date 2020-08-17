@@ -12,7 +12,7 @@ Watch it Boot:
 
 Start Master Nodes:
 
-    for i in 6230 6231 6232; do   ipmitool -I lanplus -H10.11.11.10 -p${i} -Uadmin -Ppassword chassis power on; sleep 3; done
+    for i in 6230 6231 6232; do   ipmitool -I lanplus -H10.11.11.10 -p${i} -Uadmin -Ppassword chassis power on; sleep 10; done
 
 Watch Bootstrap logs:
 
@@ -34,7 +34,23 @@ Monitor Install Progress:
 
     openshift-install --dir=${OKD4_LAB_PATH}/okd4-install-dir wait-for install-complete --log-level debug
 
+## Discuss the environment while install completes:
+
+### Load Balancer Configuration
+
+    ssh root@okd4-lb01.clg.lab "cat /etc/haproxy/haproxy.cfg"
+
+### DNS
+
+    cat /etc/named/zones/db.clg.lab
+
+### iPXE
+
+
+
 ## Post Install
+
+    export KUBECONFIG="${OKD4_LAB_PATH}/okd4-install-dir/auth/kubeconfig"
 
 Remove Samples Operator:
 
@@ -50,7 +66,7 @@ Image Pruner:
 
 Add Worker Nodes:
 
-    for i in 6233 6234 6235; do   ipmitool -I lanplus -H10.11.11.10 -p${i} -Uadmin -Ppassword chassis power on; sleep 3; done
+    for i in 6233 6234 6235; do   ipmitool -I lanplus -H10.11.11.10 -p${i} -Uadmin -Ppassword chassis power on; sleep 10; done
 
 Monitor Worker Node Boot:
 
@@ -59,13 +75,12 @@ Monitor Worker Node Boot:
 
 Approve CSR:
 
-    export KUBECONFIG="${OKD4_LAB_PATH}/okd4-install-dir/auth/kubeconfig"
     oc get csr
     oc get csr -ojson | jq -r '.items[] | select(.status == {} ) | .metadata.name' | xargs oc adm certificate approve
 
     oc get nodes
 
-Designate Infa Nodes:
+Designate Infra Nodes:
 
     for i in 0 1 2
     do
@@ -87,6 +102,10 @@ HtPassword Setup:
     oc adm policy add-cluster-role-to-user cluster-admin admin
     
     oc delete secrets kubeadmin -n kube-system
+
+## Open DNS for Updates:
+
+    ssh root@${LAB_NAMESERVER} 'sed -i "s|registry.svc.ci.openshift.org|;sinkhole-reg|g" /etc/named/zones/db.sinkhole && sed -i "s|quay.io|;sinkhole-quay|g" /etc/named/zones/db.sinkhole && systemctl restart named'
 
 ## Ceph
 
