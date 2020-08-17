@@ -1,5 +1,13 @@
 # KubeCon EU - OKD UPI Demo:
 
+## Intro:
+
+1. Mirrored Install
+1. UPI
+1. LB and VMs already staged
+1. iPXE boot using MAC of primary NIC
+1. Fixed IPs - added to ignition with fcct
+
 ## Bootstrap
 
 Power On the Bootstrap Node:
