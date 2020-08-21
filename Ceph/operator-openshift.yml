@@ -17,7 +17,7 @@ allowHostDirVolumePlugin: true
 priority:
 allowedCapabilities: []
 allowHostPorts: true
-allowHostPID: true
+allowHostPID: true # remove this once we drop support for Nautilus
 allowHostIPC: true
 readOnlyRootFilesystem: false
 requiredDropCapabilities: []
@@ -105,8 +105,6 @@ data:
   # Enable the default version of the CSI RBD driver. To start another version of the CSI driver, see image properties below.
   ROOK_CSI_ENABLE_RBD: "true"
   ROOK_CSI_ENABLE_GRPC_METRICS: "true"
-  # Enable deployment of csi-snapshotter sidecar container in ceph-csi provisioner pod.
-  CSI_ENABLE_SNAPSHOTTER: "true"
 
   # Set logging level for csi containers.
   # Supported values from 0 to 5. 0 for general useful logs, 5 for trace level verbosity.
@@ -122,12 +120,18 @@ data:
   # The default version of CSI supported by Rook will be started. To change the version
   # of the CSI driver to something other than what is officially supported, change
   # these images to the desired release of the CSI driver.
-  # ROOK_CSI_CEPH_IMAGE: "quay.io/cephcsi/cephcsi:v2.0.1"
+  # ROOK_CSI_CEPH_IMAGE: "quay.io/cephcsi/cephcsi:v3.0.0"
   # ROOK_CSI_REGISTRAR_IMAGE: "quay.io/k8scsi/csi-node-driver-registrar:v1.2.0"
   # ROOK_CSI_RESIZER_IMAGE: "quay.io/k8scsi/csi-resizer:v0.4.0"
-  # ROOK_CSI_PROVISIONER_IMAGE: "quay.io/k8scsi/csi-provisioner:v1.4.0"
-  # ROOK_CSI_SNAPSHOTTER_IMAGE: "quay.io/k8scsi/csi-snapshotter:v1.2.2"
+  # ROOK_CSI_PROVISIONER_IMAGE: "quay.io/k8scsi/csi-provisioner:v1.6.0"
+  # ROOK_CSI_SNAPSHOTTER_IMAGE: "quay.io/k8scsi/csi-snapshotter:v2.1.1"
   # ROOK_CSI_ATTACHER_IMAGE: "quay.io/k8scsi/csi-attacher:v2.1.0"
+
+  # (Optional) set user created priorityclassName for csi plugin pods.
+  # CSI_PLUGIN_PRIORITY_CLASSNAME: "system-node-critical"
+
+  # (Optional) set user created priorityclassName for csi provisioner pods.
+  # CSI_PROVISIONER_PRIORITY_CLASSNAME: "system-cluster-critical"
 
   # CSI CephFS plugin daemonset update strategy, supported values are OnDelete and RollingUpdate.
   # Default value is RollingUpdate.
@@ -162,12 +166,164 @@ data:
   #     key: node-role.kubernetes.io/etcd
   #     operator: Exists
 
+  # (Optional) CEPH CSI RBD provisioner resource requirement list, Put here list of resource
+  # requests and limits you want to apply for provisioner pod
+  # CSI_RBD_PROVISIONER_RESOURCE: |
+  #  - name : csi-provisioner
+  #    resource:
+  #      requests:
+  #        memory: 128Mi
+  #        cpu: 100m
+  #      limits:
+  #        memory: 256Mi
+  #        cpu: 200m
+  #  - name : csi-resizer
+  #    resource:
+  #      requests:
+  #        memory: 128Mi
+  #        cpu: 100m
+  #      limits:
+  #        memory: 256Mi
+  #        cpu: 200m
+  #  - name : csi-attacher
+  #    resource:
+  #      requests:
+  #        memory: 128Mi
+  #        cpu: 100m
+  #      limits:
+  #        memory: 256Mi
+  #        cpu: 200m
+  #  - name : csi-snapshotter
+  #    resource:
+  #      requests:
+  #        memory: 128Mi
+  #        cpu: 100m
+  #      limits:
+  #        memory: 256Mi
+  #        cpu: 200m
+  #  - name : csi-rbdplugin
+  #    resource:
+  #      requests:
+  #        memory: 512Mi
+  #        cpu: 250m
+  #      limits:
+  #        memory: 1Gi
+  #        cpu: 500m
+  #  - name : liveness-prometheus
+  #    resource:
+  #      requests:
+  #        memory: 128Mi
+  #        cpu: 50m
+  #      limits:
+  #        memory: 256Mi
+  #        cpu: 100m
+  # (Optional) CEPH CSI RBD plugin resource requirement list, Put here list of resource
+  # requests and limits you want to apply for plugin pod
+  # CSI_RBD_PLUGIN_RESOURCE: |
+  #  - name : driver-registrar
+  #    resource:
+  #      requests:
+  #        memory: 128Mi
+  #        cpu: 50m
+  #      limits:
+  #        memory: 256Mi
+  #        cpu: 100m
+  #  - name : csi-rbdplugin
+  #    resource:
+  #      requests:
+  #        memory: 512Mi
+  #        cpu: 250m
+  #      limits:
+  #        memory: 1Gi
+  #        cpu: 500m
+  #  - name : liveness-prometheus
+  #    resource:
+  #      requests:
+  #        memory: 128Mi
+  #        cpu: 50m
+  #      limits:
+  #        memory: 256Mi
+  #        cpu: 100m
+  # (Optional) CEPH CSI CephFS provisioner resource requirement list, Put here list of resource
+  # requests and limits you want to apply for provisioner pod
+  # CSI_CEPHFS_PROVISIONER_RESOURCE: |
+  #  - name : csi-provisioner
+  #    resource:
+  #      requests:
+  #        memory: 128Mi
+  #        cpu: 100m
+  #      limits:
+  #        memory: 256Mi
+  #        cpu: 200m
+  #  - name : csi-resizer
+  #    resource:
+  #      requests:
+  #        memory: 128Mi
+  #        cpu: 100m
+  #      limits:
+  #        memory: 256Mi
+  #        cpu: 200m
+  #  - name : csi-attacher
+  #    resource:
+  #      requests:
+  #        memory: 128Mi
+  #        cpu: 100m
+  #      limits:
+  #        memory: 256Mi
+  #        cpu: 200m
+  #  - name : csi-cephfsplugin
+  #    resource:
+  #      requests:
+  #        memory: 512Mi
+  #        cpu: 250m
+  #      limits:
+  #        memory: 1Gi
+  #        cpu: 500m
+  #  - name : liveness-prometheus
+  #    resource:
+  #      requests:
+  #        memory: 128Mi
+  #        cpu: 50m
+  #      limits:
+  #        memory: 256Mi
+  #        cpu: 100m
+  # (Optional) CEPH CSI CephFS plugin resource requirement list, Put here list of resource
+  # requests and limits you want to apply for plugin pod
+  # CSI_CEPHFS_PLUGIN_RESOURCE: |
+  #  - name : driver-registrar
+  #    resource:
+  #      requests:
+  #        memory: 128Mi
+  #        cpu: 50m
+  #      limits:
+  #        memory: 256Mi
+  #        cpu: 100m
+  #  - name : csi-cephfsplugin
+  #    resource:
+  #      requests:
+  #        memory: 512Mi
+  #        cpu: 250m
+  #      limits:
+  #        memory: 1Gi
+  #        cpu: 500m
+  #  - name : liveness-prometheus
+  #    resource:
+  #      requests:
+  #        memory: 128Mi
+  #        cpu: 50m
+  #      limits:
+  #        memory: 256Mi
+  #        cpu: 100m
+
   # Configure CSI Ceph FS grpc and liveness metrics port
   # CSI_CEPHFS_GRPC_METRICS_PORT: "9091"
   # CSI_CEPHFS_LIVENESS_METRICS_PORT: "9081"
   # Configure CSI RBD grpc and liveness metrics port
   # CSI_RBD_GRPC_METRICS_PORT: "9090"
   # CSI_RBD_LIVENESS_METRICS_PORT: "9080"
+
+  # Whether the OBC provisioner should watch on the operator namespace or not, if not the namespace of the cluster will be used
+  ROOK_OBC_WATCH_OPERATOR_NAMESPACE: "true"
 ---
 # The deployment for the rook operator
 # OLM: BEGIN OPERATOR DEPLOYMENT
@@ -192,7 +348,7 @@ spec:
       serviceAccountName: rook-ceph-system
       containers:
       - name: rook-ceph-operator
-        image: rook/ceph:v1.3.1
+        image: rook/ceph:v1.4.0
         args: ["ceph", "operator"]
         volumeMounts:
         - mountPath: /var/lib/rook
@@ -256,18 +412,11 @@ spec:
         # The logging level for the operator: INFO | DEBUG
         - name: ROOK_LOG_LEVEL
           value: "INFO"
-        # The interval to check if every mon is in the quorum.
-        - name: ROOK_MON_HEALTHCHECK_INTERVAL
-          value: "45s"
-        # The duration to wait before trying to failover or remove/replace the
-        # current mon with a new mon (useful for compensating flapping network).
-        - name: ROOK_MON_OUT_TIMEOUT
-          value: "600s"
         # The duration between discovering devices in the rook-discover daemonset.
         - name: ROOK_DISCOVER_DEVICES_INTERVAL
           value: "60m"
         # Whether to start pods as privileged that mount a host path, which includes the Ceph mon and osd pods.
-        # This is necessary to workaround the anyuid issues when running on OpenShift.
+        # Set this to true if SELinux is enabled (e.g. OpenShift) to workaround the anyuid issues.
         # For more details see https://github.com/rook/rook/issues/1314#issuecomment-355799641
         - name: ROOK_HOSTPATH_REQUIRES_PRIVILEGED
           value: "true"
@@ -334,6 +483,11 @@ spec:
           valueFrom:
             fieldRef:
               fieldPath: metadata.namespace
+
+        #  Uncomment it to run lib bucket provisioner in multithreaded mode
+        #- name: LIB_BUCKET_PROVISIONER_THREADS
+        #  value: "5"
+
       volumes:
       - name: rook-config
         emptyDir: {}
