@@ -33,7 +33,8 @@ Now, let's build this image and push it to the OpenShift repository.
 
     On CentOS:
 
-        systemctl start docker
+       dnf install -y podman
+       systemctl start docker
 
     On a desktop OS, start `Docker Desktop`.
 
@@ -79,7 +80,7 @@ Now, let's deploy MariaDB: (Assuming that you are logged into your OpenShift clu
 1. Create the service account for our MariaDB deployment, and add the `anyuid` Security Context Constraint to the service account.  This will allow the MariaDB pod to run as UID 27 like we defined in our Dockerfile.
 
         oc create sa mariadb -n mariadb-galera
-        oc adm policy add-scc-to-user anyuid -z mariadb -n mariadb-galera
+        oc adm policy add-scc-to-user nonroot -z mariadb -n mariadb-galera
 
 1. Deploy the MariaDB cluster:
 

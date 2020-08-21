@@ -1,6 +1,6 @@
-[local-base]
-name=CentOS Base
-baseurl=%%REPO_URL%%/repos/base/
+[local-AppStream]
+name=AppStream
+baseurl=%%REPO_URL%%/repos/AppStream/
 gpgcheck=0
 enabled=1
 
@@ -16,9 +16,9 @@ baseurl=%%REPO_URL%%/repos/extras/
 gpgcheck=0
 enabled=1
 
-[local-updates]
-name=CentOS Updates
-baseurl=%%REPO_URL%%/repos/updates/
+[local-BaseOS]
+name=CentOS BaseOS
+baseurl=%%REPO_URL%%/repos/BaseOS/
 gpgcheck=0
 enabled=1
 
@@ -28,9 +28,9 @@ baseurl=%%REPO_URL%%/repos/epel/
 gpgcheck=0
 enabled=1
 
-[kvm-common]
-name=KVM Common
-baseurl=%%REPO_URL%%/repos/kvm-common/
+[local-epel-modular]
+name=CentOS Epel Modular
+baseurl=%%REPO_URL%%/repos/epel-modular/
 gpgcheck=0
 enabled=1
 

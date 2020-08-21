@@ -1,8 +1,0 @@
-export NIC_02=enp60s0u1                         # The device name of your second NIC, if present
-export GATEWAY_01=10.11.11.1                    # Your primary network Router IP
-export IP_01=10.11.11.210                       # The IP you want this host to have on the primary network
-export IP_02=10.11.12.210                       # The IP you want this host to have on the storage network, if NIC_02 exists.
-export NAME_SERVER=10.11.11.10                  # Your DNS Server
-export NETMASK_01=255.255.255.0                 # Your primary network Netmask
-export NETMASK_02=255.255.255.0                 # Your storage network Netmask
-export HOST_NAME=kvm-host01.your.domain.com     # The FQDN that you want this host to have

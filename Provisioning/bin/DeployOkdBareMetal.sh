@@ -42,7 +42,7 @@ case $i in
     LAB_NAMESERVER="${i#*=}"
     shift # past argument with no value
     ;;
-    -cn=*|--name=*)
+    -n=*|--name=*)
     CLUSTER_NAME="${i#*=}"
     shift
     ;;
@@ -389,6 +389,19 @@ fi
 sed -i "s|%%CLUSTER_NAME%%|${CLUSTER_NAME}|g" ${OKD4_LAB_PATH}/okd4-install-dir/install-config.yaml
 openshift-install --dir=${OKD4_LAB_PATH}/okd4-install-dir create ignition-configs
 
+for VARS in $(cat ${INVENTORY} | grep -v "#")
+do
+  HOSTNAME=$(echo ${VARS} | cut -d'|' -f1)
+  ROLE=$(echo ${VARS} | cut -d',' -f2)
+  DISK=$(echo ${VARS} | cut -d'|' -f3)
+  MAC=$(echo ${VARS} | cut -d'|' -f4)
+
+  DeployKvmHost.sh -h=${HOSTNAME} -m=${MAC} -d=${DISK}
+done
+
+
+
+
 # Create Virtual Machines from the inventory file
 for VARS in $(cat ${INVENTORY} | grep -v "#")
 do
@@ -412,18 +425,6 @@ do
   # Get IP address for eth0
   IP_01=$(dig ${HOSTNAME}.${LAB_DOMAIN} +short)
   NET_DEVICE="--network bridge=br0"
-
-  if [[ ${NICS} == "2" ]]
-  then
-    NET_DEVICE="--network bridge=br0 --network bridge=br1"
-    # IP address for eth1 is the same as eth0 with the third octet incremented by 1.  i.e. eth0=10.11.11.10, eth1=10.11.12.10
-    let O_1=$(echo ${IP_01} | cut -d'.' -f1)
-    let O_2=$(echo ${IP_01} | cut -d'.' -f2)
-    let O_3=$(echo ${IP_01} | cut -d'.' -f3)
-    let O_4=$(echo ${IP_01} | cut -d'.' -f4)
-    let O_3=${O_3}+1
-    IP_02="${O_1}.${O_2}.${O_3}.${O_4}"
-  fi
 
   # Create the VM
   ssh root@${HOST_NODE}.${LAB_DOMAIN} "mkdir -p /VirtualMachines/${HOSTNAME}"

@@ -4,7 +4,7 @@ We are now going to install [Sonatype Nexus](https://www.sonatype.com/nexus-repo
 
 Nexus requires Java, so let's install that now if it was not installed during the initial system build:
 
-    yum -y install java-1.8.0-openjdk.x86_64
+    dnf -y install java-11-openjdk.x86_64
 
 Now, we'll install Nexus:
 
@@ -71,7 +71,8 @@ Before we start Nexus, let's go ahead a set up TLS so that our connections are s
 
         openssl pkcs12 -export -in nexus.crt -inkey nexus.key -name "${LAB_DOMAIN}" -out nexus.p12
         keytool -importkeystore -deststorepass password -destkeystore keystore.jks -srckeystore nexus.p12 -srcstoretype PKCS12
-        keytool -importkeystore -srckeystore keystore.jks -destkeystore keystore.jks -deststoretype pkcs12
+        
+        # redundant keytool -importkeystore -srckeystore keystore.jks -destkeystore keystore.jks -deststoretype pkcs12
 
         cp keystore.jks /usr/local/nexus/nexus-3/etc/ssl/keystore.jks
         chown nexus:nexus /usr/local/nexus/nexus-3/etc/ssl/keystore.jks
@@ -103,7 +104,7 @@ We need to create a hosted Docker registry to hold the mirror of the OKD images 
 1. Select the gear icon from the top bar, in between a cube icon and the search dialog.
 1. Select `Repositories` from the left menu bar.
 
-    ![Nexus Admin](images/Nexus&#32;Admin.png)
+    ![Nexus Admin](images/NexusAdmin.png)
 
 1. Select `+ Create repository`
 1. Select `docker (hosted)`
@@ -115,5 +116,11 @@ We need to create a hosted Docker registry to hold the mirror of the OKD images 
     ![Nexus OKD Repo](images/CreateOriginRepo.png)
 
 1. Click `Create repository` at the bottom of the page.
+1. Now expand the `Security` menu on the left and select `Realms`
+1. Add `Docker Bearer Token Realm` to the list of active `Realms`
+
+    ![Realms](images/NexusRealms.png)
+
+1. Click `Save`
 
 Now we need to deploy at least one KVM host for our cluster: [Build KVM Host/s](Deploy_KVM_Host.md)

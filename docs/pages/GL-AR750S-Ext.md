@@ -1,4 +1,13 @@
-## Setting up the GL-AR750S-Ext or GL-MV1000 Travel Router
+## Setting up DHCP and iPXE booting
+
+Your DHCP server needs to be able to direct PXE Boot clients to a TFTP server.  This is normally done by configuring a couple of parameters in your DHCP server, which will look something like:
+
+    next-server = 10.11.11.10  # The IP address of your TFTP server
+    filename = "ipxe.efi"
+
+Unfortunately, most home routers don't support the configuration of those parameters.  At this point you have an option.  You can either set up TFTP and DHCP on your bastion host, or you can use an OpenWRT based router.  I have included instructions for setting up the GL.iNET GL-AR750S-Ext or GL-MV1000 Travel Router.  
+
+If you are configuring PXE on the bastion host, the continue on to: [Bastion Host DHCP](Local_DHCP.md)
 
 If you are using the GL-AR750S-Ext, you will need a Micro SD card that is formatted with an EXT file-system.  The GL-MV1000 has on-board storage that is sufficient for this configuration.
 
@@ -8,7 +17,7 @@ __GL-AR750S-Ext:__ From a linux host, insert the micro SD card, and run the foll
 
 Insert the SD card into the router.  It will mount at `/mnt/sda1`, or `/mnt/sda` if you did not create a partition, but formatted the whole card.
 
-You will need to enable root ssh access to your router.  The best way to do this is by adding an SSH key.  Don't allow password access over ssh.  We already created an SSH key for our Bastion host, so we'll use that.  If you want to enable SSH access from your workstation as well, then follow the same instructions to create/add that key as well.  We will also set the router IP address to `10.11.11.1`
+You will need to enable root ssh access to your router.  The best way to do this is by adding an SSH key.  __Don't allow password access over ssh.__  We already created an SSH key for our Bastion host, so we'll use that.  If you want to enable SSH access from your workstation as well, then follow the same instructions to create/add that key as well.  We will also set the router IP address to `10.11.11.1`
 
 1. Login to your router with a browser: `https://<Initial Router IP>`
 1. Expand the `MORE SETTINGS` menu on the left, and select `LAN IP`
@@ -46,9 +55,9 @@ If you are using the `GL-AR750S-Ext`, note that I create a symbolic link from th
 
     ln -s /mnt/sda1 /data        # This is not necessary for the GL-MV1000
 
-Now we will enable TFTP and PXE: (The VMs will boot via iPXE, and the KVM hosts will boot via PXE/UEFI, __I'm hoping to get iPXE working with Intel NUCs too... but that is WIP__)
+Now we will enable TFTP and iPXE:
 
-    mkdir -p /data/tftpboot/ipxe/templates
+    mkdir -p /data/tftpboot/ipxe
 
     uci add_list dhcp.lan.dhcp_option="6,10.11.11.10,8.8.8.8,8.8.4.4"
     uci set dhcp.@dnsmasq[0].enable_tftp=1
@@ -63,7 +72,7 @@ Now we will enable TFTP and PXE: (The VMs will boot via iPXE, and the KVM hosts 
     uci set dhcp.ipxe_boot.networkid='set:ipxe'
     uci set dhcp.ipxe_boot.userclass='iPXE'
     uci set dhcp.uefi=boot
-    uci set dhcp.uefi.filename='tag:efi64,tag:!ipxe,BOOTX64.EFI'
+    uci set dhcp.uefi.filename='tag:efi64,tag:!ipxe,ipxe.efi'
     uci set dhcp.uefi.serveraddress='10.11.11.1'
     uci set dhcp.uefi.servername='pxe'
     uci set dhcp.uefi.force='1'
@@ -86,38 +95,27 @@ That's a lot of `uci` commands that we just did.  I won't drain the list, but I 
 
 With the router configured, it's now time to copy over the files for iPXE.
 
-This project has some files already prepared for you.  They are located in ./Provisioning/iPXE.
+This project has an iPXE boot file already prepared for you.  It is located in ./Provisioning/iPXE.
 
 |||
 |-|-|
-| boot.ipxe | This is the initial iPXE bootstrap file.  It has logic in it to look for a file with the booting host's MAC address.  Otherwise it pulls the default.ipxe file. |
-| fcos-okd4.ipxe | This is the iPXE file that will boot an FCOS image.  The deployment scripts that you will use later, will configure a copy of this file for booting Bootstrap, Master, or Worker OKD nodes. |
-| default.ipxe | This file will initiate a kickstart install of CentOS 7 for non-OKD hosts. __This is not working yet__ |
-| grub.cfg | Until I get iPXE working with intel NUC, we'll be using UEFI |
+| boot.ipxe | This is the initial iPXE bootstrap file.  It has logic in it to look for a file with the booting host's MAC address.  The chained boot file contains the actual boot configuration.|
 
-From the root directory of this project, execute the following:
+We need to download the UEFI iPXE boot image:
 
-    mkdir tmp-work
-    cp ./Provisioning/iPXE/* ./tmp-work
-    for i in $(ls ./tmp-work)
-    do
-        sed -i "s|%%INSTALL_URL%%|${INSTALL_URL}|g" ./tmp-work/${i}
-    done
-    scp ./tmp-work/boot.ipxe root@${LAB_GATEWAY}:/data/tftpboot/boot.ipxe
-    scp ./tmp-work/default.ipxe root@${LAB_GATEWAY}:/data/tftpboot/ipxe/default.ipxe
-    scp ./tmp-work/grub.cfg root@${LAB_GATEWAY}:/data/tftpboot
-    mkdir -p ${OKD4_LAB_PATH}/ipxe-templates
-    cp ./tmp-work/fcos-okd4.ipxe ${OKD4_LAB_PATH}/ipxe-templates/fcos-okd4.ipxe
-    cp ./tmp-work/okd-lb.ipxe ${OKD4_LAB_PATH}/ipxe-templates/okd-lb.ipxe
-    rm -rf ./tmp-work
+    wget http://boot.ipxe.org/ipxe.efi
 
-Finally, copy the UEFI PXE boot files to the router:
+Now copy the necessary files to the router:
 
-    scp ${INSTALL_ROOT}/centos/EFI/BOOT/grubx64.efi root@${LAB_GATEWAY}:/data/tftpboot/
-    scp ${INSTALL_ROOT}/centos/EFI/BOOT/BOOTX64.EFI root@${LAB_GATEWAY}:/data/tftpboot/
-    ssh root@${LAB_GATEWAY} "mkdir /data/tftpboot/networkboot"
+    scp ./ipx.efi root@${LAB_GATEWAY}:/data/tftpboot/ipxe.efi
+    scp ./Provisioning/iPXE/boot.ipxe root@${LAB_GATEWAY}:/data/tftpboot/boot.ipxe
+
+    ssh root@${LAB_GATEWAY} "mkdir -p /data/tftpboot/networkboot"
+
     scp ${INSTALL_ROOT}/centos/isolinux/vmlinuz root@${LAB_GATEWAY}:/data/tftpboot/networkboot
     scp ${INSTALL_ROOT}/centos/isolinux/initrd.img root@${LAB_GATEWAY}:/data/tftpboot/networkboot
+
+    rm -f ./ipxe.efi
 
 __Your router is now ready to PXE boot hosts.__
 

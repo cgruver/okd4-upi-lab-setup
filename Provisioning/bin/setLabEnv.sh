@@ -1,6 +1,6 @@
 #!/bin/bash
 
-export PATH=/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/root/bin:/bin:/root/go/bin:/root/bin:~/bin/lab_bin
+export PATH=$PATH:/root/bin:~/bin/lab_bin
 export LAB_DOMAIN=your.domian.org
 export BASTION_HOST=10.11.11.10
 export INSTALL_HOST=10.11.11.10
@@ -14,7 +14,8 @@ export REPO_PATH=${HTML_ROOT}/repos
 export REPO_URL=http://${INSTALL_HOST}
 export INSTALL_URL=http://${INSTALL_HOST}/install
 export OKD4_LAB_PATH=/root/okd4-lab
-export OKD_REGISTRY=registry.svc.ci.openshift.org/origin/release
+export OKD_NIGHTLY_REGISTRY=registry.svc.ci.openshift.org/origin/release
+export OKD_STABLE_REGISTRY=quay.io/openshift/okd
 export LOCAL_REGISTRY=nexus.${LAB_DOMAIN}:5001
 export LOCAL_REPOSITORY=origin
-export LOCAL_SECRET_JSON=${OKD4_LAB_PATH}/pull-secret.json
+export LOCAL_SECRET_JSON=${OKD4_LAB_PATH}/pull_secret.json

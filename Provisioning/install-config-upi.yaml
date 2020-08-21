@@ -24,7 +24,7 @@ additionalTrustBundle: |
 imageContentSources:
 - mirrors:
   - nexus.%%LAB_DOMAIN%%:5001/origin
-  source: registry.svc.ci.openshift.org/origin/%%OKD_VER%%
+  source: %%OKD_SOURCE_1%%
 - mirrors:
   - nexus.%%LAB_DOMAIN%%:5001/origin
-  source: registry.svc.ci.openshift.org/origin/release
+  source: %%OKD_SOURCE_2%%

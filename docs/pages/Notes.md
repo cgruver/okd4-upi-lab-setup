@@ -144,3 +144,35 @@ storage:
           dns=192.168.124.1;1.1.1.1;8.8.8.8
           dns-search=redhat.com
 ```
+iPXE:
+
+```
+wget http://boot.ipxe.org/ipxe.efi
+```
+
+```
+uci add_list dhcp.lan.dhcp_option="6,10.11.11.10,8.8.8.8,8.8.4.4"
+uci set dhcp.@dnsmasq[0].enable_tftp=1
+uci set dhcp.@dnsmasq[0].tftp_root=/data/tftpboot
+uci set dhcp.efi64_boot_1=match
+uci set dhcp.efi64_boot_1.networkid='set:efi64'
+uci set dhcp.efi64_boot_1.match='60,PXEClient:Arch:00007'
+uci set dhcp.efi64_boot_2=match
+uci set dhcp.efi64_boot_2.networkid='set:efi64'
+uci set dhcp.efi64_boot_2.match='60,PXEClient:Arch:00009'
+uci set dhcp.ipxe_boot=userclass
+uci set dhcp.ipxe_boot.networkid='set:ipxe'
+uci set dhcp.ipxe_boot.userclass='iPXE'
+uci set dhcp.uefi=boot
+uci set dhcp.uefi.filename='tag:efi64,tag:!ipxe,ipxe.efi'
+uci set dhcp.uefi.serveraddress='10.11.11.1'
+uci set dhcp.uefi.servername='pxe'
+uci set dhcp.uefi.force='1'
+uci set dhcp.ipxe=boot
+uci set dhcp.ipxe.filename='tag:ipxe,boot.ipxe'
+uci set dhcp.ipxe.serveraddress='10.11.11.1'
+uci set dhcp.ipxe.servername='pxe'
+uci set dhcp.ipxe.force='1'
+uci commit dhcp
+/etc/init.d/dnsmasq restart
+```

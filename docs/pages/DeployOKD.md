@@ -4,42 +4,12 @@ I have provided a set of utility scripts to automate a lot of the tasks associat
 
 | | |
 |-|-|
-| `DeployLabGuest.sh` | Creates a virtual machine that will kickstart based on a specific role.  We will use it to configure the HA-Proxy load balancer |
 | `UnDeployLabGuest.sh` | Destroys a guest VM and supporting infrastructure |
-| `DeployOkdNodes.sh` | Creates the Bootstrap, Master, and Worker VMs from an inventory file, (described below) |
+| `DeployOkdNodes.sh` | Creates the HA-Proxy, Bootstrap, Master, and Worker VMs from an inventory file, (described below) |
 | `UnDeployOkdNodes.sh` | Destroys the OKD cluster and all supporting infrastructure |
 | `PowerOnVms.sh` | Helper script that uses IPMI to power on the VMs listed in an inventory file |
 
-1. Deploy the load-balancer: (Replace `bastion` with the hostname of your bastion host if you used a different name.)
-
-       DeployLabGuest.sh -h=okd4-lb01 -n=bastion -r=lb-node -c=2 -m=4096 -d=50 -v=6228
-
-    | | | | |
-    |-|-|-|-|
-    | -h | Sets Hostname: | okd4-lb01 | __*DNS `A` and `PTR` records must exist*__ |
-    | -n | Sets the Hypervisor Host | bastion | |
-    | -r | Sets the kickstart file to lb-node.ks | |
-    | -c | Sets the vCPU count | |
-    | -m | Sets the guest memory | |
-    | -d | Sets the guest root disk volume in GB | |
-    | -v  | Sets the VBMC Port | 6228 | |
-
-    This will create a VM which will do a kickstart install of CentOS with HA-Proxy.  It will pull the haproxy.cfg file that we prepared earlier when we set up Nginx.  If you are curious about the installation, take a look at: 
-
-    | | |
-    |-|-|
-    | `${INSTALL_ROOT}/kickstart/lb-node.ks` | The kickstart file that will direct the installation |
-    | `${INSTALL_ROOT}/firstboot/lb-node.fb` | The script that will execute on the first boot to install haproxy |
-    | `${INSTALL_ROOT}/haproxy.cfg` | The haproxy configuration file for our OKD cluster |
-
-    Let's power it on and watch the installation.
-
-       ipmitool -I lanplus -H10.11.11.10 -p6228 -Uadmin -Ppassword chassis power on
-       virsh console okd4-lb01
-
-    You should see your VM do an iPXE boot and begin an unattended installation of CentOS 7.
-
-1. Now let's prepare to deploy the VMs for our OKD cluster by preparing the Cluster VM inventory file:
+1. First, let's prepare to deploy the VMs for our OKD cluster by preparing the Cluster VM inventory file:
 
     This is not an ansible inventory like you might have encountered with OKD 3.11.  This is something I made up for my lab that allows me to quickly create, manage, and destroy virtual machines.
 
@@ -54,18 +24,19 @@ I have provided a set of utility scripts to automate a lot of the tasks associat
     | 5 | ROOT_VOL | The size in GB of the first HDD to provision |
     | 6 | DATA_VOL | The size in GB of the second HDD to provision; `0` for none |
     | 7 | NUM_OF_NICS | The number of NICs to provision for thie VM; `1` or `2` |
-    | 8 | ROLE | The OKD role that this VM will play: `BOOSTRAP`, `MASTER`, or `WORKER` |
+    | 8 | ROLE | The OKD role that this VM will play: `ha-proxy`, `bootstrap`, `master`, or `worker` |
     | 9 | VBMC_PORT | The port that VBMC will bind to for IPMI control of this VM |
 
     It looks like this: (The entries for the three worker nodes are commented out, if you have two KVM hosts with 64GB RAM each, then you can uncomment those lines and have a full 6-node cluster)
 
-       bastion,okd4-bootstrap,16384,4,50,0,1,BOOTSTRAP,6229
-       kvm-host01,okd4-master-0,20480,4,100,0,1,MASTER,6230
-       kvm-host01,okd4-master-1,20480,4,100,0,1,MASTER,6231
-       kvm-host01,okd4-master-2,20480,4,100,0,1,MASTER,6232
-       # kvm-host02,okd4-worker-0,20480,4,100,0,1,WORKER,6233
-       # kvm-host02,okd4-worker-1,20480,4,100,0,1,WORKER,6234
-       # kvm-host02,okd4-worker-2,20480,4,100,0,1,WORKER,6235
+       bastion,okd4-lb01,4096,1,50,0,1,ha-proxy,2668
+       bastion,okd4-bootstrap,16384,4,50,0,1,bootstrap,6229
+       kvm-host01,okd4-master-0,20480,4,100,0,1,master,6230
+       kvm-host01,okd4-master-1,20480,4,100,0,1,master,6231
+       kvm-host01,okd4-master-2,20480,4,100,0,1,master,6232
+       # kvm-host02,okd4-worker-0,20480,4,100,0,1,worker,6233
+       # kvm-host02,okd4-worker-1,20480,4,100,0,1,worker,6234
+       # kvm-host02,okd4-worker-2,20480,4,100,0,1,worker,6235
 
     Copy this file into place, and modify it if necessary:
 
@@ -74,13 +45,11 @@ I have provided a set of utility scripts to automate a lot of the tasks associat
 
 1. Retrieve the `oc` command.  We're going to grab an older version of `oc`, but that's OK.  We just need it to retrieve to current versions of `oc` and `openshift-install`
 
-    Go to: `https://github.com/openshift/okd/releases/tag/4.4.0-0.okd-2020-01-28-022517` and retrieve the `openshift-client-linux-4.4.0-0.okd-2020-01-28-022517.tar.gz` archive.
-
-       wget https://github.com/openshift/okd/releases/download/4.4.0-0.okd-2020-01-28-022517/openshift-client-linux-4.4.0-0.okd-2020-01-28-022517.tar.gz
+       wget https://github.com/openshift/okd/releases/download/4.5.0-0.okd-2020-07-14-153706-ga/openshift-client-linux-4.5.0-0.okd-2020-07-14-153706-ga.tar.gz
 
 1. Uncompress the archive and move the `oc` executable to your ~/bin directory.  Make sure ~/bin is in your path.
 
-       tar -xzf openshift-client-linux-4.4.0-0.okd-2020-01-28-022517.tar.gz
+       tar -xzf openshift-client-linux-4.5.0-0.okd-2020-07-14-153706-ga.tar.gz
        mv oc ~/bin
 
     The `DeployOkdNodes.sh` script will pull the correct version of `oc` and `openshift-install` when we run it.  It will over-write older versions in `~/bin`.
@@ -263,23 +232,23 @@ I have provided a set of utility scripts to automate a lot of the tasks associat
 
 2. Now mirror the OKD images into the local Nexus:
 
-       oc adm -a ${LOCAL_SECRET_JSON} release mirror --from=${OKD_REGISTRY}:${OKD_RELEASE} --to=${LOCAL_REGISTRY}/${LOCAL_REPOSITORY} --to-release-image=${LOCAL_REGISTRY}/${LOCAL_REPOSITORY}:${OKD_RELEASE}
+       oc adm -a ${LOCAL_SECRET_JSON} release mirror --from=${OKD_STABLE_REGISTRY}:${OKD_RELEASE} --to=${LOCAL_REGISTRY}/${LOCAL_REPOSITORY} --to-release-image=${LOCAL_REGISTRY}/${LOCAL_REPOSITORY}:${OKD_RELEASE}
 
     The output should look something like:
 
        Success
-       Update image:  nexus.oscluster.clgcom.org:5001/origin:4.4.0-0.okd-2020-03-11-174228
-       Mirror prefix: nexus.oscluster.clgcom.org:5001/origin
+       Update image:  nexus.your.domain.org:5001/origin:4.5.0-0.okd-2020-08-12-020541
+       Mirror prefix: nexus.your.domain.org:5001/origin
 
        To use the new mirrored repository to install, add the following section to the install-config.yaml:
 
        imageContentSources:
        - mirrors:
-         - nexus.oscluster.clgcom.org:5001/origin
-         source: registry.svc.ci.openshift.org/origin/4.4-2020-03-13-191636
+         - nexus.your.domain.org:5001/origin
+         source: quay.io/openshift/okd
        - mirrors:
-         - nexus.oscluster.clgcom.org:5001/origin
-         source: registry.svc.ci.openshift.org/origin/release
+         - nexus.your.domain.org:5001/origin
+         source: quay.io/openshift/okd-content
 
 
        To use the new mirrored repository for upgrades, use the following to create an ImageContentSourcePolicy:
@@ -291,15 +260,15 @@ I have provided a set of utility scripts to automate a lot of the tasks associat
        spec:
          repositoryDigestMirrors:
          - mirrors:
-           - nexus.oscluster.clgcom.org:5001/origin
-           source: registry.svc.ci.openshift.org/origin/4.4-2020-03-13-191636
+           - nexus.your.domain.org:5001/origin
+           source: quay.io/openshift/okd
          - mirrors:
-           - nexus.oscluster.clgcom.org:5001/origin
-           source: registry.svc.ci.openshift.org/origin/release
+           - nexus.your.domain.org:5001/origin
+           source: quay.io/openshift/okd-content
 
 3. Create the cluster virtual machines and set up for OKD installation:
 
-       DeployOkdNodes.sh -i=${OKD4_LAB_PATH}/guest-inventory/okd4 -p -m -n=okd4
+       DeployOkdNodes.sh -i=${OKD4_LAB_PATH}/guest-inventory/okd4_lab -p -m -n=okd4
 
     This script does a whole lot of work for us.
 
@@ -307,15 +276,18 @@ I have provided a set of utility scripts to automate a lot of the tasks associat
     1. fills in the OKD version and `%%CLUSTER_NAME%%` in the install-config-upi.yaml file and copies that file to the install directory as install-config.yaml.
     1. Invokes the openshift-install command against our install-config to produce ignition files
     1. Copies the ignition files into place for FCOS install
-    1. Sets up for a mirrored install by putting `registry.svc.ci.openshift.org` into a DNS sinkhole.
+    1. Sets up for a mirrored install by putting `quay.io` and `registry.svc.ci.openshift.org` into a DNS sinkhole.
     1. Creates guest VMs based on the inventory file at `${OKD4_LAB_PATH}/guest-inventory/okd4`
     1. Creates iPXE boot files for each VM and copies them to the iPXE server, (your router)
 
 # We are now ready to fire up our OKD cluster!!!
 
-1. Start the LB
+1. Start the LB and watch the installation.
 
        ipmitool -I lanplus -H10.11.11.10 -p6228 -Uadmin -Ppassword chassis power on
+       virsh console okd4-lb01
+
+    You should see your HA Proxy VM do an iPXE boot and begin an unattended installation of CentOS 8.
 
 1. Start the bootstrap node
 

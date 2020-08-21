@@ -1,11 +1,9 @@
 ## Nginx Config & RPM Repository Synch
 We are going to install the Nginx HTTP server and configure it to serve up all of the RPM packages that we need to build our guest VMs.
 
-We'll use the reposync and createrepo utilities to copy RPM repository contents from remote mirrors into our Nginx server.
+We'll use the reposync command to copy RPM repository contents from remote mirrors into our Nginx server.
 
 We are also going to copy the CentOS minimal install ISO into our Nginx server. 
-
-If you look at the contents of `/etc/yum.repos.d`, you should see files called `CentOS-Base.repo` and `epel.repo`.  These files contain the specifications for the repositories that we are going to synchronize.  `base, updates, extras, centosplus, and epel`
 
 We need to open firewall ports for HTTP/S so that we can access our Nginx server:
 
@@ -15,23 +13,21 @@ We need to open firewall ports for HTTP/S so that we can access our Nginx server
 
 Install and start Nginx:
 
-    yum -y install nginx
-    systemctl enable nginx
-    systemctl start nginx
+    dnf -y install nginx
+    systemctl enable nginx --now
 
 ### RPM Repository Mirror
 
 Create directories to hold all of the RPMs:
 
-    mkdir -p ${REPO_PATH}/{base,centosplus,extras,updates,kvm-common,epel}
+    mkdir -p ${REPO_PATH}/{BaseOS,AppStream,centosplus,extras,epel-modular,epel}
 
 Synch the repositories into the directories we just created:  (This will take a while)
 
-    LOCAL_REPOS="base centosplus extras updates epel kvm-common"
+    LOCAL_REPOS="BaseOS AppStream centosplus extras epel epel-modular"
     for REPO in ${LOCAL_REPOS}
     do
-        reposync -l -g -d -m --repoid=${REPO} --newest-only --download-metadata --download_path=${REPO_PATH}/
-        createrepo ${REPO_PATH}/${REPO}/  
+        reposync -m --repoid=${REPO} --newest-only --delete --download-metadata -p ${REPO_PATH}/  
     done
 
 Our Nginx server is now ready to serve up CentOS RPMs.
@@ -45,17 +41,23 @@ Now, we are going to set up the artifacts for host installation.  This will incl
     mkdir -p ${INSTALL_ROOT}/{centos,fcos,firstboot,kickstart,hostconfig,postinstall}
     mkdir ${INSTALL_ROOT}/fcos/ignition
 
+Create encrypted passwords to be used in your KVM host and Guest installations:
+
+    openssl passwd -1 'guest-root-password' > ${OKD4_LAB_PATH}/lab_guest_pw
+    openssl passwd -1 'host-root-password' > ${OKD4_LAB_PATH}/lab_host_pw
+
 ### CentOS:
 
 1. Deploy the Minimal ISO files.
 
-       wget https://buildlogs.centos.org/rolling/7/isos/x86_64/CentOS-7-x86_64-Minimal.iso
+    Download the minimal install ISO from: http://isoredirect.centos.org/centos/8/isos/x86_64/
+
        mkdir /tmp/centos-iso-mount
-       mount -o loop CentOS-7-x86_64-Minimal.iso /tmp/centos-iso-mount
+       mount -o loop CentOS-8.2.2004-x86_64-minimal.iso /tmp/centos-iso-mount
        rsync -av /tmp/centos-iso-mount/ ${INSTALL_ROOT}/centos/
        umount /tmp/centos-iso-mount
        rmdir /tmp/centos-iso-mount
-       rm CentOS-7-x86_64-Minimal.iso
+       rm CentOS-8.2.2004-x86_64-minimal.iso
 
 1. Deploy the files from this project for supporting `kickstart` installation.
 
@@ -86,6 +88,7 @@ Now, we are going to set up the artifacts for host installation.  This will incl
        done
 
        sed -i "s|%%REPO_URL%%|${REPO_URL}|g" ./tmp-work/postinstall/local-repos.repo
+       sed -i "s|%%LAB_NAMESERVER%%|${LAB_NAMESERVER}|g" ./tmp-work/postinstall/chrony.conf
 
     Copy your public SSH key
 
@@ -123,4 +126,4 @@ Now, we are going to set up the artifacts for host installation.  This will incl
        scp -r /tmp/fcos root@${INSTALL_HOST}:${INSTALL_ROOT}
        rm -rf /tmp/fcos
 
-Now, continue on to [DHCP Setup](DHCP.md)
+Now, continue on to [DHCP Setup](GL-AR750S-Ext.md)
