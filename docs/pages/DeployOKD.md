@@ -72,10 +72,6 @@ I have provided a set of utility scripts to automate a lot of the tasks associat
 
            vi ${OKD4_LAB_PATH}/pull_secret.json
 
-        The file should look something like:
-
-           {"auths": {"quay.io": {"auth": "Y2dydXZlcREDACTEDrNmpiL34MVZHeGt2YpREDACTEDptNVlxS9ZTFIUREDACTEDM4bmZB", "email": ""}}}
-
         Add an entry for your Nexus secret, so that the file looks like this:
            
            {"auths": {"fake": {"auth": "Zm9vOmJhcgo=", "email": ""},"nexus.your.domain.org:5001": {"auth": "PASTE_NEW_SECRET_HERE", "email": ""}}}
