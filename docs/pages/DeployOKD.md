@@ -56,27 +56,11 @@ I have provided a set of utility scripts to automate a lot of the tasks associat
 
 1. Now, we need a couple of pull secrets.  
 
-   The first one is for quay.io.  If you don't already have an account, go to `https://quay.io/` and create a free account.
+   The first one is for quay.io.  Since we are installing OKD, we don't need an official pull secret.  So, we will use a fake one.
 
-   Once you have your account, you need to extract your pull secret.
-
-   1. Log into your new Quay.io account.
-   1. In the top left corner, click the down arrow next to your user name.  This will expand a menu
-   1. Select `Account Settings`
-   1. Under `Docker CLI Password`, click on `Generate Encrypted Password`
-   1. Type in your quay.io password
-   1. Select `Kubernetes Secret`
-   1. Select `View <your-userid>-secret.yml`
-   1. Copy the base64 encoded string under `.dockerconfigjson`
-
-        It will look something like:
-
-           ewoblahblahblahblahblahblahblahREDACTEDetc...IH0KfQ==
-
-        But much longer...
     1. We need to put the pull secret into a JSON file that we will use to mirror the OKD images into our Nexus registry.  We'll also need the pull secret for our cluster install.
 
-           echo "PASTE THE COPIED BASE64 STRING HERE" | base64 -d > ${OKD4_LAB_PATH}/pull_secret.json 
+           echo "{"auths":{"fake":{"auth": "Zm9vOmJhcgo="}}}" > ${OKD4_LAB_PATH}/pull_secret.json 
 
     So, that's the first pull secret.  The second is for our local Nexus install.  We need to push the mirrored images into our Nexus, and the OKD install will need to pull them out.
 
@@ -94,7 +78,7 @@ I have provided a set of utility scripts to automate a lot of the tasks associat
 
         Add an entry for your Nexus secret, so that the file looks like this:
            
-           {"auths": {"quay.io": {"auth": "Y2dydXZlcREDACTEDrNmpiL34MVZHeGt2YpREDACTEDptNVlxS9ZTFIUREDACTEDM4bmZB", "email": ""},"nexus.your.domain.org:5001": {"auth": "PASTE_NEW_SECRET_HERE", "email": ""}}}
+           {"auths": {"fake": {"auth": "Zm9vOmJhcgo=", "email": ""},"nexus.your.domain.org:5001": {"auth": "PASTE_NEW_SECRET_HERE", "email": ""}}}
 
         Save this file.
 
@@ -186,7 +170,7 @@ I have provided a set of utility scripts to automate a lot of the tasks associat
          replicas: 3
        platform:
          none: {}
-       pullSecret: '{"auths": {"quay.io": {"auth": "Y2dydREDACTEDREDACTEDHeGtREDACTEDREDACTEDU55NWV5MREDACTEDREDACTEDM4bmZB", "email": ""},"nexus.oscluster.clgcom.org:5002": {"auth": "YREDACTEDREDACTED==", "email": ""}}}'
+       pullSecret: '{"auths": {"fake": {"auth": "Zm9vOmJhcgo=", "email": ""},"nexus.oscluster.clgcom.org:5002": {"auth": "YREDACTEDREDACTED==", "email": ""}}}'
        sshKey: ssh-rsa AAAREDACTEDREDACTEDAQAREDACTEDREDACTEDMnvPFqpEoOvZi+YK3L6MIGzVXbgo8SZREDACTEDREDACTEDbNZhieREDACTEDREDACTEDYI/upDR8TUREDACTEDREDACTEDoG1oJ+cRf6Z6gd+LZNE+jscnK/xnAyHfCBdhoyREDACTEDREDACTED9HmLRkbBkv5/2FPpc+bZ2xl9+I1BDr2uREDACTEDREDACTEDG7Ms0vJqrUhwb+o911tOJB3OWkREDACTEDREDACTEDU+1lNcFE44RREDACTEDREDACTEDov8tWSzn root@bastion
        additionalTrustBundle: |
          -----BEGIN CERTIFICATE-----
