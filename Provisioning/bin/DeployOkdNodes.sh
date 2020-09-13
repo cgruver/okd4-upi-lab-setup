@@ -308,7 +308,7 @@ listen okd4-api
     option                  tcplog
     mode tcp
     option tcpka
-    option ssl-hello-chk
+    option tcp-check
 ${API_LIST}
 
 listen okd4-mc 
@@ -333,7 +333,7 @@ listen okd4-apps-ssl
     option                  tcplog
     mode tcp
     option tcpka
-    option ssl-hello-chk
+    option tcp-check
 ${APPS_SSL_LIST}
 EOF
 
