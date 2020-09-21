@@ -1,99 +1,115 @@
 # Notes before they become docs
 
-Reset the HA Proxy configuration for a new cluster build:
+## Reset the HA Proxy configuration for a new cluster build:
 
-    ssh okd4-lb01 "curl -o /etc/haproxy/haproxy.cfg http://${INSTALL_HOST}/install/postinstall/haproxy.cfg && systemctl restart haproxy"
-    
-Upgrade:
-
-    oc adm upgrade 
-
-    Cluster version is 4.4.0-0.okd-2020-04-09-104654
-
-    Updates:
-
-    VERSION                       IMAGE
-    4.4.0-0.okd-2020-04-09-113408 registry.svc.ci.openshift.org/origin/release@sha256:724d170530bd738830f0ba370e74d94a22fc70cf1c017b1d1447d39ae7c3cf4f
-    4.4.0-0.okd-2020-04-09-124138 registry.svc.ci.openshift.org/origin/release@sha256:ce16ac845c0a0d178149553a51214367f63860aea71c0337f25556f25e5b8bb3
-
-    ssh root@${LAB_NAMESERVER} 'sed -i "s|registry.svc.ci.openshift.org|;sinkhole|g" /etc/named/zones/db.sinkhole && systemctl restart named'
-
-    export OKD_RELEASE=4.4.0-0.okd-2020-04-09-124138
-
-    oc adm -a ${LOCAL_SECRET_JSON} release mirror --from=${OKD_REGISTRY}:${OKD_RELEASE} --to=${LOCAL_REGISTRY}/${LOCAL_REPOSITORY} --to-release-image=${LOCAL_REGISTRY}/${LOCAL_REPOSITORY}:${OKD_RELEASE}
-
-    oc apply -f upgrade.yaml
-
-    ssh root@${LAB_NAMESERVER} 'sed -i "s|;sinkhole|registry.svc.ci.openshift.org|g" /etc/named/zones/db.sinkhole && systemctl restart named'
-
-    oc adm upgrade --to=${OKD_RELEASE}
-
-
-    oc patch clusterversion/version --patch '{"spec":{"upstream":"https://origin-release.svc.ci.openshift.org/graph"}}' --type=merge
-
-Samples Operator: Extract templates and image streams, then remove the operator.  We don't want everything and the kitchen sink...
-
-    mkdir -p ${OKD4_LAB_PATH}/OKD-Templates-ImageStreams/templates
-    mkdir ${OKD4_LAB_PATH}/OKD-Templates-ImageStreams/image-streams
-    oc project openshift
-    oc get template | grep -v NAME | while read line
-    do
-       TEMPLATE=$(echo $line | cut -d' ' -f1)
-       oc get --export template ${TEMPLATE} -o yaml > ${OKD4_LAB_PATH}/OKD-Templates-ImageStreams/templates/${TEMPLATE}.yml
-    done
-
-    oc get is | grep -v NAME | while read line
-    do
-       IS=$(echo $line | cut -d' ' -f1)
-       oc get --export is ${IS} -o yaml > ${OKD4_LAB_PATH}/OKD-Templates-ImageStreams/image-streams/${IS}.yml
-    done
-
-    oc patch configs.samples.operator.openshift.io cluster --type merge --patch '{"spec":{"managementState":"Removed"}}'
-
-Fix Hostname:
-
-    for i in 0 1 2 ; do ssh -o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null core@okd4-master-${i}.${LAB_DOMAIN} "sudo hostnamectl set-hostname okd4-master-${i}.my.domain.org && sudo shutdown -r now"; done
-    for i in 0 1 2 ; do ssh -o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null core@okd4-worker-${i}.${LAB_DOMAIN} "sudo hostnamectl set-hostname okd4-worker-${i}.my.domain.org && sudo shutdown -r now"; done
-
-Logs:
-
-    for i in 0 1 2 ; do echo "okd4-master-${i}" ; ssh -o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null core@okd4-master-${i}.${LAB_DOMAIN} "sudo journalctl --disk-usage"; done
-    for i in 0 1 2 ; do echo "okd4-master-${i}" ; ssh -o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null core@okd4-worker-${i}.${LAB_DOMAIN} "sudo journalctl --disk-usage"; done
-
-    for i in 0 1 2 ; do echo "okd4-master-${i}" ; ssh -o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null core@okd4-master-${i}.${LAB_DOMAIN} "sudo journalctl --vacuum-time=1s"; done
-    for i in 0 1 2 ; do echo "okd4-master-${i}" ; ssh -o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null core@okd4-worker-${i}.${LAB_DOMAIN} "sudo journalctl --vacuum-time=1s"; done
-
-Project Provisioning:
-
-    oc describe clusterrolebinding.rbac self-provisioners
-
-    # Remove self-provisioning from all roles
-    oc patch clusterrolebinding.rbac self-provisioners -p '{"subjects": null}'
-
-    # Remove from specific role
-    oc adm policy remove-cluster-role-from-group self-provisioner system:authenticated:oauth
-
-    # Prevent automatic updates to the role
-    oc patch clusterrolebinding.rbac self-provisioners -p '{ "metadata": { "annotations": { "rbac.authorization.kubernetes.io/autoupdate": "false" } } }'
-
-iSCSI:
-
-    echo "InitiatorName=iqn.$(hostname)" > /etc/iscsi/initiatorname.iscsi
-    systemctl enable iscsid --now
-
-    iscsiadm -m  discovery -t st -l -p 10.11.11.5:3260
-
-    for i in 0 1 2 ; do ssh -o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null core@okd4-prd-master-${i}.${LAB_DOMAIN} "sudo bash -c \"echo InitiatorName=iqn.$(hostname) > /etc/iscsi/initiatorname.iscsi\" && sudo systemctl enable iscsid --now"; done
-
-    for i in 0 1 2 3 4 5 ; do ssh -o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null core@okd4-prd-worker-${i}.${LAB_DOMAIN} "sudo bash -c \"echo InitiatorName=iqn.$(hostname) > /etc/iscsi/initiatorname.iscsi\" && sudo systemctl enable iscsid --now"; done
-
-FCCT:
-
-    wget https://github.com/coreos/fcct/releases/download/v0.6.0/fcct-x86_64-unknown-linux-gnu
-    mv fcct-x86_64-unknown-linux-gnu ~/bin/lab_bin/fcct 
-    chmod 750 ~/bin/lab_bin/fcct
-
+```bash
+ssh okd4-lb01 "curl -o /etc/haproxy/haproxy.cfg http://${INSTALL_HOST}/install/postinstall/haproxy.cfg && systemctl restart haproxy"
 ```
+
+## Upgrade:
+
+```bash
+oc adm upgrade 
+
+Cluster version is 4.4.0-0.okd-2020-04-09-104654
+
+Updates:
+
+VERSION                       IMAGE
+4.4.0-0.okd-2020-04-09-113408 registry.svc.ci.openshift.org/origin/release@sha256:724d170530bd738830f0ba370e74d94a22fc70cf1c017b1d1447d39ae7c3cf4f
+4.4.0-0.okd-2020-04-09-124138 registry.svc.ci.openshift.org/origin/release@sha256:ce16ac845c0a0d178149553a51214367f63860aea71c0337f25556f25e5b8bb3
+
+ssh root@${LAB_NAMESERVER} 'sed -i "s|registry.svc.ci.openshift.org|;sinkhole|g" /etc/named/zones/db.sinkhole && systemctl restart named'
+
+export OKD_RELEASE=4.4.0-0.okd-2020-04-09-124138
+
+oc adm -a ${LOCAL_SECRET_JSON} release mirror --from=${OKD_REGISTRY}:${OKD_RELEASE} --to=${LOCAL_REGISTRY}/${LOCAL_REPOSITORY} --to-release-image=${LOCAL_REGISTRY}/${LOCAL_REPOSITORY}:${OKD_RELEASE}
+
+oc apply -f upgrade.yaml
+
+ssh root@${LAB_NAMESERVER} 'sed -i "s|;sinkhole|registry.svc.ci.openshift.org|g" /etc/named/zones/db.sinkhole && systemctl restart named'
+
+oc adm upgrade --to=${OKD_RELEASE}
+
+
+oc patch clusterversion/version --patch '{"spec":{"upstream":"https://origin-release.svc.ci.openshift.org/graph"}}' --type=merge
+```
+
+## Samples Operator: Extract templates and image streams, then remove the operator.  We don't want everything and the kitchen sink...
+
+```bash
+mkdir -p ${OKD4_LAB_PATH}/OKD-Templates-ImageStreams/templates
+mkdir ${OKD4_LAB_PATH}/OKD-Templates-ImageStreams/image-streams
+oc project openshift
+oc get template | grep -v NAME | while read line
+do
+    TEMPLATE=$(echo $line | cut -d' ' -f1)
+    oc get --export template ${TEMPLATE} -o yaml > ${OKD4_LAB_PATH}/OKD-Templates-ImageStreams/templates/${TEMPLATE}.yml
+done
+
+oc get is | grep -v NAME | while read line
+do
+    IS=$(echo $line | cut -d' ' -f1)
+    oc get --export is ${IS} -o yaml > ${OKD4_LAB_PATH}/OKD-Templates-ImageStreams/image-streams/${IS}.yml
+done
+
+oc patch configs.samples.operator.openshift.io cluster --type merge --patch '{"spec":{"managementState":"Removed"}}'
+```
+
+## Fix Hostname:
+
+```bash
+for i in 0 1 2 ; do ssh -o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null core@okd4-master-${i}.${LAB_DOMAIN} "sudo hostnamectl set-hostname okd4-master-${i}.my.domain.org && sudo shutdown -r now"; done
+for i in 0 1 2 ; do ssh -o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null core@okd4-worker-${i}.${LAB_DOMAIN} "sudo hostnamectl set-hostname okd4-worker-${i}.my.domain.org && sudo shutdown -r now"; done
+```
+
+## Logs:
+
+```bash
+for i in 0 1 2 ; do echo "okd4-master-${i}" ; ssh -o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null core@okd4-master-${i}.${LAB_DOMAIN} "sudo journalctl --disk-usage"; done
+for i in 0 1 2 ; do echo "okd4-master-${i}" ; ssh -o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null core@okd4-worker-${i}.${LAB_DOMAIN} "sudo journalctl --disk-usage"; done
+
+for i in 0 1 2 ; do echo "okd4-master-${i}" ; ssh -o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null core@okd4-master-${i}.${LAB_DOMAIN} "sudo journalctl --vacuum-time=1s"; done
+for i in 0 1 2 ; do echo "okd4-master-${i}" ; ssh -o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null core@okd4-worker-${i}.${LAB_DOMAIN} "sudo journalctl --vacuum-time=1s"; done
+```
+
+## Project Provisioning:
+
+```bash
+oc describe clusterrolebinding.rbac self-provisioners
+
+# Remove self-provisioning from all roles
+oc patch clusterrolebinding.rbac self-provisioners -p '{"subjects": null}'
+
+# Remove from specific role
+oc adm policy remove-cluster-role-from-group self-provisioner system:authenticated:oauth
+
+# Prevent automatic updates to the role
+oc patch clusterrolebinding.rbac self-provisioners -p '{ "metadata": { "annotations": { "rbac.authorization.kubernetes.io/autoupdate": "false" } } }'
+```
+
+## iSCSI:
+
+```bash
+echo "InitiatorName=iqn.$(hostname)" > /etc/iscsi/initiatorname.iscsi
+systemctl enable iscsid --now
+
+iscsiadm -m  discovery -t st -l -p 10.11.11.5:3260
+
+for i in 0 1 2 ; do ssh -o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null core@okd4-prd-master-${i}.${LAB_DOMAIN} "sudo bash -c \"echo InitiatorName=iqn.$(hostname) > /etc/iscsi/initiatorname.iscsi\" && sudo systemctl enable iscsid --now"; done
+
+for i in 0 1 2 3 4 5 ; do ssh -o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null core@okd4-prd-worker-${i}.${LAB_DOMAIN} "sudo bash -c \"echo InitiatorName=iqn.$(hostname) > /etc/iscsi/initiatorname.iscsi\" && sudo systemctl enable iscsid --now"; done
+```
+
+## FCCT:
+
+```bash
+wget https://github.com/coreos/fcct/releases/download/v0.6.0/fcct-x86_64-unknown-linux-gnu
+mv fcct-x86_64-unknown-linux-gnu ~/bin/lab_bin/fcct 
+chmod 750 ~/bin/lab_bin/fcct
+```
+
+```yaml
 # Merge some tweaks/bugfixes with the master Ignition config
 variant: fcos
 version: 1.1.0
@@ -144,13 +160,14 @@ storage:
           dns=192.168.124.1;1.1.1.1;8.8.8.8
           dns-search=redhat.com
 ```
-iPXE:
 
-```
+## iPXE:
+
+```bash
 wget http://boot.ipxe.org/ipxe.efi
 ```
 
-```
+```bash
 uci add_list dhcp.lan.dhcp_option="6,10.11.11.10,8.8.8.8,8.8.4.4"
 uci set dhcp.@dnsmasq[0].enable_tftp=1
 uci set dhcp.@dnsmasq[0].tftp_root=/data/tftpboot
@@ -179,7 +196,7 @@ uci commit dhcp
 
 ## Journald
 
-```
+```bash
 sed -i 's/#Storage.*/Storage=persistent/' /etc/systemd/journald.conf
 sed -i 's/#SystemMaxUse.*/SystemMaxUse=4G/' /etc/systemd/journald.conf
 systemctl restart systemd-journald.service
@@ -342,4 +359,123 @@ spec:
         path: /etc/chrony.conf
   osImageURL: ""
 EOF
+```
+
+## CRC for OKD:
+
+### One time setup
+
+```bash
+dnf install jq golang-bin gcc-c++ golang make
+
+firewall-cmd --add-rich-rule "rule service name="libvirt" reject" --permanent
+firewall-cmd --zone=dmz --change-interface=tt0 --permanent
+firewall-cmd --zone=dmz --add-service=libvirt --permanent
+firewall-cmd --zone=dmz --add-service=dns --permanent
+firewall-cmd --zone=dmz --add-service=dhcp --permanent
+firewall-cmd --reload
+
+cat <<EOF >> /etc/libvirt/libvirtd.conf
+listen_tls = 0
+listen_tcp = 1
+auth_tcp = "none"
+tcp_port = "16509"
+EOF
+
+cat <<EOF >> /etc/sysconfig/libvirtd
+LIBVIRTD_ARGS="--listen"
+EOF
+
+systemctl restart libvirtd
+
+cat <<EOF > /etc/NetworkManager/conf.d/openshift.conf
+[main]
+dns=dnsmasq
+EOF
+
+cat <<EOF > /etc/NetworkManager/dnsmasq.d/openshift.conf
+server=/crc.testing/192.168.126.1
+address=/apps-crc.testing/192.168.126.11
+EOF
+
+systemctl reload NetworkManager
+
+```
+
+### Build SNC:
+
+```bash
+
+cat << EOF > /tmp/pull_secret.json
+{"auths":{"fake":{"auth": "Zm9vOmJhcgo="}}}
+EOF
+
+cd /tmp
+
+git clone https://github.com/cgruver/crc.git
+git clone https://github.com/cgruver/snc.git
+
+cd snc
+git checkout okd
+
+export OKD_VERSION=4.5.0-0.okd-2020-09-04-180756
+export OPENSHIFT_PULL_SECRET_PATH="/tmp/pull_secret.json"
+./snc.sh
+
+# Watch progress:
+export KUBECONFIG=crc-tmp-install-data/auth/kubeconfig 
+./oc get pods --all-namespaces
+
+# Rotate Certs:
+ssh -o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null -i id_rsa_crc core@api.crc.testing -- sudo openssl x509 -checkend 2160000 -noout -in /var/lib/kubelet/pki/kubelet-client-current.pem
+
+./oc delete secrets/csr-signer-signer secrets/csr-signer -n openshift-kube-controller-manager-operator
+ssh -o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null -i id_rsa_crc core@api.crc.testing -- sudo rm -fr /var/lib/kubelet/pki
+ssh -o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null -i id_rsa_crc core@api.crc.testing -- sudo rm -fr /var/lib/kubelet/kubeconfig
+ssh -o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null -i id_rsa_crc core@api.crc.testing -- sudo systemctl restart kubelet
+
+./oc get csr
+./oc get csr '-ojsonpath={.items[*].metadata.name}' | xargs ./oc adm certificate approve
+
+ssh -o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null -i id_rsa_crc core@api.crc.testing -- sudo openssl x509 -checkend 2160000 -noout -in /var/lib/kubelet/pki/kubelet-client-current.pem
+
+
+./createdisk.sh crc-tmp-install-data
+
+cd ../crc
+git checkout okd
+
+export BUNDLE_DIR=/tmp/snc
+make embed_bundle
+
+```
+
+### Clean up VMs:
+
+```bash
+
+CRC=$(virsh net-list --all | grep crc- | cut -d" " -f2)
+virsh destroy ${CRC}-bootstrap
+virsh undefine ${CRC}-bootstrap
+virsh destroy ${CRC}-master-0
+virsh undefine ${CRC}-master-0
+virsh net-destroy ${CRC}
+virsh net-undefine ${CRC}
+virsh pool-destroy ${CRC}
+virsh pool-undefine ${CRC}
+rm -rf /var/lib/libvirt/openshift-images/${CRC}
+
+```
+
+### Rebase Git
+
+```bash
+git checkout -b okd-snc
+
+git checkout -b wip
+<Make Code Changes>
+git reset --soft okd-snc
+git add .
+git commit -m "Message Here"
+git push
 ```
