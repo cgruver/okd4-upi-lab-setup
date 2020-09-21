@@ -176,3 +176,170 @@ uci set dhcp.ipxe.force='1'
 uci commit dhcp
 /etc/init.d/dnsmasq restart
 ```
+
+## Journald
+
+```
+sed -i 's/#Storage.*/Storage=persistent/' /etc/systemd/journald.conf
+sed -i 's/#SystemMaxUse.*/SystemMaxUse=4G/' /etc/systemd/journald.conf
+systemctl restart systemd-journald.service
+```
+
+## KubeVirt
+
+### Node Maintenance Operator
+
+```bash
+git clone https://github.com/kubevirt/node-maintenance-operator.git
+cd node-maintenance-operator/
+
+oc apply -f deploy/deployment-ocp/catalogsource.yaml
+oc apply -f deploy/deployment-ocp/namespace.yaml
+oc apply -f deploy/deployment-ocp/operatorgroup.yaml
+oc apply -f deploy/deployment-ocp/subscription.yaml
+```
+
+### Hyperconverged Cluster Operator
+
+```bash
+export REGISTRY_NAMESPACE=kubevirt
+export IMAGE_REGISTRY=${LOCAL_REGISTRY}
+export TAG=4.5
+export CONTAINER_TAG=4.5
+export OPERATOR_IMAGE=hyperconverged-cluster-operator
+export CONTAINER_BUILD_CMD=podman
+export WORK_DIR=${OKD4_LAB_PATH}/kubevirt
+
+git clone https://github.com/kubevirt/hyperconverged-cluster-operator.git
+
+git checkout release-4.5`
+
+podman build -f build/Dockerfile -t ${LOCAL_REGISTRY}/${REGISTRY_NAMESPACE}/${OPERATOR_IMAGE}:${TAG} --build-arg git_sha=$(shell git describe --no-match  --always --abbrev=40 --dirty) .
+
+podman build -f tools/operator-courier/Dockerfile -t hco-courier .
+podman tag hco-courier:latest  ${LOCAL_REGISTRY}/${REGISTRY_NAMESPACE}/hco-courier:latest
+podman tag hco-courier:latest  ${LOCAL_REGISTRY}/${REGISTRY_NAMESPACE}/hco-courier:${TAG}
+
+podman login ${LOCAL_REGISTRY}
+
+podman push ${LOCAL_REGISTRY}/${REGISTRY_NAMESPACE}/${OPERATOR_IMAGE}:${TAG}
+podman push ${LOCAL_REGISTRY}/${REGISTRY_NAMESPACE}/hco-courier:latest
+podman push ${LOCAL_REGISTRY}/${REGISTRY_NAMESPACE}/hco-courier:${TAG}
+
+./hack/build-registry-bundle.sh
+
+cd ${WORK_DIR}
+
+cat <<EOF > ${WORK_DIR}/operator-group.yml 
+apiVersion: operators.coreos.com/v1
+kind: OperatorGroup
+metadata:
+  name: hco-operatorgroup
+  namespace: kubevirt-hyperconverged
+spec:
+  targetNamespaces:
+  - "kubevirt-hyperconverged"
+EOF
+
+cat <<EOF > ${WORK_DIR}/catalog-source.yml
+apiVersion: operators.coreos.com/v1alpha1
+kind: CatalogSource
+metadata:
+  name: hco-catalogsource
+  namespace: openshift-marketplace
+spec:
+  sourceType: grpc
+  image: ${IMAGE_REGISTRY}/${REGISTRY_NAMESPACE}/hco-container-registry:${CONTAINER_TAG}
+  displayName: KubeVirt HyperConverged
+  publisher: ${LAB_DOMAIN}
+  updateStrategy:
+    registryPoll:
+      interval: 30m
+EOF
+
+cat <<EOF > subscription.yml
+apiVersion: operators.coreos.com/v1alpha1
+kind: Subscription
+metadata:
+  name: hco-subscription
+  namespace: kubevirt-hyperconverged
+spec:
+  channel: "1.0.0"
+  name: kubevirt-hyperconverged
+  source: hco-catalogsource
+  sourceNamespace: openshift-marketplace
+EOF
+
+oc create -f hco.cr.yaml -n kubevirt-hyperconverged
+
+export KUBEVIRT_PROVIDER="okd-4.5"
+```
+
+### KubeVirt project:
+
+```bash
+export DOCKER_PREFIX=${LOCAL_REGISTRY}/kubevirt
+export DOCKER_TAG=okd-4.5
+```
+
+### Chrony
+
+https://docs.openshift.com/container-platform/4.5/installing/install_config/installing-customizing.html
+
+```yaml
+apiVersion: machineconfiguration.openshift.io/v1
+kind: MachineConfig
+metadata:
+  labels:
+    machineconfiguration.openshift.io/role: master
+  name: 99-crhony-master
+spec:
+  config:
+    ignition:
+      version: 2.2.0
+    storage:
+      files:
+      - contents:
+          source: data:text/plain;charset=utf-8;base64,<crony configuration base64 encode>
+        filesystem: root
+        mode: 420
+        path: /etc/chrony.conf
+```
+
+```bash
+cat << EOF | base64
+server clock.redhat.com iburst
+driftfile /var/lib/chrony/drift
+makestep 1.0 3
+rtcsync
+logdir /var/log/chrony
+EOF
+
+cat << EOF > ./99_masters-chrony-configuration.yaml
+apiVersion: machineconfiguration.openshift.io/v1
+kind: MachineConfig
+metadata:
+  labels:
+    machineconfiguration.openshift.io/role: master
+  name: masters-chrony-configuration
+spec:
+  config:
+    ignition:
+      config: {}
+      security:
+        tls: {}
+      timeouts: {}
+      version: 2.2.0
+    networkd: {}
+    passwd: {}
+    storage:
+      files:
+      - contents:
+          source: data:text/plain;charset=utf-8;base64,c2VydmVyIGNsb2NrLnJlZGhhdC5jb20gaWJ1cnN0CmRyaWZ0ZmlsZSAvdmFyL2xpYi9jaHJvbnkvZHJpZnQKbWFrZXN0ZXAgMS4wIDMKcnRjc3luYwpsb2dkaXIgL3Zhci9sb2cvY2hyb255Cg==
+          verification: {}
+        filesystem: root
+        mode: 420
+        path: /etc/chrony.conf
+  osImageURL: ""
+EOF
+```
