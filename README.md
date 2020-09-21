@@ -29,7 +29,7 @@ Or, follow the directions in each section here:
 
 After deployment is complete, here are some things to do with your cluster:
 
-1. [Designate your Master Nodes as Infrastructure Nodes](InfraNodes.md)
+1. [Designate your Master Nodes as Infrastructure Nodes](docs/pages/InfraNodes.md)
 
     __Do Not do this step if you do not have dedicated `worker` nodes.__
 
