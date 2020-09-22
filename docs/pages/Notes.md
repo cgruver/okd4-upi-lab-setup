@@ -445,6 +445,8 @@ ssh -o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null -i id_rsa_crc co
 cd ../crc
 git checkout okd
 
+export OC_BASE_URL=https://github.com/openshift/okd/releases/download
+export BUNDLE_VERSION=${OKD_VERSION}
 export BUNDLE_DIR=/tmp/snc
 make embed_bundle
 
@@ -470,6 +472,13 @@ rm -rf /var/lib/libvirt/openshift-images/${CRC}
 ### Rebase Git
 
 ```bash
+git remote add upstream https://github.com/code-ready/crc.git
+git fetch upstream
+git rebase upstream/master
+git push origin master --force
+
+
+
 git checkout -b okd-snc
 
 git checkout -b wip
