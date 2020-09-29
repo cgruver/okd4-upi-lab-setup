@@ -36,7 +36,7 @@ Cordon, and Drain the `worker` nodes:  (This will take a while, be patient)
 
     for i in 0 1 2 ; do oc adm cordon okd4-worker-${i}.${LAB_DOMAIN} ; done
 
-    for i in 0 1 2 ; do oc adm drain okd4-worker-${i}.${LAB_DOMAIN} --ignore-daemonsets --force --grace-period=60 --delete-local-data &; done
+    for i in 0 1 2 ; do oc adm drain okd4-worker-${i}.${LAB_DOMAIN} --ignore-daemonsets --force --grace-period=60 --delete-local-data; done
 
 Shutdown the worker nodes: (Wait for them to all shut down before proceeding)
 
