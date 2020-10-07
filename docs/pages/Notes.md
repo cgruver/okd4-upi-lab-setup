@@ -488,3 +488,21 @@ git add .
 git commit -m "Message Here"
 git push
 ```
+
+### CentOS 8 Nic issue:
+
+```bash
+ethtool -K nic0 tso off
+```
+
+### Market Place Disconnected
+
+```bash
+oc patch OperatorHub cluster --type json -p '[{"op": "add", "path": "/spec/disableAllDefaultSources", "value": true}]'
+oc patch OperatorHub cluster --type json -p '[{"op": "add", "path": "/spec/sources/0/disabled", "value": true}]'
+
+
+# oc patch OperatorHub cluster --type json -p '[{"op": "remove", "path": "/spec/sources/0"}]'
+# oc patch OperatorHub cluster --type json -p '[{"op": "replace", "path": "/spec/sources/0", "value": {"name":"community-operators","disabled":false}}]'
+# oc patch OperatorHub cluster --type json -p '[{"op": "add", "path": "/spec/sources/-", "value": {"name":"community-operators","disabled":true}}]'
+```

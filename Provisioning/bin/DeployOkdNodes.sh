@@ -258,7 +258,7 @@ setenforce 1
 /bin/cat /etc/crontab | /bin/grep -v firstboot > /etc/crontab.tmp
 /bin/rm -f /etc/crontab
 /bin/mv /etc/crontab.tmp /etc/crontab
-rm -f $0
+rm -f \$0
 
 EOF
 
@@ -357,7 +357,7 @@ fi
 
 if [ ${PULL_RELEASE} == "true" ]
 then
-  ssh root@${LAB_NAMESERVER} 'sed -i "s|registry.svc.ci.openshift.org|;sinkhole-reg|g" /etc/named/zones/db.sinkhole && sed -i "s|quay.io|;sinkhole-quay|g" /etc/named/zones/db.sinkhole && systemctl restart named'
+  ssh root@${LAB_NAMESERVER} 'sed -i "s|registry.svc.ci.openshift.org|;sinkhole-redhat|g" /etc/named/zones/db.sinkhole && sed -i "s|quay.io|;sinkhole-quay|g" /etc/named/zones/db.sinkhole && sed -i "s|docker.io|;sinkhole-dockerhub|g" /etc/named/zones/db.sinkhole && systemctl restart named'
   mkdir -p ${OKD4_LAB_PATH}/okd-release-tmp
   cd ${OKD4_LAB_PATH}/okd-release-tmp
   oc adm release extract --command='openshift-install' ${OKD_REGISTRY}:${OKD_RELEASE}
@@ -369,7 +369,7 @@ then
 fi
 if [[ ${USE_MIRROR} == "true" ]]
 then
-  ssh root@${LAB_NAMESERVER} 'sed -i "s|;sinkhole-reg|registry.svc.ci.openshift.org|g" /etc/named/zones/db.sinkhole && sed -i "s|;sinkhole-quay|quay.io|g" /etc/named/zones/db.sinkhole && systemctl restart named'
+  ssh root@${LAB_NAMESERVER} 'sed -i "s|;sinkhole-redhat|registry.svc.ci.openshift.org|g" /etc/named/zones/db.sinkhole && sed -i "s|;sinkhole-quay|quay.io|g" /etc/named/zones/db.sinkhole && sed -i "s|;sinkhole-dockerhub|docker.io|g" /etc/named/zones/db.sinkhole && systemctl restart named'
 fi
 
 # Create and deploy ignition files

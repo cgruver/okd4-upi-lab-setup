@@ -1,0 +1,48 @@
+apiVersion: ceph.rook.io/v1
+kind: CephObjectStore
+metadata:
+  name: s3-object-store
+  namespace: rook-ceph
+spec:
+  metadataPool:
+    failureDomain: host
+    replicated:
+      size: 3
+  dataPool:
+    failureDomain: host
+    erasureCoded:
+      dataChunks: 2
+      codingChunks: 1
+  preservePoolsOnDelete: true
+  gateway:
+    type: s3
+    sslCertificateRef:
+    port: 8080
+    securePort:
+    instances: 1
+  healthCheck:
+    bucket:
+      disabled: false
+      interval: 60s
+  allNodes: false
+  placement:
+    nodeAffinity:
+      requiredDuringSchedulingIgnoredDuringExecution:
+        nodeSelectorTerms:
+        - matchExpressions:
+          - key: role
+            operator: In
+            values:
+            - storage-node
+    tolerations:
+    - key: storage-node
+      operator: Exists
+    podAffinity:
+    podAntiAffinity:
+  resources:
+    limits:
+      cpu: "1"
+      memory: "2048Mi"
+    requests:
+      cpu: "500m"
+      memory: "1024Mi"

@@ -1,0 +1,8 @@
+apiVersion: ceph.rook.io/v1
+kind: CephObjectStoreUser
+metadata:
+  name: odh-user
+  namespace: rook-ceph
+spec:
+  store: s3-object-store
+  displayName: "odh-user"
