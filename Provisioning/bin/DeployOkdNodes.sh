@@ -366,7 +366,7 @@ then
 fi
 if [[ ${USE_MIRROR} == "true" ]]
 then
-  ssh root@${LAB_NAMESERVER} 'Sinkhole -d'
+  ssh root@${LAB_NAMESERVER} 'Sinkhole.sh -d'
 fi
 
 # Create and deploy ignition files
