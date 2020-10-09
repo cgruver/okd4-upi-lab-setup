@@ -343,11 +343,7 @@ EOF
 
 }
 
-# Retreive fcct
-mkdir -p ${OKD4_LAB_PATH}/ipxe-work-dir/ignition
-wget https://github.com/coreos/fcct/releases/download/v0.6.0/fcct-x86_64-unknown-linux-gnu
-mv fcct-x86_64-unknown-linux-gnu ${OKD4_LAB_PATH}/ipxe-work-dir/fcct 
-chmod 750 ${OKD4_LAB_PATH}/ipxe-work-dir/fcct
+
 
 # Pull the OKD release tooling identified by ${OKD_REGISTRY}:${OKD_RELEASE}.  i.e. OKD_REGISTRY=registry.svc.ci.openshift.org/origin/release, OKD_RELEASE=4.4.0-0.okd-2020-03-03-170958
 if [[ ${NIGHTLY} == "true" ]]
@@ -357,7 +353,8 @@ fi
 
 if [ ${PULL_RELEASE} == "true" ]
 then
-  ssh root@${LAB_NAMESERVER} 'sed -i "s|registry.svc.ci.openshift.org|;sinkhole-redhat|g" /etc/named/zones/db.sinkhole && sed -i "s|quay.io|;sinkhole-quay|g" /etc/named/zones/db.sinkhole && sed -i "s|docker.io|;sinkhole-dockerhub|g" /etc/named/zones/db.sinkhole && systemctl restart named'
+  ssh root@${LAB_NAMESERVER} 'Sinkhole.sh -c'
+  sleep 5
   mkdir -p ${OKD4_LAB_PATH}/okd-release-tmp
   cd ${OKD4_LAB_PATH}/okd-release-tmp
   oc adm release extract --command='openshift-install' ${OKD_REGISTRY}:${OKD_RELEASE}
@@ -369,12 +366,13 @@ then
 fi
 if [[ ${USE_MIRROR} == "true" ]]
 then
-  ssh root@${LAB_NAMESERVER} 'sed -i "s|;sinkhole-redhat|registry.svc.ci.openshift.org|g" /etc/named/zones/db.sinkhole && sed -i "s|;sinkhole-quay|quay.io|g" /etc/named/zones/db.sinkhole && sed -i "s|;sinkhole-dockerhub|docker.io|g" /etc/named/zones/db.sinkhole && systemctl restart named'
+  ssh root@${LAB_NAMESERVER} 'Sinkhole -d'
 fi
 
 # Create and deploy ignition files
 rm -rf ${OKD4_LAB_PATH}/okd4-install-dir
 mkdir ${OKD4_LAB_PATH}/okd4-install-dir
+mkdir -p ${OKD4_LAB_PATH}/ipxe-work-dir/ignition
 cp ${OKD4_LAB_PATH}/install-config-upi.yaml ${OKD4_LAB_PATH}/okd4-install-dir/install-config.yaml
 if [[ ${NIGHTLY} == "true" ]]
 then
@@ -438,7 +436,7 @@ do
   then
     # Create node specific files
     configOkdNode ${IP_01} ${HOSTNAME}.${LAB_DOMAIN} ${NET_MAC_0} ${ROLE}
-    cat ${OKD4_LAB_PATH}/ipxe-work-dir/ignition/${NET_MAC_0//:/-}.yml | ${OKD4_LAB_PATH}/ipxe-work-dir/fcct -d ${OKD4_LAB_PATH}/okd4-install-dir/ -o ${OKD4_LAB_PATH}/ipxe-work-dir/ignition/${NET_MAC_0//:/-}.ign
+    cat ${OKD4_LAB_PATH}/ipxe-work-dir/ignition/${NET_MAC_0//:/-}.yml | fcct -d ${OKD4_LAB_PATH}/okd4-install-dir/ -o ${OKD4_LAB_PATH}/ipxe-work-dir/ignition/${NET_MAC_0//:/-}.ign
   else
     # Create the HA Proxy LB Server
     configLbNode ${IP_01} ${HOSTNAME}.${LAB_DOMAIN} ${NET_MAC_0}

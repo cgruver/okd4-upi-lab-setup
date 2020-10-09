@@ -96,6 +96,11 @@ Copy the utility scripts that I have prepared for you:
     cp ./Provisioning/bin/*.sh ~/bin/lab_bin
     chmod 700 ~/bin/lab_bin/*.sh
 
+Retrieve the `fcct` tool, which will be used to manipulate ignition files
+
+    wget -O ~/bin/lab_bin/fcct https://github.com/coreos/fcct/releases/download/v0.6.0/fcct-x86_64-unknown-linux-gnu
+    chmod 700 ~/bin/lab_bin/fcct
+
 Next, we need to set up some environment variables that we will use to set up the rest of the lab.  You need to make some decisions at this point, fill in the following information, and then edit `~/bin/lab_bin/setLabEnv.sh` accordingly:
 
 | Variable | Example Value | Description |
