@@ -212,7 +212,7 @@ I have provided a set of utility scripts to automate a lot of the tasks associat
 
 2. Now mirror the OKD images into the local Nexus:
 
-       oc adm -a ${LOCAL_SECRET_JSON} release mirror --from=${OKD_STABLE_REGISTRY}:${OKD_RELEASE} --to=${LOCAL_REGISTRY}/${LOCAL_REPOSITORY} --to-release-image=${LOCAL_REGISTRY}/${LOCAL_REPOSITORY}:${OKD_RELEASE}
+       mirrorOkdRelease.sh
 
     The output should look something like:
 
@@ -246,9 +246,17 @@ I have provided a set of utility scripts to automate a lot of the tasks associat
            - nexus.your.domain.org:5001/origin
            source: quay.io/openshift/okd-content
 
+1. Create a DNS sinkhole for `registry.svc.ci.openshift.org`, `quay.io`, `docker.io`, and `github.com`.  This will simulate a datacenter with no internet access.
+
+       Sinkhole.sh -d
+
+    __Note: When you want to restore access to the above domains, execute:
+
+       Sinkhole.sh -c
+
 3. Create the cluster virtual machines and set up for OKD installation:
 
-       DeployOkdNodes.sh -i=${OKD4_LAB_PATH}/guest-inventory/okd4_lab -p -m -cn=okd4
+       DeployOkdNodes.sh -i=${OKD4_LAB_PATH}/guest-inventory/okd4_lab -cn=okd4
 
     This script does a whole lot of work for us.
 
