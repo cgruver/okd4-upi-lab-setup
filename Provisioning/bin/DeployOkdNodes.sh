@@ -112,7 +112,7 @@ EOF
 cat << EOF > ${OKD4_LAB_PATH}/ipxe-work-dir/${mac//:/-}.ipxe
 #!ipxe
 
-kernel ${INSTALL_URL}/fcos/vmlinuz edd=off net.ifnames=1 rd.neednet=1 coreos.inst=yes coreos.inst.install_dev=sda coreos.inst.image_url=${INSTALL_URL}/fcos/install.xz coreos.inst.ignition_url=${INSTALL_URL}/fcos/ignition/${CLUSTER_NAME}/${mac//:/-}.ign coreos.inst.platform_id=qemu console=ttyS0
+kernel ${INSTALL_URL}/fcos/vmlinuz edd=off net.ifnames=1 rd.neednet=1 coreos.inst=yes coreos.inst.install_dev=sda coreos.inst.ignition_url=${INSTALL_URL}/fcos/ignition/${CLUSTER_NAME}/${mac//:/-}.ign coreos.inst.platform_id=qemu console=ttyS0
 initrd ${INSTALL_URL}/fcos/initrd
 initrd ${INSTALL_URL}/fcos/rootfs.img
 
