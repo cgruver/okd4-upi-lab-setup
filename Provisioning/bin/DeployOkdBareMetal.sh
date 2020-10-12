@@ -4,9 +4,6 @@ set -x
 
 # This script will set up the infrastructure to deploy an OKD 4.X cluster
 # Follow the documentation at https://github.com/cgruver/okd4-UPI-Lab-Setup
-OKD_REGISTRY=${OKD_STABLE_REGISTRY}
-PULL_RELEASE=false
-USE_MIRROR=false
 NIGHTLY=false
 IP_CONFIG_1=""
 IP_CONFIG_2=""
@@ -44,14 +41,6 @@ case $i in
     ;;
     -n=*|--name=*)
     CLUSTER_NAME="${i#*=}"
-    shift
-    ;;
-    -m|--mirror)
-    USE_MIRROR=true
-    shift
-    ;;
-    -p|--pull-release)
-    PULL_RELEASE=true
     shift
     ;;
     -n|--nightly)
@@ -348,29 +337,6 @@ mkdir -p ${OKD4_LAB_PATH}/ipxe-work-dir/ignition
 wget https://github.com/coreos/fcct/releases/download/v0.6.0/fcct-x86_64-unknown-linux-gnu
 mv fcct-x86_64-unknown-linux-gnu ${OKD4_LAB_PATH}/ipxe-work-dir/fcct 
 chmod 750 ${OKD4_LAB_PATH}/ipxe-work-dir/fcct
-
-# Pull the OKD release tooling identified by ${OKD_REGISTRY}:${OKD_RELEASE}.  i.e. OKD_REGISTRY=registry.svc.ci.openshift.org/origin/release, OKD_RELEASE=4.4.0-0.okd-2020-03-03-170958
-if [[ ${NIGHTLY} == "true" ]]
-then
-  OKD_REGISTRY=${OKD_NIGHTLY_REGISTRY}
-fi
-
-if [ ${PULL_RELEASE} == "true" ]
-then
-  ssh root@${LAB_NAMESERVER} 'sed -i "s|registry.svc.ci.openshift.org|;sinkhole-reg|g" /etc/named/zones/db.sinkhole && sed -i "s|quay.io|;sinkhole-quay|g" /etc/named/zones/db.sinkhole && systemctl restart named'
-  mkdir -p ${OKD4_LAB_PATH}/okd-release-tmp
-  cd ${OKD4_LAB_PATH}/okd-release-tmp
-  oc adm release extract --command='openshift-install' ${OKD_REGISTRY}:${OKD_RELEASE}
-  oc adm release extract --command='oc' ${OKD_REGISTRY}:${OKD_RELEASE}
-  mv -f openshift-install ~/bin
-  mv -f oc ~/bin
-  cd ..
-  rm -rf okd-release-tmp
-fi
-if [[ ${USE_MIRROR} == "true" ]]
-then
-  ssh root@${LAB_NAMESERVER} 'sed -i "s|;sinkhole-reg|registry.svc.ci.openshift.org|g" /etc/named/zones/db.sinkhole && sed -i "s|;sinkhole-quay|quay.io|g" /etc/named/zones/db.sinkhole && systemctl restart named'
-fi
 
 # Create and deploy ignition files
 rm -rf ${OKD4_LAB_PATH}/okd4-install-dir

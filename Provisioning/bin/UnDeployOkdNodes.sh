@@ -33,5 +33,3 @@ do
   ssh root@${HOST_NODE}.${LAB_DOMAIN} "rm -rf /VirtualMachines/${HOSTNAME}"
   vbmc delete ${HOSTNAME}
 done
-# Restore DNS access to registry.svc.ci.openshift.org
-ssh root@${LAB_NAMESERVER} 'sed -i "s|registry.svc.ci.openshift.org|;sinkhole|g" /etc/named/zones/db.sinkhole && systemctl restart named'
