@@ -20,19 +20,19 @@ In early 2019, I came across this little Frankenstein.  The QNAP NAS-Book [TBS-4
 
 My home lab has grown to be almost embarrassing...  but, what can I say, except that I have a VERY understanding wife.
 
-![Picture of my home Lab - Yes, those are Looney Toons DVDs behind.](pages/images/MyLab.jpeg)
+![Picture of my home Lab - Yes, those are Looney Toons DVDs behind.](pages/images/Home-Lab.jpg)
 
 For your own lab, I would recommend starting with the following:
 
 * 1 x NUC8i3BEK - For your Bastion host and development server
     * 32GB RAM
     * 500GB M.2 SATA SSD
-* 1 x NUC10i7FNK - For your Hypervisor (I have several NUC6i7KYK, so that is what you see pictured below)
+* 1 x NUC10i7FNK - For your Hypervisor
     * 64GB RAM
     * 1TB M.2 SATA SSD
 * 1 x GL.iNet GL-AR750S-Ext - For your router
 
-![Picture of my Mini Lab setup.](pages/images/MiniLab.jpeg)
+![Picture of my Mini Lab setup.](pages/images/MiniLab2.jpg)
 
 A minimal setup like this will cost a little less than a 13" MacBook Pro with 16GB of RAM.  For that outlay you get 8 CPU cores (16 virtual CPUs), 96GB of RAM, and a really cool travel router!
 
@@ -65,5 +65,5 @@ After deployment is complete, here are some things to do with your cluster:
 1. [Deploy a Ceph cluster for block storage provisioning](pages/Ceph.md)
 1. [Create a MariaDB Galera StatefulSet](pages/MariaDB.md)
 1. [Updating Your Cluster](UpdateOKD.md)
-1. Coming soon...  Tekton pipeline for Quarkus and Spring Boot applications.
+1. [Tekton pipeline for Quarkus and Spring Boot applications](https://github.com/cgruver/tekton-pipeline-okd4)
 1. [Gracefully shut down your cluster](pages/ShuttingDown.md)
