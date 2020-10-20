@@ -439,6 +439,21 @@ ssh -o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null -i id_rsa_crc co
 
 ssh -o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null -i id_rsa_crc core@api.crc.testing -- sudo openssl x509 -checkend 2160000 -noout -in /var/lib/kubelet/pki/kubelet-client-current.pem
 
+# Clean up Ingress:
+
+./oc get pods --all-namespaces | grep NodeAffinity | while read i
+do
+    NS=$(echo ${i} | cut -d" " -f1 )
+    POD=$(echo ${i} | cut -d" " -f2 )
+    ./oc delete pod ${POD} -n ${NS}
+done
+
+./oc get pods --all-namespaces | grep CrashLoop | while read i
+do
+    NS=$(echo ${i} | cut -d" " -f1 )
+    POD=$(echo ${i} | cut -d" " -f2 )
+    ./oc delete pod ${POD} -n ${NS}
+done
 
 ./createdisk.sh crc-tmp-install-data
 
@@ -505,4 +520,10 @@ oc patch OperatorHub cluster --type json -p '[{"op": "add", "path": "/spec/sourc
 # oc patch OperatorHub cluster --type json -p '[{"op": "remove", "path": "/spec/sources/0"}]'
 # oc patch OperatorHub cluster --type json -p '[{"op": "replace", "path": "/spec/sources/0", "value": {"name":"community-operators","disabled":false}}]'
 # oc patch OperatorHub cluster --type json -p '[{"op": "add", "path": "/spec/sources/-", "value": {"name":"community-operators","disabled":true}}]'
+```
+
+### Add worker node:
+
+```bash
+oc extract -n openshift-machine-api secret/worker-user-data --keys=userData --to=- > worker.ign
 ```
