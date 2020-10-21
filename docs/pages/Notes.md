@@ -221,15 +221,15 @@ oc apply -f deploy/deployment-ocp/subscription.yaml
 ```bash
 export REGISTRY_NAMESPACE=kubevirt
 export IMAGE_REGISTRY=${LOCAL_REGISTRY}
-export TAG=4.5
-export CONTAINER_TAG=4.5
+export TAG=4.6
+export CONTAINER_TAG=4.6
 export OPERATOR_IMAGE=hyperconverged-cluster-operator
 export CONTAINER_BUILD_CMD=podman
 export WORK_DIR=${OKD4_LAB_PATH}/kubevirt
 
 git clone https://github.com/kubevirt/hyperconverged-cluster-operator.git
 
-git checkout release-4.5`
+git checkout release-4.6`
 
 podman build -f build/Dockerfile -t ${LOCAL_REGISTRY}/${REGISTRY_NAMESPACE}/${OPERATOR_IMAGE}:${TAG} --build-arg git_sha=$(shell git describe --no-match  --always --abbrev=40 --dirty) .
 
@@ -295,8 +295,8 @@ export KUBEVIRT_PROVIDER="okd-4.5"
 ### KubeVirt project:
 
 ```bash
-export DOCKER_PREFIX=${LOCAL_REGISTRY}/kubevirt
-export DOCKER_TAG=okd-4.5
+# export DOCKER_PREFIX=${LOCAL_REGISTRY}/kubevirt
+# export DOCKER_TAG=okd-4.5
 ```
 
 ### Chrony
