@@ -34,7 +34,6 @@ Now, let's build this image and push it to the OpenShift repository.
     On CentOS:
 
        dnf install -y podman
-       systemctl start docker
 
     On a desktop OS, start `Docker Desktop`.
 
