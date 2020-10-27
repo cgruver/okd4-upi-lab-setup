@@ -21,11 +21,20 @@
 
 ## WIP from here down:
 
-Assume node taints of: `infra=reserved:NoSchedule`, `infra=reserved:NoExecute`
+## Designate selected Worker nodes as Infrastructure nodes
 
-* IngressController: `oc patch -n openshift-ingress-operator ingresscontroller default --patch '{"spec":{"nodePlacement":{"nodeSelector":{"matchLabels":{"node-role.kubernetes.io/infra":""}},"tolerations":[{"key":"infra","value":"reserved","effect":"NoSchedule"},{"key":"infra","value":"reserved","effect":"NoExecute"}]}}}' --type=merge`
+       for i in 0 1 2
+       do
+          oc label nodes okd4-infra-${i}.${LAB_DOMAIN} node-role.kubernetes.io/infra=""
+          oc adm taint nodes okd4-infra-${i}.${LAB_DOMAIN} infra=infraNode:NoSchedule
+          oc adm taint nodes okd4-infra-${i}.${LAB_DOMAIN} infra=infraNode:NoExecute
+       done
 
-* ImageRegistry: `oc patch configs.imageregistry.operator.openshift.io cluster --patch '{"spec":{"nodeSelector":{"node-role.kubernetes.io/infra":""},"tolerations":[{"key":"infra","value":"reserved","effect":"NoSchedule"},{"key":"infra","value":"reserved","effect":"NoExecute"}]}}' --type=merge`
+## Move Workloads to the new Infra nodes
+
+* IngressController: `oc patch -n openshift-ingress-operator ingresscontroller default --patch '{"spec":{"nodePlacement":{"nodeSelector":{"matchLabels":{"node-role.kubernetes.io/infra":""}},"tolerations":[{"key":"infra","value":"infraNode","effect":"NoSchedule"},{"key":"infra","value":"infraNode","effect":"NoExecute"}]}}}' --type=merge`
+
+* ImageRegistry: `oc patch configs.imageregistry.operator.openshift.io cluster --patch '{"spec":{"nodeSelector":{"node-role.kubernetes.io/infra":""},"tolerations":[{"key":"infra","value":"infraNode","effect":"NoSchedule"},{"key":"infra","value":"infraNode","effect":"NoExecute"}]}}' --type=merge`
 
 * Cluster Monitoring:
 
@@ -43,12 +52,11 @@ data:
       tolerations:
       - key: "infra"
         operator: "Equal"
-        value: "reserved"
+        value: "infraNode"
         effect: "NoSchedule"
-      tolerations:
       - key: "infra"
         operator: "Equal"
-        value: "reserved"
+        value: "infraNode"
         effect: "NoExecute"
     prometheusK8s:
       nodeSelector:
@@ -56,12 +64,11 @@ data:
       tolerations:
       - key: "infra"
         operator: "Equal"
-        value: "reserved"
+        value: "infraNode"
         effect: "NoSchedule"
-      tolerations:
       - key: "infra"
         operator: "Equal"
-        value: "reserved"
+        value: "infraNode"
         effect: "NoExecute"
     alertmanagerMain:
       nodeSelector:
@@ -69,12 +76,11 @@ data:
       tolerations:
       - key: "infra"
         operator: "Equal"
-        value: "reserved"
+        value: "infraNode"
         effect: "NoSchedule"
-      tolerations:
       - key: "infra"
         operator: "Equal"
-        value: "reserved"
+        value: "infraNode"
         effect: "NoExecute"
     kubeStateMetrics:
       nodeSelector:
@@ -82,12 +88,11 @@ data:
       tolerations:
       - key: "infra"
         operator: "Equal"
-        value: "reserved"
+        value: "infraNode"
         effect: "NoSchedule"
-      tolerations:
       - key: "infra"
         operator: "Equal"
-        value: "reserved"
+        value: "infraNode"
         effect: "NoExecute"
     grafana:
       nodeSelector:
@@ -95,12 +100,11 @@ data:
       tolerations:
       - key: "infra"
         operator: "Equal"
-        value: "reserved"
+        value: "infraNode"
         effect: "NoSchedule"
-      tolerations:
       - key: "infra"
         operator: "Equal"
-        value: "reserved"
+        value: "infraNode"
         effect: "NoExecute"
     telemeterClient:
       nodeSelector:
@@ -108,12 +112,11 @@ data:
       tolerations:
       - key: "infra"
         operator: "Equal"
-        value: "reserved"
+        value: "infraNode"
         effect: "NoSchedule"
-      tolerations:
       - key: "infra"
         operator: "Equal"
-        value: "reserved"
+        value: "infraNode"
         effect: "NoExecute"
     k8sPrometheusAdapter:
       nodeSelector:
@@ -121,12 +124,11 @@ data:
       tolerations:
       - key: "infra"
         operator: "Equal"
-        value: "reserved"
+        value: "infraNode"
         effect: "NoSchedule"
-      tolerations:
       - key: "infra"
         operator: "Equal"
-        value: "reserved"
+        value: "infraNode"
         effect: "NoExecute"
     openshiftStateMetrics:
       nodeSelector:
@@ -134,12 +136,11 @@ data:
       tolerations:
       - key: "infra"
         operator: "Equal"
-        value: "reserved"
+        value: "infraNode"
         effect: "NoSchedule"
-      tolerations:
       - key: "infra"
         operator: "Equal"
-        value: "reserved"
+        value: "infraNode"
         effect: "NoExecute"
     thanosQuerier:
       nodeSelector:
@@ -147,12 +148,11 @@ data:
       tolerations:
       - key: "infra"
         operator: "Equal"
-        value: "reserved"
+        value: "infraNode"
         effect: "NoSchedule"
-      tolerations:
       - key: "infra"
         operator: "Equal"
-        value: "reserved"
+        value: "infraNode"
         effect: "NoExecute"
 ```
 
