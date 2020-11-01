@@ -455,6 +455,8 @@ do
     ./oc delete pod ${POD} -n ${NS}
 done
 
+./oc delete pod --field-selector=status.phase==Succeeded --all-namespaces
+
 ./createdisk.sh crc-tmp-install-data
 
 cd ../crc
