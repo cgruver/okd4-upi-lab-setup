@@ -529,3 +529,118 @@ oc patch OperatorHub cluster --type json -p '[{"op": "add", "path": "/spec/sourc
 ```bash
 oc extract -n openshift-machine-api secret/worker-user-data --keys=userData --to=- > worker.ign
 ```
+
+### Clean up Completed or Failed Pods:
+
+```bash
+oc delete pod --field-selector=status.phase==Succeeded
+oc delete pod --field-selector=status.phase==Failed
+```
+
+### Pod Scheduling:
+
+```yaml
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: frontend-app
+  labels:
+    app: frontend-app
+spec:
+  serviceName: galera-cluster
+  podManagementPolicy: "OrderedReady"
+  replicas: 3
+  selector:
+    matchLabels:
+      app: frontend-app
+  template:
+    metadata:
+      labels:
+        app: frontend-app
+    spec:
+      securityContext:
+        runAsUser: 27
+        fsGroup: 27
+      serviceAccount: mariadb
+      terminationGracePeriodSeconds: 60
+      nodeSelector:
+        node-role.kubernetes.io/worker: ""
+      affinity:
+        podAntiAffinity:
+          preferredDuringSchedulingIgnoredDuringExecution:
+          - weight: 100
+            podAffinityTerm:
+              labelSelector:
+                matchExpressions:
+                - key: app
+                  operator: In
+                  values:
+                  - frontend-app
+              topologyKey: kubernetes.io/hostname
+        podAffinity:
+          preferredDuringSchedulingIgnoredDuringExecution:
+          - weight: 100
+            podAffinityTerm:
+              labelSelector:
+                matchExpressions:
+                - key: app
+                  operator: In
+                  values:
+                  - backend-app
+              topologyKey: kubernetes.io/hostname
+      containers:
+      - name: frontend-app
+        image: image-registry.openshift-image-registry.svc:5000/openshift/frontend-app:latest
+        imagePullPolicy: IfNotPresent 
+        env: {}
+        ports: {}
+        volumeMounts: {}
+      volumes: {}
+
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: backend-app
+  labels:
+    app: backend-app
+spec:
+  serviceName: galera-cluster
+  podManagementPolicy: "OrderedReady"
+  replicas: 3
+  selector:
+    matchLabels:
+      app: backend-app
+  template:
+    metadata:
+      labels:
+        app: backend-app
+    spec:
+      securityContext:
+        runAsUser: 27
+        fsGroup: 27
+      serviceAccount: mariadb
+      terminationGracePeriodSeconds: 60
+      nodeSelector:
+        node-role.kubernetes.io/worker: ""
+      affinity:
+        podAntiAffinity:
+          preferredDuringSchedulingIgnoredDuringExecution:
+          - weight: 100
+            podAffinityTerm:
+              labelSelector:
+                matchExpressions:
+                - key: app
+                  operator: In
+                  values:
+                  - backend-app
+              topologyKey: kubernetes.io/hostname
+      containers:
+      - name: backend-app
+        image: image-registry.openshift-image-registry.svc:5000/openshift/backend-app:latest
+        imagePullPolicy: IfNotPresent 
+        env: {}
+        ports: {}
+        volumeMounts: {}
+      volumes: {}
+
+```
