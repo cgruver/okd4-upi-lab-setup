@@ -418,6 +418,19 @@ git clone https://github.com/cgruver/snc.git
 cd snc
 git checkout okd
 
+cat << FOE > ~/bin/sncSetup.sh
+export OKD_VERSION=$1
+export OPENSHIFT_PULL_SECRET_PATH="/tmp/pull_secret.json"
+export BUNDLE_VERSION=${OKD_VERSION}
+export BUNDLE_DIR=/tmp/snc
+export OKD_BUILD=true
+cat << EOF > /tmp/pull_secret.json
+{"auths":{"fake":{"auth": "Zm9vOmJhcgo="}}}
+EOF
+FOE
+
+chmod 700 ~/bin/sncSetup.sh
+
 export OKD_VERSION=4.5.0-0.okd-2020-09-04-180756
 export OPENSHIFT_PULL_SECRET_PATH="/tmp/pull_secret.json"
 ./snc.sh
@@ -643,4 +656,18 @@ spec:
         volumeMounts: {}
       volumes: {}
 
+```
+
+### Clone multiple repos at once
+
+```bash
+curl -s https://cgruver:@api.github.com/orgs/cgruver-erdemo/repos | jq ".[].clone_url" | xargs -n 1 git clone
+```
+
+### Update CentOS 8 to CentOS Stream
+
+```bash
+dnf install centos-release-stream
+dnf swap centos-{linux,stream}-repos
+dnf distro-sync
 ```
