@@ -10,7 +10,7 @@ Follow these steps to deploy a Ceph cluster:
 
        mkdir -p ${OKD4_LAB_PATH}/ceph
        cp ./Ceph/* ${OKD4_LAB_PATH}/ceph
-       sed -i "s|%%LAB_DOMAIN%%|${LAB_DOMAIN}|g" ${OKD4_LAB_PATH}/ceph/cluster.yml
+       sed -i "s|%%LAB_DOMAIN%%|${LAB_DOMAIN}|g" ${OKD4_LAB_PATH}/ceph/cluster.yaml
 
     The Ceph installation files were taken from https://github.com/rook/rook and modified for this tutorial.
 
@@ -27,14 +27,15 @@ Follow these steps to deploy a Ceph cluster:
 
 1. Create the Ceph Operator:
 
-       oc apply -f ${OKD4_LAB_PATH}/ceph/common.yml
-       oc apply -f ${OKD4_LAB_PATH}/ceph/operator-openshift.yml
+       oc apply -f ${OKD4_LAB_PATH}/ceph/crds.yaml
+       oc apply -f ${OKD4_LAB_PATH}/ceph/common.yaml
+       oc apply -f ${OKD4_LAB_PATH}/ceph/operator-openshift.yaml
 
     __Wait for the Operator pods to completely deploy before executing the next step.__
 
 1. Deploy the Ceph cluster:
 
-       oc apply -f ${OKD4_LAB_PATH}/ceph/cluster.yml
+       oc apply -f ${OKD4_LAB_PATH}/ceph/cluster.yaml
 
     __This will take a while to complete.__  
     
