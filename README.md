@@ -4,7 +4,7 @@
 
 ## I have written this guide from my own lab configuration.  So, it is opinionated toward a libvirt/KVM installation on CentOS 8.
 
-## Note: Updated to implement iPXE installation for all hosts.  I still have some cleanup to do on the docs as a result of the CentOS 8 upgrade.
+## Note: This will soon be updated to reflect my switch from CentOS 8 to CentOS Streams (Stay tuned)  
 
 __If you want to connect with a team of OpenShift enthusiasts, join us in the OKD Working Group:__
 
