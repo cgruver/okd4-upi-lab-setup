@@ -2,24 +2,123 @@
 
 1. Add a label to your master nodes:
 
-       for i in 0 1 2
-       do
-          oc label nodes okd4-master-${i}.${LAB_DOMAIN} node-role.kubernetes.io/infra=""
-       done
+    ```bash
+    for i in 0 1 2
+    do
+      oc label nodes okd4-master-${i}.${LAB_DOMAIN} node-role.kubernetes.io/infra=""
+    done
+    ```
 
 1. Remove the `worker` label from the master nodes:
 
-       oc patch scheduler cluster --patch '{"spec":{"mastersSchedulable":false}}' --type=merge
+    ```bash
+    oc patch scheduler cluster --patch '{"spec":{"mastersSchedulable":false}}' --type=merge
+    ```
 
 1. Add `nodePlacement` and taint tolerations to the Ingress Controller:
 
-       oc patch -n openshift-ingress-operator ingresscontroller default --patch '{"spec":{"nodePlacement":{"nodeSelector":{"matchLabels":{"node-role.kubernetes.io/infra":""}},"tolerations":[{"key":"node.kubernetes.io/unschedulable","effect":"NoSchedule"},{"key":"node-role.kubernetes.io/master","effect":"NoSchedule"}]}}}' --type=merge
+    ```bash
+    oc patch -n openshift-ingress-operator ingresscontroller default --patch '{"spec":{"nodePlacement":{"nodeSelector":{"matchLabels":{"node-role.kubernetes.io/infra":""}},"tolerations":[{"key":"node.kubernetes.io/unschedulable","effect":"NoSchedule"},{"key":"node-role.kubernetes.io/master","effect":"NoSchedule"}]}}}' --type=merge
+    ```
 
 1. Verify that your Ingress pods get provisioned onto the master nodes:
 
-       oc get pod -n openshift-ingress -o wide
+    ```bash
+    oc get pod -n openshift-ingress -o wide
+    ```
 
-## WIP from here down:
+1. Repeat for the ImageRegistry:
+
+    ```bash
+    oc patch configs.imageregistry.operator.openshift.io cluster --patch '{"spec":{"nodeSelector":{"node-role.kubernetes.io/infra":""},"tolerations":[{"key":"node.kubernetes.io/unschedulable","effect":"NoSchedule"},{"key":"node-role.kubernetes.io/master","effect":"NoSchedule"}]}}' --type=merge
+    ```
+
+1. Finally for Cluster Monitoring:
+
+    Create a file named `cluster-monitoring-config.yaml` with the following content:
+
+    ```yaml
+    apiVersion: v1
+    kind: ConfigMap
+    metadata:
+      name: cluster-monitoring-config
+      namespace: openshift-monitoring
+    data:
+      config.yaml: |
+        prometheusOperator:
+          nodeSelector:
+            node-role.kubernetes.io/infra: ""
+          tolerations:
+          - key: "node-role.kubernetes.io/master"
+            operator: "Equal"
+            value: ""
+            effect: "NoSchedule"
+        prometheusK8s:
+          nodeSelector:
+            node-role.kubernetes.io/infra: ""
+          tolerations:
+           - key: "node-role.kubernetes.io/master"
+            operator: "Equal"
+            value: ""
+            effect: "NoSchedule"
+        alertmanagerMain:
+          nodeSelector:
+            node-role.kubernetes.io/infra: ""
+          tolerations:
+          - key: "node-role.kubernetes.io/master"
+            operator: "Equal"
+            value: ""
+            effect: "NoSchedule"
+        kubeStateMetrics:
+          nodeSelector:
+            node-role.kubernetes.io/infra: ""
+          tolerations:
+          - key: "node-role.kubernetes.io/master"
+            operator: "Equal"
+            value: ""
+            effect: "NoSchedule"
+        grafana:
+          nodeSelector:
+            node-role.kubernetes.io/infra: ""
+          tolerations:
+          - key: "node-role.kubernetes.io/master"
+            operator: "Equal"
+            value: ""
+            effect: "NoSchedule"
+        telemeterClient:
+          nodeSelector:
+            node-role.kubernetes.io/infra: ""
+          tolerations:
+          - key: "node-role.kubernetes.io/master"
+            operator: "Equal"
+            value: ""
+            effect: "NoSchedule"
+        k8sPrometheusAdapter:
+          nodeSelector:
+            node-role.kubernetes.io/infra: ""
+          tolerations:
+          - key: "node-role.kubernetes.io/master"
+            operator: "Equal"
+            value: ""
+            effect: "NoSchedule"
+        openshiftStateMetrics:
+          nodeSelector:
+            node-role.kubernetes.io/infra: ""
+          tolerations:
+          - key: "node-role.kubernetes.io/master"
+            operator: "Equal"
+            value: ""
+            effect: "NoSchedule"
+        thanosQuerier:
+          nodeSelector:
+            node-role.kubernetes.io/infra: ""
+          tolerations:
+          - key: "node-role.kubernetes.io/master"
+            operator: "Equal"
+            value: ""
+            effect: "NoSchedule"
+    ```
+# Work In Progress from here down:
 
 ## Designate selected Worker nodes as Infrastructure nodes
 
