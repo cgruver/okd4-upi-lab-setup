@@ -1,6 +1,6 @@
 ## Manual KVM Host install
 
-Assuming you already have a USB key with the Centos 7 install ISO on it, do the following:
+Assuming you already have a USB key with the Centos 8 install ISO on it, do the following:
 
 Ensure that you have DNS `A` and `PTR` records for each host.  The DNS files that you set up in [DNS Setup](DNS_Config.md) contain records for 3 kvm-hosts.
 
@@ -45,8 +45,8 @@ Set up KVM for each host.  Do the following for kvm-host01, and modify the IP in
        enabled=1
        EOF
 
-       yum -y install wget git net-tools bind-utils bash-completion nfs-utils rsync qemu-kvm libvirt libvirt-python libguestfs-tools virt-install iscsi-initiator-utils
-       yum -y update
+       dnf -y install wget git net-tools bind-utils bash-completion nfs-utils rsync qemu-kvm libvirt libvirt-python libguestfs-tools virt-install iscsi-initiator-utils
+       dnf -y update
 
        cat <<EOF >> /etc/modprobe.d/kvm.conf
        options kvm_intel nested=1
