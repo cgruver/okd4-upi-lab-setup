@@ -71,21 +71,7 @@ Create encrypted passwords to be used in your KVM host and Guest installations:
 
     Prep the install files from this project:
 
-       cp -rf ./Provisioning/guest_install/kickstart ./tmp-work 
-       cp -rf ./Provisioning/guest_install/firstboot ./tmp-work
        cp -rf ./Provisioning/guest_install/postinstall ./tmp-work
-       for i in $(ls ./tmp-work/kickstart)
-       do
-          sed -i "s|%%INSTALL_URL%%|${INSTALL_URL}|g" ./tmp-work/kickstart/${i}
-          sed -i "s|%%LAB_PWD%%|${LAB_PWD}|g" ./tmp-work/kickstart/${i}
-       done
-
-       for i in $(ls ./tmp-work/firstboot)
-       do
-         sed -i "s|%%INSTALL_URL%%|${INSTALL_URL}|g" ./tmp-work/firstboot/${i}
-         sed -i "s|%%REPO_URL%%|${REPO_URL}|g" ./tmp-work/firstboot/${i}
-         sed -i "s|%%LAB_DOMAIN%%|${LAB_DOMAIN}|g" ./tmp-work/firstboot/${i}
-       done
 
        sed -i "s|%%REPO_URL%%|${REPO_URL}|g" ./tmp-work/postinstall/local-repos.repo
        sed -i "s|%%LAB_NAMESERVER%%|${LAB_NAMESERVER}|g" ./tmp-work/postinstall/chrony.conf
@@ -96,8 +82,6 @@ Create encrypted passwords to be used in your KVM host and Guest installations:
 
     Copy the prepared files into place
     
-       scp -r ./tmp-work/kickstart root@${INSTALL_HOST}:${INSTALL_ROOT}
-       scp -r ./tmp-work/firstboot root@${INSTALL_HOST}:${INSTALL_ROOT}
        scp -r ./tmp-work/postinstall root@${INSTALL_HOST}:${INSTALL_ROOT}
        rm -rf ./tmp-work
 
