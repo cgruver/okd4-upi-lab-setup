@@ -6,6 +6,11 @@
 ssh okd4-lb01 "curl -o /etc/haproxy/haproxy.cfg http://${INSTALL_HOST}/install/postinstall/haproxy.cfg && systemctl restart haproxy"
 ```
 
+## Setup DNS resolution for a SNC build
+
+```bash
+nmcli connection mod "Bridge connection br0" ipv4.dns "${SNC_NAMESERVER}" ipv4.dns-search "${SNC_DOMAIN}"
+```
 ## Upgrade:
 
 ```bash

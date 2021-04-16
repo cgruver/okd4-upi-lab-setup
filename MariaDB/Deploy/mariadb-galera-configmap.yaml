@@ -4,10 +4,18 @@ metadata:
   name: galera-config-cm
 data:
   mariadb-server.cnf: |
-    [server]
-    
+    [client]
+    default-character-set = utf8mb4
+
+    [mysql]
+    default-character-set = utf8mb4
+
     [mysqld]
+    character_set_server=utf8mb4
+    collation_server=utf8mb4_unicode_ci
     
+    [server]
+
     [galera]
     user=mysql
     bind-address=0.0.0.0

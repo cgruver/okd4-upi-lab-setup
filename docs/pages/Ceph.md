@@ -72,4 +72,8 @@ Follow these steps to deploy a Ceph cluster:
     
        oc patch configs.imageregistry.operator.openshift.io cluster --type merge --patch '{"spec":{"rolloutStrategy":"Recreate","managementState":"Managed","storage":{"pvc":{"claim":"registry-pvc"}}}}'
 
+1. If you want to designate your new storage class as the `default` storage class, the do the following:
+
+       oc patch storageclass rook-ceph-block -p '{"metadata": {"annotations":{"storageclass.kubernetes.io/is-default-class":"true"}}}'
+
 __You just created a Ceph cluster and bound your image registry to a Persistent Volume!__
