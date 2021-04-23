@@ -400,7 +400,7 @@ do
   then
     # Create node specific files
     configOkdNode ${IP_01} ${HOSTNAME}.${LAB_DOMAIN} ${NET_MAC_0} ${ROLE}
-    cat ${OKD4_LAB_PATH}/ipxe-work-dir/ignition/${NET_MAC_0//:/-}.yml | fcct -d ${OKD4_LAB_PATH}/okd4-install-dir/ -o ${OKD4_LAB_PATH}/ipxe-work-dir/ignition/${NET_MAC_0//:/-}.ign
+    cat ${OKD4_LAB_PATH}/ipxe-work-dir/ignition/${NET_MAC_0//:/-}.yml | butane -d ${OKD4_LAB_PATH}/okd4-install-dir/ -o ${OKD4_LAB_PATH}/ipxe-work-dir/ignition/${NET_MAC_0//:/-}.ign
   else
     # Create the HA Proxy LB Server
     configLbNode ${IP_01} ${HOSTNAME}.${LAB_DOMAIN} ${NET_MAC_0}

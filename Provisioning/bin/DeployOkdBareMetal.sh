@@ -332,11 +332,11 @@ EOF
 
 }
 
-# Retreive fcct
+# Retreive butane
 mkdir -p ${OKD4_LAB_PATH}/ipxe-work-dir/ignition
-wget https://github.com/coreos/fcct/releases/download/v0.6.0/fcct-x86_64-unknown-linux-gnu
-mv fcct-x86_64-unknown-linux-gnu ${OKD4_LAB_PATH}/ipxe-work-dir/fcct 
-chmod 750 ${OKD4_LAB_PATH}/ipxe-work-dir/fcct
+wget https://github.com/coreos/butane/releases/download/v0.11.0/butane-x86_64-unknown-linux-gnu
+mv butane-x86_64-unknown-linux-gnu ${OKD4_LAB_PATH}/ipxe-work-dir/butane 
+chmod 750 ${OKD4_LAB_PATH}/ipxe-work-dir/butane
 
 # Create and deploy ignition files
 rm -rf ${OKD4_LAB_PATH}/okd4-install-dir
@@ -405,7 +405,7 @@ do
   then
     # Create node specific files
     configOkdNode ${IP_01} ${HOSTNAME}.${LAB_DOMAIN} ${NET_MAC_0} ${ROLE}
-    cat ${OKD4_LAB_PATH}/ipxe-work-dir/ignition/${NET_MAC_0//:/-}.yml | ${OKD4_LAB_PATH}/ipxe-work-dir/fcct -d ${OKD4_LAB_PATH}/okd4-install-dir/ -o ${OKD4_LAB_PATH}/ipxe-work-dir/ignition/${NET_MAC_0//:/-}.ign
+    cat ${OKD4_LAB_PATH}/ipxe-work-dir/ignition/${NET_MAC_0//:/-}.yml | ${OKD4_LAB_PATH}/ipxe-work-dir/butane -d ${OKD4_LAB_PATH}/okd4-install-dir/ -o ${OKD4_LAB_PATH}/ipxe-work-dir/ignition/${NET_MAC_0//:/-}.ign
   else
     # Create the HA Proxy LB Server
     configLbNode ${IP_01} ${HOSTNAME}.${LAB_DOMAIN} ${NET_MAC_0}

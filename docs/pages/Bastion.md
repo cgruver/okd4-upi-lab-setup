@@ -49,12 +49,17 @@ Install some added packages:
 
 1. Install the packages that we are going to need.
 
-       dnf -y module install virt
-       dnf -y install wget gcc git net-tools bind bind-utils bash-completion rsync ipmitool python3-pip yum-utils libguestfs-tools virt-install createrepo java-11-openjdk.x86_64 epel-release ipxe-bootimgs python36-devel libvirt-devel httpd-tools
+    ```bash
+    dnf -y module install virt
+    dnf -y install wget gcc git net-tools bind bind-utils bash-completion rsync ipmitool python3-pip yum-utils libguestfs-tools virt-install createrepo java-11-openjdk.x86_64 epel-release ipxe-bootimgs python36-devel libvirt-devel httpd-tools
+    ```
 
 1. Install Virtual BMC:
 
-       pip3.6 install virtualbmc
+    ```bash
+    pip3.6 install --upgrade pip
+    pip install setuptools_rust wheel virtualbmc
+    ```
 
     Set up VBMC as a systemd controlled service:
 
@@ -85,6 +90,24 @@ Install some added packages:
 
        systemctl enable vbmcd.service --now
 
+1. Create an SSH key pair: (Take the defaults for all of the prompts, don't set a key password)
+
+    ```bash
+    ssh-keygen
+    <Enter>
+    <Enter>
+    <Enter>
+    ```
+
+1. Now is a good time to update and reboot the bastion host:
+
+    ```bash
+    dnf -y update
+    shutdown -r now
+    ```
+
+### Log back into the host
+
 Clone this project:
 
     git clone https://github.com/cgruver/okd4-upi-lab-setup
@@ -98,8 +121,8 @@ Copy the utility scripts that I have prepared for you:
 
 Retrieve the `fcct` tool, which will be used to manipulate ignition files
 
-    wget -O ~/bin/lab_bin/fcct https://github.com/coreos/fcct/releases/download/v0.6.0/fcct-x86_64-unknown-linux-gnu
-    chmod 700 ~/bin/lab_bin/fcct
+    wget -O ~/bin/lab_bin/butane https://github.com/coreos/butane/releases/download/v0.11.0/butane-aarch64-unknown-linux-gnu
+    chmod 700 ~/bin/lab_bin/butane
 
 Next, we need to set up some environment variables that we will use to set up the rest of the lab.  You need to make some decisions at this point, fill in the following information, and then edit `~/bin/lab_bin/setLabEnv.sh` accordingly:
 
@@ -122,12 +145,16 @@ Next, we need to set up some environment variables that we will use to set up th
 
 After you have edited `~/bin/lab_bin/setLabEnv.sh` to reflect the values above, configure bash to execute this script on login:
 
-    chmod 750 ~/bin/lab_bin/setLabEnv.sh
     echo ". /root/bin/lab_bin/setLabEnv.sh" >> ~/.bashrc
 
+Log out, then log back in to ensure that the environment is set correctly.
 
+```bash
+exit
+ssh root@10.11.11.10
+```
 
-Enable this host to be a time server for the rest of your lab: (adjust the network value if you are using a different IP range)
+Now, enable this host to be a time server for the rest of your lab: (adjust the network value if you are using a different IP range)
 
     echo "allow 10.11.11.0/24" >> /etc/chrony.conf
 
@@ -174,20 +201,6 @@ Create a network bridge that will be used by our HA Proxy server and the OKD boo
 1. Put it back disabled
 
        nmcli con add type ethernet con-name ${PRIMARY_NIC} ifname ${PRIMARY_NIC} connection.autoconnect no ipv4.method disabled ipv6.method ignore
-
-Finally, create an SSH key pair: (Take the defaults for all of the prompts, don't set a key password)
-
-    ssh-keygen
-    <Enter>
-    <Enter>
-    <Enter>
-
-Now is a good time to update and reboot the bastion host:
-
-    yum -y update
-    shutdown -r now
-
-Log back in and you should see all of the environment variables that we just set in the output of an `env` command.
 
 __For the rest of this setup, unless otherwise specified, it is assumed that you are working from the Bastion Host.  You will need the environment variables that we just set up for some of the commands that you will be executing.__
 

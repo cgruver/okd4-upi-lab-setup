@@ -20,11 +20,11 @@ Install and start Nginx:
 
 Create directories to hold all of the RPMs:
 
-    mkdir -p ${REPO_PATH}/{BaseOS,AppStream,centosplus,extras,epel-modular,epel}
+    mkdir -p ${REPO_PATH}/{baseos,appstream,centosplus,extras,epel-modular,epel,powertools}
 
 Synch the repositories into the directories we just created:  (This will take a while)
 
-    LOCAL_REPOS="BaseOS AppStream centosplus extras epel epel-modular"
+    LOCAL_REPOS="baseos appstream centosplus extras epel epel-modular powertools"
     for REPO in ${LOCAL_REPOS}
     do
         reposync -m --repoid=${REPO} --newest-only --delete --download-metadata -p ${REPO_PATH}/  
@@ -38,11 +38,11 @@ To refresh your RPM repositories, run the above script again, or better yet, cre
 
 Now, we are going to set up the artifacts for host installation.  This will include FCOS via `ignition`, and CentOS via `kickstart`.
 
-    mkdir -p ${INSTALL_ROOT}/{centos,fcos,firstboot,kickstart,hostconfig,postinstall}
-    mkdir ${INSTALL_ROOT}/fcos/ignition
+    mkdir -p ${INSTALL_ROOT}/{centos,fcos,fcos/ignition,firstboot,kickstart,hostconfig,postinstall}
 
 Create encrypted passwords to be used in your KVM host and Guest installations:
 
+    mkdir -p ${OKD4_LAB_PATH}
     openssl passwd -1 'guest-root-password' > ${OKD4_LAB_PATH}/lab_guest_pw
     openssl passwd -1 'host-root-password' > ${OKD4_LAB_PATH}/lab_host_pw
 
@@ -50,14 +50,15 @@ Create encrypted passwords to be used in your KVM host and Guest installations:
 
 1. Deploy the Minimal ISO files.
 
-    Download the minimal install ISO from: http://isoredirect.centos.org/centos/8/isos/x86_64/
+    Download the minimal install ISO from a mirror:
 
+       wget http://mirror.cs.vt.edu/pub/CentOS/8-stream/isos/x86_64/CentOS-Stream-8-x86_64-20210421-boot.iso -O CentOS-Stream-8.iso
        mkdir /tmp/centos-iso-mount
-       mount -o loop CentOS-8.2.2004-x86_64-minimal.iso /tmp/centos-iso-mount
+       mount -o loop CentOS-Stream-8.iso /tmp/centos-iso-mount
        rsync -av /tmp/centos-iso-mount/ ${INSTALL_ROOT}/centos/
        umount /tmp/centos-iso-mount
        rmdir /tmp/centos-iso-mount
-       rm CentOS-8.2.2004-x86_64-minimal.iso
+       rm CentOS-Stream-8.iso
 
 1. Deploy the files from this project for supporting `kickstart` installation.
 

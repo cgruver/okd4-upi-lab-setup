@@ -2,8 +2,10 @@
 
 Your DHCP server needs to be able to direct PXE Boot clients to a TFTP server.  This is normally done by configuring a couple of parameters in your DHCP server, which will look something like:
 
-    next-server = 10.11.11.10  # The IP address of your TFTP server
-    filename = "ipxe.efi"
+```bash
+next-server = 10.11.11.10  # The IP address of your TFTP server
+filename = "ipxe.efi"
+```
 
 Unfortunately, most home routers don't support the configuration of those parameters.  At this point you have an option.  You can either set up TFTP and DHCP on your bastion host, or you can use an OpenWRT based router.  I have included instructions for setting up the GL.iNET GL-AR750S-Ext or GL-MV1000 Travel Router.  
 
@@ -13,7 +15,9 @@ If you are using the GL-AR750S-Ext, you will need a Micro SD card that is format
 
 __GL-AR750S-Ext:__ From a linux host, insert the micro SD card, and run the following:
 
-    mkfs.ext4 /dev/sdc1 <replace with the device representing your sdcard>
+```bash
+mkfs.ext4 /dev/sdc1 <replace with the device representing your sdcard>
+```
 
 Insert the SD card into the router.  It will mount at `/mnt/sda1`, or `/mnt/sda` if you did not create a partition, but formatted the whole card.
 
@@ -49,42 +53,47 @@ You will need to enable root ssh access to your router.  The best way to do this
 
 Now that we have enabled SSH access to the router, we will login and complete our setup from the command-line.
 
-    ssh root@<router IP>
+```bash
+ssh root@<router IP>
+```
 
 If you are using the `GL-AR750S-Ext`, note that I create a symbolic link from the SD card to /data so that the configuration matches the configuration of the `GL-MV1000`.  Since I have both, this keeps things consistent.
 
-    ln -s /mnt/sda1 /data        # This is not necessary for the GL-MV1000
+```bash
+ln -s /mnt/sda1 /data        # This is not necessary for the GL-MV1000
+```
 
 Now we will enable TFTP and iPXE:
 
-    mkdir -p /data/tftpboot/ipxe
+```bash
+mkdir -p /data/tftpboot/ipxe
+mkdir /data/tftpboot/networkboot
 
-    uci add_list dhcp.lan.dhcp_option="6,10.11.11.10,8.8.8.8,8.8.4.4"
-    uci set dhcp.@dnsmasq[0].enable_tftp=1
-    uci set dhcp.@dnsmasq[0].tftp_root=/data/tftpboot
-    uci set dhcp.efi64_boot_1=match
-    uci set dhcp.efi64_boot_1.networkid='set:efi64'
-    uci set dhcp.efi64_boot_1.match='60,PXEClient:Arch:00007'
-    uci set dhcp.efi64_boot_2=match
-    uci set dhcp.efi64_boot_2.networkid='set:efi64'
-    uci set dhcp.efi64_boot_2.match='60,PXEClient:Arch:00009'
-    uci set dhcp.ipxe_boot=userclass
-    uci set dhcp.ipxe_boot.networkid='set:ipxe'
-    uci set dhcp.ipxe_boot.userclass='iPXE'
-    uci set dhcp.uefi=boot
-    uci set dhcp.uefi.filename='tag:efi64,tag:!ipxe,ipxe.efi'
-    uci set dhcp.uefi.serveraddress='10.11.11.1'
-    uci set dhcp.uefi.servername='pxe'
-    uci set dhcp.uefi.force='1'
-    uci set dhcp.ipxe=boot
-    uci set dhcp.ipxe.filename='tag:ipxe,boot.ipxe'
-    uci set dhcp.ipxe.serveraddress='10.11.11.1'
-    uci set dhcp.ipxe.servername='pxe'
-    uci set dhcp.ipxe.force='1'
-    uci commit dhcp
-    /etc/init.d/dnsmasq restart
-
-    exit
+uci add_list dhcp.lan.dhcp_option="6,10.11.11.10,8.8.8.8,8.8.4.4"
+uci set dhcp.@dnsmasq[0].enable_tftp=1
+uci set dhcp.@dnsmasq[0].tftp_root=/data/tftpboot
+uci set dhcp.efi64_boot_1=match
+uci set dhcp.efi64_boot_1.networkid='set:efi64'
+uci set dhcp.efi64_boot_1.match='60,PXEClient:Arch:00007'
+uci set dhcp.efi64_boot_2=match
+uci set dhcp.efi64_boot_2.networkid='set:efi64'
+uci set dhcp.efi64_boot_2.match='60,PXEClient:Arch:00009'
+uci set dhcp.ipxe_boot=userclass
+uci set dhcp.ipxe_boot.networkid='set:ipxe'
+uci set dhcp.ipxe_boot.userclass='iPXE'
+uci set dhcp.uefi=boot
+uci set dhcp.uefi.filename='tag:efi64,tag:!ipxe,ipxe.efi'
+uci set dhcp.uefi.serveraddress='10.11.11.1'
+uci set dhcp.uefi.servername='pxe'
+uci set dhcp.uefi.force='1'
+uci set dhcp.ipxe=boot
+uci set dhcp.ipxe.filename='tag:ipxe,boot.ipxe'
+uci set dhcp.ipxe.serveraddress='10.11.11.1'
+uci set dhcp.ipxe.servername='pxe'
+uci set dhcp.ipxe.force='1'
+uci commit dhcp
+/etc/init.d/dnsmasq restart
+```
 
 That's a lot of `uci` commands that we just did.  I won't drain the list, but I will explain at a high level, because some of this is not well documented by OpenWRT, and is the result of a LOT of Googling on my part.
 
@@ -93,7 +102,7 @@ That's a lot of `uci` commands that we just did.  I won't drain the list, but I 
 * `uci set dhcp.ipxe_boot=userclass`  This series of commands looks for a userclass of `iPXE` in the DHCP request and sets the `networkid` variable to `ipxe`.
 * `uci set dhcp.uefi=boot` This series of commands looks for a `networkid` match against either `efi64` or `ipxe` and sends the appropriate PXE response back to the client.
 
-With the router configured, it's now time to copy over the files for iPXE.
+With the router configured, it's now time to set up the files for iPXE.
 
 This project has an iPXE boot file already prepared for you.  It is located in ./Provisioning/iPXE.
 
@@ -101,21 +110,62 @@ This project has an iPXE boot file already prepared for you.  It is located in .
 |-|-|
 | boot.ipxe | This is the initial iPXE bootstrap file.  It has logic in it to look for a file with the booting host's MAC address.  The chained boot file contains the actual boot configuration.|
 
-We need to download the UEFI iPXE boot image:
+First, let's install wget on our router:
 
-    wget http://boot.ipxe.org/ipxe.efi
+```bash
+opkg update
+opkg install wget
+```
+
+Download the UEFI iPXE boot image:
+
+```bash
+cd /data/tftpboot
+wget http://boot.ipxe.org/ipxe.efi
+```
+
+Create this initial boot file:
+
+```bash
+cd ipxe
+cat << EOF > boot.ipxe
+#!ipxe
+
+echo ========================================================
+echo UUID: \${uuid}
+echo Manufacturer: \${manufacturer}
+echo Product name: \${product}
+echo Hostname: \${hostname}
+echo
+echo MAC address: \${net0/mac}
+echo IP address: \${net0/ip}
+echo IPv6 address: \${net0.ndp.0/ip6:ipv6}
+echo Netmask: \${net0/netmask}
+echo
+echo Gateway: \${gateway}
+echo DNS: \${dns}
+echo IPv6 DNS: \${dns6}
+echo Domain: \${domain}
+echo ========================================================
+
+chain --replace --autofree ipxe/\${mac:hexhyp}.ipxe
+EOF
+```
+
 
 Now copy the necessary files to the router:
 
-    scp ./ipx.efi root@${LAB_GATEWAY}:/data/tftpboot/ipxe.efi
-    scp ./Provisioning/iPXE/boot.ipxe root@${LAB_GATEWAY}:/data/tftpboot/boot.ipxe
+```bash
+mkdir /data/install
+cd /data/install
+wget -r -np http://mirror.centos.org/centos/8-stream/BaseOS/x86_64/os/
+mv mirror.centos.org/centos/8-stream/BaseOS/x86_64/os centos
+```
 
-    ssh root@${LAB_GATEWAY} "mkdir -p /data/tftpboot/networkboot"
-
-    scp ${INSTALL_ROOT}/centos/isolinux/vmlinuz root@${LAB_GATEWAY}:/data/tftpboot/networkboot
-    scp ${INSTALL_ROOT}/centos/isolinux/initrd.img root@${LAB_GATEWAY}:/data/tftpboot/networkboot
-
-    rm -f ./ipxe.efi
+```bash
+cp ./centos/isolinux/vmlinuz /data/tftpboot/networkboot
+cp ./centos/isolinux/initrd.img /data/tftpboot/networkboot
+```
 
 __Your router is now ready to PXE boot hosts.__
 
