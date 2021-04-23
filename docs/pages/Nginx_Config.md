@@ -66,10 +66,6 @@ Create encrypted passwords to be used in your KVM host and Guest installations:
 
        mkdir tmp-work
 
-    Create as initial root password for installed hosts
-
-       export LAB_PWD=$(openssl passwd -1 '<YourRootPasswordHere>')
-
     Prep the install files from this project:
 
        cp -rf ./Provisioning/guest_install/postinstall ./tmp-work
@@ -99,7 +95,7 @@ Create encrypted passwords to be used in your KVM host and Guest installations:
 
 1. Set the FCOS_STREAM variable to `stable` or `testing` to match the stream that you are pulling from.
 
-    FCOS_STREAM=stable
+       FCOS_STREAM=stable
 
 1. Download the FCOS images for iPXE booting:
 

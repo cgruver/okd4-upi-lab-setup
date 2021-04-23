@@ -2,9 +2,12 @@
 
 We are now going to install [Sonatype Nexus](https://www.sonatype.com/nexus-repository-oss).  The Nexus will be used for our external container registry, as well as serving as an artifact repository for maven, npm, or any other application development repositories that you might need.
 
-Nexus requires Java, so let's install that now if it was not installed during the initial system build:
+Nexus requires Java 8, so let's install that now if it was not installed during the initial system build:
 
-    dnf -y install java-11-openjdk.x86_64
+    dnf -y install java-11-openjdk java-1.8.0-openjdk
+    alternatives --set java $(alternatives --display java | grep 'family java-11-openjdk' | cut -d' ' -f1)
+
+Note that we installed both Java 8 and 11, and then set the system to Java 11.  We will configure Nexus to use Java 8, since it does not yet support any newer Java version.
 
 Now, we'll install Nexus:
 
@@ -47,9 +50,9 @@ Create a service reference for Nexus so the OS can start and stop it:
     WantedBy=multi-user.target
     EOF
 
-Now, we will enable Nexus to auto-start at boot, but not start it yet:
+Configure Nexus to use JRE 8
 
-    systemctl enable nexus
+    sed -i "s|# INSTALL4J_JAVA_HOME_OVERRIDE=|INSTALL4J_JAVA_HOME_OVERRIDE=$(alternatives --display java | grep 'slave jre:' | grep 'java-1.8.0-openjdk' | cut -d' ' -f4)|g" /usr/local/nexus/nexus-3/bin/nexus
 
 ### Enabling TLS
 
@@ -90,7 +93,7 @@ Before we start Nexus, let's go ahead a set up TLS so that our connections are s
 
 Now we should be able to start Nexus and connect to it with a browser:
 
-    systemctl start nexus
+    systemctl enable nexus --now
 
 Now point your browser to `https://nexus.your.domain.com:8443`.  Login, and create a password for your admin user.
 
