@@ -1,6 +1,6 @@
-[local-AppStream]
-name=AppStream
-baseurl=%%REPO_URL%%/repos/AppStream/
+[local-appstream]
+name=appstream
+baseurl=%%REPO_URL%%/repos/appstream/
 gpgcheck=0
 enabled=1
 
@@ -16,9 +16,9 @@ baseurl=%%REPO_URL%%/repos/extras/
 gpgcheck=0
 enabled=1
 
-[local-BaseOS]
-name=CentOS BaseOS
-baseurl=%%REPO_URL%%/repos/BaseOS/
+[local-baseos]
+name=CentOS baseos
+baseurl=%%REPO_URL%%/repos/baseos/
 gpgcheck=0
 enabled=1
 
@@ -34,3 +34,8 @@ baseurl=%%REPO_URL%%/repos/epel-modular/
 gpgcheck=0
 enabled=1
 
+[local-powertools]
+name=CentOS Powertools
+baseurl=%%REPO_URL%%/repos/powertools/
+gpgcheck=0
+enabled=1
