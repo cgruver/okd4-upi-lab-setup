@@ -4,12 +4,6 @@ baseurl=%%REPO_URL%%/repos/appstream/
 gpgcheck=0
 enabled=1
 
-[local-centosplus]
-name=CentOS CentOSPlus
-baseurl=%%REPO_URL%%/repos/centosplus/
-gpgcheck=0
-enabled=1
-
 [local-extras]
 name=CentOS Extras
 baseurl=%%REPO_URL%%/repos/extras/

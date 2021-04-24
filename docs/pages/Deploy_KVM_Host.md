@@ -34,6 +34,8 @@ __Caution:__  This is the point at which you might have to attach a keyboard and
 
 __Take this opportunity to apply the latest BIOS to your NUC__
 
+Tools URL: https://downloadcenter.intel.com/download/30090/Intel-Aptio-V-UEFI-Firmware-Integrator-Tools
+
 You won't need the keyboard or mouse again, until it's time for another BIOS update...  Eventually we'll figure out how to push those from the OS too.  ;-)
 
 The last thing that I've prepared for you is the ability to reinstall your OS.

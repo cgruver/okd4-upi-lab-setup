@@ -20,11 +20,11 @@ Install and start Nginx:
 
 Create directories to hold all of the RPMs:
 
-    mkdir -p ${REPO_PATH}/{baseos,appstream,centosplus,extras,epel-modular,epel,powertools}
+    mkdir -p ${REPO_PATH}/{baseos,appstream,extras,epel-modular,epel,powertools}
 
 Synch the repositories into the directories we just created:  (This will take a while)
 
-    LOCAL_REPOS="baseos appstream centosplus extras epel epel-modular powertools"
+    LOCAL_REPOS="baseos appstream extras epel epel-modular powertools"
     for REPO in ${LOCAL_REPOS}
     do
         reposync -m --repoid=${REPO} --newest-only --delete --download-metadata -p ${REPO_PATH}/  
@@ -50,15 +50,9 @@ Create encrypted passwords to be used in your KVM host and Guest installations:
 
 1. Deploy the Minimal ISO files.
 
-    Download the minimal install ISO from a mirror:
+    Download the CentOS Stream install files from a mirror:
 
-       wget http://mirror.cs.vt.edu/pub/CentOS/8-stream/isos/x86_64/CentOS-Stream-8-x86_64-20210421-boot.iso -O CentOS-Stream-8.iso
-       mkdir /tmp/centos-iso-mount
-       mount -o loop CentOS-Stream-8.iso /tmp/centos-iso-mount
-       rsync -av /tmp/centos-iso-mount/ ${INSTALL_ROOT}/centos/
-       umount /tmp/centos-iso-mount
-       rmdir /tmp/centos-iso-mount
-       rm CentOS-Stream-8.iso
+       wget -m -nH --cut-dirs=5 -P ${INSTALL_ROOT}/centos http://mirror.centos.org/centos/8-stream/BaseOS/x86_64/os/
 
 1. Deploy the files from this project for supporting `kickstart` installation.
 
