@@ -60,7 +60,7 @@ Before we start Nexus, let's go ahead a set up TLS so that our connections are s
 
 1. Generate a Java Key Store.
 
-       openssl req -newkey rsa:4096 -nodes -sha256 -keyout nexus.key -x509 -days 5000 -out nexus.crt
+       openssl req -newkey rsa:4096 -nodes -sha256 -keyout nexus.key -x509 -days 5000 -out nexus.crt -subj "/C=US/ST=VA/O=CLG Lab/CN=${LAB_DOMAIN}" -addext "subjectAltName = DNS:nexus.${LAB_DOMAIN}"
 
         # Country Name (2 letter code) [XX]:US
         # State or Province Name (full name) []:Virginia
@@ -72,15 +72,17 @@ Before we start Nexus, let's go ahead a set up TLS so that our connections are s
 
     Now create the key.  Use `password` for the password.
 
-        openssl pkcs12 -export -in nexus.crt -inkey nexus.key -name "${LAB_DOMAIN}" -out nexus.p12
-        keytool -importkeystore -deststorepass password -destkeystore keystore.jks -srckeystore nexus.p12 -srcstoretype PKCS12
-        
-        # redundant keytool -importkeystore -srckeystore keystore.jks -destkeystore keystore.jks -deststoretype pkcs12
+    ```bash
+    openssl pkcs12 -export -in nexus.crt -inkey nexus.key -name "${LAB_DOMAIN}" -out nexus.p12
+    keytool -importkeystore -deststorepass password -destkeystore keystore.jks -srckeystore nexus.p12 -srcstoretype PKCS12
+    
+    # redundant keytool -importkeystore -srckeystore keystore.jks -destkeystore keystore.jks -deststoretype pkcs12
 
-        cp keystore.jks /usr/local/nexus/nexus-3/etc/ssl/keystore.jks
-        chown nexus:nexus /usr/local/nexus/nexus-3/etc/ssl/keystore.jks
-        cp nexus.crt /etc/pki/ca-trust/source/anchors/nexus.crt
-        update-ca-trust
+    cp keystore.jks /usr/local/nexus/nexus-3/etc/ssl/keystore.jks
+    chown nexus:nexus /usr/local/nexus/nexus-3/etc/ssl/keystore.jks
+    cp nexus.crt /etc/pki/ca-trust/source/anchors/nexus.crt
+    update-ca-trust
+    ```
 
 1. Modify the Nexus configuration for HTTPS:
 

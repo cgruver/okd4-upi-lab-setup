@@ -166,7 +166,7 @@ cat << EOF > ${OKD4_LAB_PATH}/ipxe-work-dir/${mac//:/-}.ks
 cmdline
 keyboard --vckeymap=us --xlayouts='us'
 lang en_US.UTF-8
-repo --name="Minimal" --baseurl=${INSTALL_URL}/centos/Minimal
+repo --name="install" --baseurl=${INSTALL_URL}/centos
 url --url="${INSTALL_URL}/centos"
 rootpw --iscrypted ${LAB_PWD}
 firstboot --disable

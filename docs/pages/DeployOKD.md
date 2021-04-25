@@ -60,7 +60,9 @@ I have provided a set of utility scripts to automate a lot of the tasks associat
 
     1. We need to put the pull secret into a JSON file that we will use to mirror the OKD images into our Nexus registry.  We'll also need the pull secret for our cluster install.
 
-           echo "{"auths":{"fake":{"auth": "Zm9vOmJhcgo="}}}" > ${OKD4_LAB_PATH}/pull_secret.json 
+           cat << EOF > ${OKD4_LAB_PATH}/pull_secret.json
+           {"auths":{"fake":{"auth": "Zm9vOmJhcgo="}}}
+           EOF 
 
     So, that's the first pull secret.  The second is for our local Nexus install.  We need to push the mirrored images into our Nexus, and the OKD install will need to pull them out.
 
