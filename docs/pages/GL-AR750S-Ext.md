@@ -70,6 +70,7 @@ mkdir -p /data/tftpboot/ipxe
 mkdir /data/tftpboot/networkboot
 
 uci add_list dhcp.lan.dhcp_option="6,10.11.11.10,8.8.8.8,8.8.4.4"
+uci set dhcp.lan.leasetime="5m"
 uci set dhcp.@dnsmasq[0].enable_tftp=1
 uci set dhcp.@dnsmasq[0].tftp_root=/data/tftpboot
 uci set dhcp.efi64_boot_1=match
@@ -120,15 +121,13 @@ opkg install wget
 Download the UEFI iPXE boot image:
 
 ```bash
-cd /data/tftpboot
-wget http://boot.ipxe.org/ipxe.efi
+wget http://boot.ipxe.org/ipxe.efi -O /data/tftpboot/ipxe.efi
 ```
 
 Create this initial boot file:
 
 ```bash
-cd ipxe
-cat << EOF > boot.ipxe
+cat << EOF > /data/tftpboot/boot.ipxe
 #!ipxe
 
 echo ========================================================
@@ -156,10 +155,9 @@ EOF
 Now copy the necessary files to the router:
 
 ```bash
-mkdir /data/install
-cd /data/install
-wget -r -np http://mirror.centos.org/centos/8-stream/BaseOS/x86_64/os/
-mv mirror.centos.org/centos/8-stream/BaseOS/x86_64/os centos
+mkdir -p /data/install/centos
+cd /data/install/centos
+wget -m -nH --cut-dirs=5 -P centos http://mirror.centos.org/centos/8-stream/BaseOS/x86_64/os/
 ```
 
 ```bash
