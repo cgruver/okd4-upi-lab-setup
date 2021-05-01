@@ -52,7 +52,7 @@ Create encrypted passwords to be used in your KVM host and Guest installations:
 
     Download the CentOS Stream install files from a mirror:
 
-       wget -m -nH --cut-dirs=5 -P ${INSTALL_ROOT}/centos http://mirror.centos.org/centos/8-stream/BaseOS/x86_64/os/
+       wget -m -np -nH --cut-dirs=5 -P ${INSTALL_ROOT}/centos http://mirror.centos.org/centos/8-stream/BaseOS/x86_64/os/
 
 1. Deploy the files from this project for supporting `kickstart` installation.
 
