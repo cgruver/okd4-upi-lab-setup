@@ -157,7 +157,7 @@ Now copy the necessary files to the router:
 ```bash
 mkdir -p /data/install/centos
 cd /data/install/centos
-wget -m -nH --cut-dirs=5 -P centos http://mirror.centos.org/centos/8-stream/BaseOS/x86_64/os/
+wget -m -np -nH --cut-dirs=5 -P centos http://mirror.centos.org/centos/8-stream/BaseOS/x86_64/os/
 ```
 
 ```bash
