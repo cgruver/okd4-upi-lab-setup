@@ -2,9 +2,7 @@
 
 ### Or, more precisely...  How to build your own desktop datacenter from scratch.
 
-## I have written this guide from my own lab configuration.  So, it is opinionated toward a libvirt/KVM installation on CentOS 8.
-
-## Note: This will soon be updated to reflect my switch from CentOS 8 to CentOS Streams (Stay tuned)  
+## I have written this guide from my own lab configuration.  So, it is opinionated toward a libvirt/KVM installation on CentOS Stream.
 
 __If you want to connect with a team of OpenShift enthusiasts, join us in the OKD Working Group:__
 
