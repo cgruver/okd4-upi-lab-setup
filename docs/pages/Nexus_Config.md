@@ -58,44 +58,35 @@ Configure Nexus to use JRE 8
 
 Before we start Nexus, let's go ahead a set up TLS so that our connections are secure from prying eyes.
 
-1. Generate a Java Key Store.
+```bash
+keytool -genkeypair -keystore keystore.jks -storepass password -keypass password -alias jetty -keyalg RSA -keysize 4096 -validity 5000 -dname "CN=nexus.${LAB_DOMAIN}, OU=okd4-lab, O=okd4-lab, L=Roanoke, ST=Virginia, C=US" -ext "SAN=DNS:nexus.${LAB_DOMAIN},IP:${BASTION_HOST}" -ext "BC=ca:true"
+cp keystore.jks /usr/local/nexus/nexus-3/etc/ssl/keystore.jks
+chown nexus:nexus /usr/local/nexus/nexus-3/etc/ssl/keystore.jks
+```
 
-       openssl req -newkey rsa:4096 -nodes -sha256 -keyout nexus.key -x509 -days 5000 -out nexus.crt -subj "/C=US/ST=VA/O=CLG Lab/CN=${LAB_DOMAIN}" -addext "subjectAltName = DNS:nexus.${LAB_DOMAIN}"
+Modify the Nexus configuration for HTTPS:
 
-        # Country Name (2 letter code) [XX]:US
-        # State or Province Name (full name) []:Virginia
-        # Locality Name (eg, city) [Default City]:Roanoke
-        # Organization Name (eg, company) [Default Company Ltd]:yourCom
-        # Organizational Unit Name (eg, section) []:okd4-lab
-        # Common Name (eg, your name or your server's hostname) []:nexus.your.domain.org
-        # Email Address []:
+```bash
+mkdir /usr/local/nexus/sonatype-work/nexus3/etc
+cat <<EOF >> /usr/local/nexus/sonatype-work/nexus3/etc/nexus.properties
+nexus-args=\${jetty.etc}/jetty.xml,\${jetty.etc}/jetty-https.xml,\${jetty.etc}/jetty-requestlog.xml
+application-port-ssl=8443
+EOF
+chown -R nexus:nexus /usr/local/nexus/sonatype-work/nexus3/etc
+```
 
-    Now create the key.  Use `password` for the password.
+Now we should be able to start Nexus:
 
-    ```bash
-    openssl pkcs12 -export -in nexus.crt -inkey nexus.key -name "${LAB_DOMAIN}" -out nexus.p12
-    keytool -importkeystore -deststorepass password -destkeystore keystore.jks -srckeystore nexus.p12 -srcstoretype PKCS12
-    
-    # redundant keytool -importkeystore -srckeystore keystore.jks -destkeystore keystore.jks -deststoretype pkcs12
+```bash
+systemctl enable nexus --now
+```
 
-    cp keystore.jks /usr/local/nexus/nexus-3/etc/ssl/keystore.jks
-    chown nexus:nexus /usr/local/nexus/nexus-3/etc/ssl/keystore.jks
-    cp nexus.crt /etc/pki/ca-trust/source/anchors/nexus.crt
-    update-ca-trust
-    ```
+Add the Nexus cert to your host's local keystore:
 
-1. Modify the Nexus configuration for HTTPS:
-
-       mkdir /usr/local/nexus/sonatype-work/nexus3/etc
-       cat <<EOF >> /usr/local/nexus/sonatype-work/nexus3/etc/nexus.properties
-       nexus-args=\${jetty.etc}/jetty.xml,\${jetty.etc}/jetty-https.xml,\${jetty.etc}/jetty-requestlog.xml
-       application-port-ssl=8443
-       EOF
-       chown -R nexus:nexus /usr/local/nexus/sonatype-work/nexus3/etc
-
-Now we should be able to start Nexus and connect to it with a browser:
-
-    systemctl enable nexus --now
+```bash
+keytool -printcert -sslserver nexus.${LAB_DOMAIN}:8443 -rfc > /etc/pki/ca-trust/source/anchors/nexus.crt
+update-ca-trust
+```
 
 Now point your browser to `https://nexus.your.domain.com:8443`.  Login, and create a password for your admin user.
 
