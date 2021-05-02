@@ -307,7 +307,7 @@ I have provided a set of utility scripts to automate a lot of the tasks associat
 1. Start the bootstrap node
 
     ```bash
-    pmitool -I lanplus -H10.11.11.10 -p6229 -Uadmin -Ppassword chassis power on
+    ipmitool -I lanplus -H10.11.11.10 -p6229 -Uadmin -Ppassword chassis power on
     ```
 
 1. Start the cluster master nodes

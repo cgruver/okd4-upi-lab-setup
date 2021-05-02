@@ -121,7 +121,7 @@ Copy the utility scripts that I have prepared for you:
 
 Retrieve the `fcct` tool, which will be used to manipulate ignition files
 
-    wget -O ~/bin/lab_bin/butane https://github.com/coreos/butane/releases/download/v0.11.0/butane-x86_64-unknown-linux-gnu
+    wget -O ~/bin/lab_bin/butane https://github.com/coreos/butane/releases/download/v0.7.0/butane-x86_64-unknown-linux-gnu
     chmod 700 ~/bin/lab_bin/butane
 
 Next, we need to set up some environment variables that we will use to set up the rest of the lab.  You need to make some decisions at this point, fill in the following information, and then edit `~/bin/lab_bin/setLabEnv.sh` accordingly:

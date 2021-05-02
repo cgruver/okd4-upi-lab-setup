@@ -11,7 +11,6 @@ IP_CONFIG=""
 LB_IP_LIST=""
 CLUSTER_NAME="okd4"
 LAB_PWD=$(cat ${OKD4_LAB_PATH}/lab_guest_pw)
-SSH="ssh -o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null"
 
 for i in "$@"
 do
@@ -389,12 +388,12 @@ do
   fi
 
   # Create the VM
-  ${SSH} root@${HOST_NODE}.${LAB_DOMAIN} "mkdir -p /VirtualMachines/${HOSTNAME}"
-  ${SSH} root@${HOST_NODE}.${LAB_DOMAIN} "virt-install --print-xml 1 --name ${HOSTNAME} --memory ${MEMORY} --vcpus ${CPU} --boot=hd,network,menu=on,useserial=on ${DISK_LIST} ${NET_DEVICE} --graphics none --noautoconsole --os-variant centos7.0 ${ARGS} > /VirtualMachines/${HOSTNAME}.xml"
-  ${SSH} root@${HOST_NODE}.${LAB_DOMAIN} "virsh define /VirtualMachines/${HOSTNAME}.xml"
+  ssh root@${HOST_NODE}.${LAB_DOMAIN} "mkdir -p /VirtualMachines/${HOSTNAME}"
+  ssh root@${HOST_NODE}.${LAB_DOMAIN} "virt-install --print-xml 1 --name ${HOSTNAME} --memory ${MEMORY} --vcpus ${CPU} --boot=hd,network,menu=on,useserial=on ${DISK_LIST} ${NET_DEVICE} --graphics none --noautoconsole --os-variant centos7.0 ${ARGS} > /VirtualMachines/${HOSTNAME}.xml"
+  ssh root@${HOST_NODE}.${LAB_DOMAIN} "virsh define /VirtualMachines/${HOSTNAME}.xml"
 
   # Get the MAC address for eth0 in the new VM  
-  var=$(${SSH} root@${HOST_NODE}.${LAB_DOMAIN} "virsh -q domiflist ${HOSTNAME} | grep br0")
+  var=$(ssh root@${HOST_NODE}.${LAB_DOMAIN} "virsh -q domiflist ${HOSTNAME} | grep br0")
   NET_MAC_0=$(echo ${var} | cut -d" " -f5)
 
   if [[ ${ROLE} != "ha-proxy" ]]
@@ -411,9 +410,9 @@ do
   vbmc start ${HOSTNAME}
 done
 
-${SSH} root@${INSTALL_HOST} "mkdir -p ${INSTALL_ROOT}/fcos/ignition/${CLUSTER_NAME}"
+ssh root@${INSTALL_HOST} "mkdir -p ${INSTALL_ROOT}/fcos/ignition/${CLUSTER_NAME}"
 scp -r ${OKD4_LAB_PATH}/ipxe-work-dir/ignition/*.ign root@${INSTALL_HOST}:${INSTALL_ROOT}/fcos/ignition/${CLUSTER_NAME}/
-${SSH} root@${INSTALL_HOST} "chmod 644 ${INSTALL_ROOT}/fcos/ignition/${CLUSTER_NAME}/*"
+ssh root@${INSTALL_HOST} "chmod 644 ${INSTALL_ROOT}/fcos/ignition/${CLUSTER_NAME}/*"
 scp -r ${OKD4_LAB_PATH}/ipxe-work-dir/*.ipxe root@${PXE_HOST}:/data/tftpboot/ipxe/
 
 # Clean up
