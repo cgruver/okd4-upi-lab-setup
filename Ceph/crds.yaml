@@ -65,6 +65,8 @@ spec:
                   type: boolean
                 continueUpgradeAfterChecksEvenIfNotHealthy:
                   type: boolean
+                waitTimeoutForHealthyOSDInMinutes:
+                  type: integer
                 mon:
                   type: object
                   properties:
@@ -189,6 +191,8 @@ spec:
                               properties:
                                 name:
                                   type: string
+                                fullPath:
+                                  type: string
                                 config:
                                   type: object
                                   nullable: true
@@ -208,6 +212,19 @@ spec:
                       type: object
                       nullable: true
                       x-kubernetes-preserve-unknown-fields: true
+                    devices:
+                      type: array
+                      items:
+                        type: object
+                        properties:
+                          name:
+                            type: string
+                          fullPath:
+                            type: string
+                          config:
+                            type: object
+                            nullable: true
+                            x-kubernetes-preserve-unknown-fields: true
                     storageClassDeviceSets:
                       type: array
                       nullable: true
@@ -780,6 +797,8 @@ spec:
                   properties:
                     failureDomain:
                       type: string
+                    deviceClass:
+                      type: string
                     crushRoot:
                       type: string
                     replicated:
@@ -825,6 +844,8 @@ spec:
                   properties:
                     failureDomain:
                       type: string
+                    deviceClass:
+                      type: string
                     crushRoot:
                       type: string
                     replicated:
@@ -868,10 +889,18 @@ spec:
                       type: object
                       nullable: true
                       properties:
-                        enabled:
+                        disabled:
                           type: boolean
                         interval:
                           type: string
+                        timeout:
+                          type: string
+                    livenessProbe:
+                      type: object
+                      nullable: true
+                      properties:
+                        disabled:
+                          type: boolean
             status:
               type: object
               x-kubernetes-preserve-unknown-fields: true
@@ -1189,6 +1218,19 @@ spec:
                             type: string
                           startTime:
                             type: string
+                quotas:
+                  type: object
+                  nullable: true
+                  properties:
+                    maxBytes:
+                      type: integer
+                      minimum: 0
+                    maxSize:
+                      pattern: ^[0-9]+[\.]?[0-9]*([KMGTPE][i]?)?$
+                      type: string
+                    maxObjects:
+                      type: integer
+                      minimum: 0
                 statusCheck:
                   type: object
                   x-kubernetes-preserve-unknown-fields: true
@@ -1314,9 +1356,7 @@ spec:
                 claimRef:
                   type: object
                   nullable: true
-                  items:
-                    type: object
-                    x-kubernetes-preserve-unknown-fields: true
+                  x-kubernetes-preserve-unknown-fields: true
             status:
               type: object
               x-kubernetes-preserve-unknown-fields: true
