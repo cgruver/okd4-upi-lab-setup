@@ -86,7 +86,8 @@ I have provided a set of utility scripts to automate a lot of the tasks associat
 
     Select the most recent 4.4.0-0.okd release that is in a Phase of `Accepted`, and copy the release name into an environment variable:
 
-       export OKD_RELEASE=4.4.0-0.okd-2020-03-23-073327
+       export OKD_RELEASE=4.7.0-0.okd-2021-04-24-103438
+       getOkdCmds.sh
 
 1. The next step is to prepare our install-config.yaml file that `openshift-install` will use to create the `ignition` files for bootstrap, master, and worker nodes.
 
