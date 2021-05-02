@@ -219,10 +219,10 @@ I have provided a set of utility scripts to automate a lot of the tasks associat
     imageContentSources:
     - mirrors:
       - nexus.your.domain.org:5001/origin
-      source: registry.svc.ci.openshift.org/origin/%%OKD_VER%%
+      source: %%OKD_SOURCE_1%%
     - mirrors:
       - nexus.your.domain.org:5001/origin
-      source: registry.svc.ci.openshift.org/origin/release
+      source: %%OKD_SOURCE_2%%
     ```
 
 2. Now mirror the OKD images into the local Nexus:
