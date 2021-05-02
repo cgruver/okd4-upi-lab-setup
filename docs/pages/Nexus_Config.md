@@ -60,6 +60,7 @@ Before we start Nexus, let's go ahead a set up TLS so that our connections are s
 
 ```bash
 keytool -genkeypair -keystore keystore.jks -storepass password -keypass password -alias jetty -keyalg RSA -keysize 4096 -validity 5000 -dname "CN=nexus.${LAB_DOMAIN}, OU=okd4-lab, O=okd4-lab, L=Roanoke, ST=Virginia, C=US" -ext "SAN=DNS:nexus.${LAB_DOMAIN},IP:${BASTION_HOST}" -ext "BC=ca:true"
+keytool -importkeystore -srckeystore keystore.jks -destkeystore keystore.jks -deststoretype pkcs12
 cp keystore.jks /usr/local/nexus/nexus-3/etc/ssl/keystore.jks
 chown nexus:nexus /usr/local/nexus/nexus-3/etc/ssl/keystore.jks
 ```
