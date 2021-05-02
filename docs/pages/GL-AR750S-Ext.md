@@ -161,8 +161,8 @@ wget -m -np -nH --cut-dirs=5 -P centos http://mirror.centos.org/centos/8-stream/
 ```
 
 ```bash
-cp ./centos/isolinux/vmlinuz /data/tftpboot/networkboot
-cp ./centos/isolinux/initrd.img /data/tftpboot/networkboot
+cp /data/install/centos/isolinux/vmlinuz /data/tftpboot/networkboot
+cp /data/install/centos/isolinux/initrd.img /data/tftpboot/networkboot
 ```
 
 __Your router is now ready to PXE boot hosts.__
