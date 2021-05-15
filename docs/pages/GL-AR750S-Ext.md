@@ -105,12 +105,6 @@ That's a lot of `uci` commands that we just did.  I won't drain the list, but I 
 
 With the router configured, it's now time to set up the files for iPXE.
 
-This project has an iPXE boot file already prepared for you.  It is located in ./Provisioning/iPXE.
-
-|||
-|-|-|
-| boot.ipxe | This is the initial iPXE bootstrap file.  It has logic in it to look for a file with the booting host's MAC address.  The chained boot file contains the actual boot configuration.|
-
 First, let's install wget on our router:
 
 ```bash
