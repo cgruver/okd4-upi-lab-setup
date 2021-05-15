@@ -28,3 +28,4 @@ parameters:
     csi.storage.k8s.io/fstype: xfs
 allowVolumeExpansion: true
 reclaimPolicy: Delete
+volumeBindingMode: WaitForFirstConsumer
