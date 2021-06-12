@@ -48,7 +48,7 @@ case $i in
     shift
     ;;
     *)
-          # unknown option
+          # put usage here:
     ;;
 esac
 done

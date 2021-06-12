@@ -19,7 +19,7 @@ case $i in
     shift
     ;;
     *)
-          # unknown option
+          # Put usage here:
     ;;
 esac
 done
@@ -119,6 +119,7 @@ pwpolicy luks --minlen=6 --minquality=1 --notstrict --nochanges --notempty
 %end
 
 %post
+nmcli con mod "br0 slave 1" ethtool.feature-tso off
 dnf -y install yum-utils
 yum-config-manager --disable AppStream
 yum-config-manager --disable BaseOS

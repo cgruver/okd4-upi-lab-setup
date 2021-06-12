@@ -1,5 +1,9 @@
 #!/bin/bash
 
+# Not working yet.  Draft
+echo "This is a draft script.  It is not functional yet."
+exit 0
+
 set -x
 
 # This script will set up the infrastructure to deploy an OKD 4.X cluster

@@ -8,7 +8,7 @@ case $i in
   shift # past argument=value
   ;;
   *)
-    # unknown option
+    # put usage here:
   ;;
 esac
 done

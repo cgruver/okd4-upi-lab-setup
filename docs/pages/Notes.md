@@ -387,11 +387,9 @@ auth_tcp = "none"
 tcp_port = "16509"
 EOF
 
-cat <<EOF >> /etc/sysconfig/libvirtd
-LIBVIRTD_ARGS="--listen"
-EOF
-
-systemctl restart libvirtd
+systemctl stop libvirtd
+systemctl enable libvirtd-tcp.socket --now
+systemctl start libvirtd
 
 cat <<EOF > /etc/NetworkManager/conf.d/openshift.conf
 [main]
@@ -411,25 +409,27 @@ systemctl reload NetworkManager
 
 ```bash
 
-cat << EOF > /tmp/pull_secret.json
+mkdir /root/crc-build
+cd /root/crc-build
+
+cat << EOF > pull_secret.json
 {"auths":{"fake":{"auth": "Zm9vOmJhcgo="}}}
 EOF
 
-cd /tmp
-
-git clone https://github.com/cgruver/crc.git
-git clone https://github.com/cgruver/snc.git
+git clone https://github.com/code-ready/crc
+git clone https://github.com/code-ready/snc
 
 cd snc
 git checkout okd
 
 cat << FOE > ~/bin/sncSetup.sh
-export OKD_VERSION=$1
-export OPENSHIFT_PULL_SECRET_PATH="/tmp/pull_secret.json"
-export BUNDLE_VERSION=${OKD_VERSION}
-export BUNDLE_DIR=/tmp/snc
+export OKD_VERSION=\$1
+export CRC_DIR=/root/crc-build
+export OPENSHIFT_PULL_SECRET_PATH="/\${CRC_DIR}/pull_secret.json"
+export BUNDLE_VERSION=\${OKD_VERSION}
+export BUNDLE_DIR=/\${CRC_DIR}/snc
 export OKD_BUILD=true
-cat << EOF > /tmp/pull_secret.json
+cat << EOF > /\${CRC_DIR}/pull_secret.json
 {"auths":{"fake":{"auth": "Zm9vOmJhcgo="}}}
 EOF
 FOE
@@ -437,7 +437,7 @@ FOE
 chmod 700 ~/bin/sncSetup.sh
 
 export OKD_VERSION=4.5.0-0.okd-2020-09-04-180756
-export OPENSHIFT_PULL_SECRET_PATH="/tmp/pull_secret.json"
+export OPENSHIFT_PULL_SECRET_PATH="/${CRC_DIR}/pull_secret.json"
 ./snc.sh
 
 # Watch progress:
@@ -675,4 +675,20 @@ curl -s https://cgruver:@api.github.com/orgs/cgruver-erdemo/repos | jq ".[].clon
 dnf install centos-release-stream
 dnf swap centos-{linux,stream}-repos
 dnf distro-sync
+```
+
+### Docker Hub Mirror
+
+```bash
+cat <<EOF > dockerHubMirror.yaml
+apiVersion: operator.openshift.io/v1alpha1
+kind: ImageContentSourcePolicy
+metadata:
+  name: dockerhub
+spec:
+  repositoryDigestMirrors:
+  - mirrors:
+    - nexus.${LAB_DOMAIN}:5002/dockerhub 
+    source: docker.io 
+EOF
 ```
