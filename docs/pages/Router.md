@@ -165,7 +165,21 @@ cp /data/install/centos/isolinux/initrd.img /data/tftpboot/networkboot
 ```bash
 git clone https://github.com/cgruver/okd4-upi-lab-setup
 cd okd4-upi-lab-setup
+mkdir -p /etc/profile.d
+
+echo ". /root/bin/lab_bin/setLabEnv.sh" >> /etc/profile.d/lab.sh
 ```
+
+Log out, then back in.  Check that the env settings are as expected.
+
+```bash
+LAB_NET=$(ip -br addr show dev br-lan label br-lan | cut -d" " -f1)
+export LAB_DOMAIN=your.lab.domain
+
+```
+
+
+
 
 This tutorial includes pre-configured files for you to modify for your specific installation.  These files will go into your `/etc/bind` directory.  You will need to modify them for your specific setup.
 

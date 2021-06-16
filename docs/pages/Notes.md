@@ -371,7 +371,7 @@ EOF
 ### One time setup
 
 ```bash
-dnf install jq golang-bin gcc-c++ golang make
+dnf install jq golang-bin gcc-c++ golang make zip
 
 firewall-cmd --add-rich-rule "rule service name="libvirt" reject" --permanent
 firewall-cmd --zone=dmz --change-interface=tt0 --permanent
@@ -412,32 +412,31 @@ systemctl reload NetworkManager
 mkdir /root/crc-build
 cd /root/crc-build
 
-cat << EOF > pull_secret.json
-{"auths":{"fake":{"auth": "Zm9vOmJhcgo="}}}
-EOF
-
 git clone https://github.com/code-ready/crc
 git clone https://github.com/code-ready/snc
 
 cd snc
-git checkout okd
 
 cat << FOE > ~/bin/sncSetup.sh
 export OKD_VERSION=\$1
 export CRC_DIR=/root/crc-build
-export OPENSHIFT_PULL_SECRET_PATH="/\${CRC_DIR}/pull_secret.json"
+export OPENSHIFT_PULL_SECRET_PATH="\${CRC_DIR}/pull_secret.json"
 export BUNDLE_VERSION=\${OKD_VERSION}
-export BUNDLE_DIR=/\${CRC_DIR}/snc
+export BUNDLE_DIR=\${CRC_DIR}/snc
 export OKD_BUILD=true
-cat << EOF > /\${CRC_DIR}/pull_secret.json
+export TF_VAR_libvirt_bootstrap_memory=16384
+export LIBGUESTFS_BACKEND=direct
+export KUBECONFIG=\${CRC_DIR}/snc/crc-tmp-install-data/auth/kubeconfig
+export OC=\${CRC_DIR}/snc/openshift-clients/linux/oc
+cat << EOF > \${CRC_DIR}/pull_secret.json
 {"auths":{"fake":{"auth": "Zm9vOmJhcgo="}}}
 EOF
 FOE
 
 chmod 700 ~/bin/sncSetup.sh
 
-export OKD_VERSION=4.5.0-0.okd-2020-09-04-180756
-export OPENSHIFT_PULL_SECRET_PATH="/${CRC_DIR}/pull_secret.json"
+. sncSetup.sh 4.7.0-0.okd-2021-06-13-090745
+
 ./snc.sh
 
 # Watch progress:
@@ -445,17 +444,17 @@ export KUBECONFIG=crc-tmp-install-data/auth/kubeconfig
 ./oc get pods --all-namespaces
 
 # Rotate Certs:
-ssh -o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null -i id_rsa_crc core@api.crc.testing -- sudo openssl x509 -checkend 2160000 -noout -in /var/lib/kubelet/pki/kubelet-client-current.pem
+ssh -o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null -i id_ecdsa_crc core@api.crc.testing -- sudo openssl x509 -checkend 2160000 -noout -in /var/lib/kubelet/pki/kubelet-client-current.pem
 
 ./oc delete secrets/csr-signer-signer secrets/csr-signer -n openshift-kube-controller-manager-operator
-ssh -o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null -i id_rsa_crc core@api.crc.testing -- sudo rm -fr /var/lib/kubelet/pki
-ssh -o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null -i id_rsa_crc core@api.crc.testing -- sudo rm -fr /var/lib/kubelet/kubeconfig
-ssh -o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null -i id_rsa_crc core@api.crc.testing -- sudo systemctl restart kubelet
+ssh -o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null -i id_ecdsa_crc core@api.crc.testing -- sudo rm -fr /var/lib/kubelet/pki
+ssh -o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null -i id_ecdsa_crc core@api.crc.testing -- sudo rm -fr /var/lib/kubelet/kubeconfig
+ssh -o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null -i id_ecdsa_crc core@api.crc.testing -- sudo systemctl restart kubelet
 
 ./oc get csr
 ./oc get csr '-ojsonpath={.items[*].metadata.name}' | xargs ./oc adm certificate approve
 
-ssh -o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null -i id_rsa_crc core@api.crc.testing -- sudo openssl x509 -checkend 2160000 -noout -in /var/lib/kubelet/pki/kubelet-client-current.pem
+ssh -o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null -i id_ecdsa_crc core@api.crc.testing -- sudo openssl x509 -checkend 2160000 -noout -in /var/lib/kubelet/pki/kubelet-client-current.pem
 
 # Clean up Ingress:
 
@@ -478,12 +477,9 @@ done
 ./createdisk.sh crc-tmp-install-data
 
 cd ../crc
-git checkout okd
 
-export OC_BASE_URL=https://github.com/openshift/okd/releases/download
-export BUNDLE_VERSION=${OKD_VERSION}
-export BUNDLE_DIR=/tmp/snc
-make embed_bundle
+make release
+make out/macos-amd64/crc-macos-amd64.pkg
 
 ```
 
@@ -504,6 +500,11 @@ rm -rf /var/lib/libvirt/openshift-images/${CRC}
 
 ```
 
+### Clean up SNC build:
+
+```bash
+rm -rf ${CRC_DIR}/snc/crc_*_${OKD_VERSION}*
+```
 ### Rebase Git
 
 ```bash
@@ -691,4 +692,32 @@ spec:
     - nexus.${LAB_DOMAIN}:5002/dockerhub 
     source: docker.io 
 EOF
+```
+
+### CIDR magic:
+
+```bash
+mask2cidr ()
+{
+   local x=${1##*255.}
+   set -- 0^^^128^192^224^240^248^252^254^ $(( (${#1} - ${#x})*2 )) ${x%%.*}
+   x=${1%%$3*}
+   echo $(( $2 + (${#x}/4) ))
+}
+
+cidr2mask ()
+{
+   set -- $(( 5 - ($1 / 8) )) 255 255 255 255 $(( (255 << (8 - ($1 % 8))) & 255 )) 0 0 0
+   [ $1 -gt 1 ] && shift $1 || shift
+   echo ${1-0}.${2-0}.${3-0}.${4-0}
+}
+```
+
+### Blog:
+
+```bash
+gem install jekyll bundler
+jekyll new blog-name
+bundle add webrick
+bundle exec jekyll serve --livereload --drafts
 ```
