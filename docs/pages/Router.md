@@ -53,8 +53,15 @@ ln -s /mnt/sda1 /data        # This is not necessary for the GL-MV1000 or GL-MV1
 ## Install some additional packages on your router
 
 ```bash
-opkg update
-opkg install wget git-http ca-bundle haproxy bind-server bind-tools bash
+opkg update && opkg install procps-ng-ps wget git-http ca-bundle haproxy bind-server bind-tools bash fdisk rsync shadow
+```
+
+## Create an SSH Key Pair
+
+```bash
+mkdir -p /root/.ssh
+dropbearkey -t rsa -s 4096 -f /root/.ssh/id_dropbear
+
 ```
 
 ## Setup environment variables for your lab router
@@ -75,7 +82,7 @@ cidr2mask ()
 }
 LAB_NETMASK=$(cidr2mask ${LAB_CIDR})
 
-
+mkdir -p /root/bin
 cat << EOF > /root/bin/setLabEnv.sh
 export PATH=\$PATH:/root/bin
 export LAB_DOMAIN=${LAB_DOMAIN}
@@ -567,10 +574,164 @@ EOF
 ### Create CentOS Stream Repo Mirror:
 
 ```bash
+umount /mnt/mmcblk1p1
+fdisk /dev/mmcblk1
+
+mkfs.ext4 /dev/mmcblk1p1
+reboot
+mkdir /mnt/mmcblk1p1/repos
+ln -s /mnt/mmcblk1p1/repos /data/repos
+
+rsync  -avSHP --delete rsync://mirror.centos.org/centos/8-stream/${i}/x86_64/os/
+
+rsync://mirror.vcu.edu/centos/
+
 for i in AppStream PowerTools extras
 do 
   mkdir -p /data/repos/${i}
-  wget -m -np -nH --cut-dirs=5 -P /data/repos/${i} http://mirror.centos.org/centos/8-stream/${i}/x86_64/os/
+  ## wget -m -np -nH --cut-dirs=5 -P /data/repos/${i} http://mirror.centos.org/centos/8-stream/${i}/x86_64/os/
 done
 
+for i in AppStream PowerTools extras
+do 
+  rsync  -avSHP --delete rsync://mirror.vcu.edu/centos/8-stream/${i}/x86_64/os/ ${i}
+done
+
+```
+
+```bash
+mkdir -p /data/usr/local
+cd /data/usr/local/
+wget https://github.com/AdoptOpenJDK/openjdk8-binaries/releases/down
+load/jdk8u292-b10/OpenJDK8U-jdk_aarch64_linux_hotspot_8u292b10.tar.gz -O /data/openjdk.tar.gz
+tar -xzf /data/openjdk.tar.gz 
+rm -f /data/openjdk.tar.gz
+ln -s jdk8u292-b10 java
+
+opkg install curl libstdcpp6 libjpeg libnss lftp
+
+
+mkdir /data/work-dir
+cd /data/work-dir
+
+wget http://dl-cdn.alpinelinux.org/alpine/edge/community/aarch64/liblcms-1.19-r8.apk
+tar xvzf liblcms-1.19-r8.apk
+mv usr/lib/liblcms* /usr/lib/
+
+PACKAGES="openjdk8-8 openjdk8-jre-8 openjdk8-jre-lib-8 openjdk8-jre-base-8"
+
+for package in $PACKAGES; do
+    FILE=$(lftp -e "cls -1 alpine/edge/community/aarch64/${package}*; quit" http://dl-cdn.alpinelinux.org)
+    curl -LO "http://dl-cdn.alpinelinux.org/${FILE}"
+done
+
+for i in ${ls}
+do
+    tar xzf ${i}
+done
+
+mkdir -p /mnt/mmcblk1p1/usr/local
+ln -s /mnt/mmcblk1p1/usr/ /data/usr
+mv ./usr/lib/liblcms* /usr/lib/
+mv ./usr/lib/jvm/java-1.8-openjdk /data/usr/local/java-1.8-openjdk
+
+cd /data
+
+rm -rf /data/work-dir
+cat << EOF >> /root/bin/setLabEnv.sh
+export PATH=\$PATH:/data/usr/local/java-1.8-openjdk/bin
+EOF
+```
+
+## Nexus
+
+Now, we'll install Nexus:
+
+```bash
+mkdir -p /data/usr/local/nexus/home
+cd /data/usr/local/nexus
+wget https://download.sonatype.com/nexus/3/latest-unix.tar.gz
+tar -xzvf latest-unix.tar.gz
+NEXUS=$(ls -d nexus-*)
+ln -s ${NEXUS} nexus-3  # substitute the appropriate version here
+rm -f latest-unix.tar.gz
+```
+
+Add a user for Nexus:
+
+```bash
+groupadd nexus
+useradd -g nexus -d /data/usr/local/nexus/home nexus
+chown -R nexus:nexus /data/usr/local/nexus
+```
+
+Enable firewall access:
+
+```bash
+    firewall-cmd --add-port=8081/tcp --permanent
+    firewall-cmd --add-port=8443/tcp --permanent
+    firewall-cmd --add-port=5000/tcp --permanent
+    firewall-cmd --add-port=5001/tcp --permanent
+    firewall-cmd --reload
+````
+
+Create a service reference for Nexus so the OS can start and stop it:
+
+```bash
+sed -i "s|#run_as_user=\"\"|run_as_user=\"nexus\"|g" /data/usr/local/nexus/nexus-3/bin/nexus.rc
+
+cat <<EOF > /etc/init.d/nexus
+#!/bin/sh /etc/rc.common
+
+START=99
+STOP=80
+SERVICE_USE_PID=0
+
+start() {
+    service_start /data/usr/local/nexus/nexus-3/bin/nexus start
+}
+
+stop() {
+    service_stop /data/usr/local/nexus/nexus-3/bin/nexus stop
+}
+EOF
+
+```
+
+Configure Nexus to use JRE 8
+
+```bash
+sed -i "s|# INSTALL4J_JAVA_HOME_OVERRIDE=|INSTALL4J_JAVA_HOME_OVERRIDE=/data/usr/local/java-1.8-openjdk|g" /data/usr/local/nexus/nexus-3/bin/nexus
+```
+
+### Enabling TLS
+
+Before we start Nexus, let's go ahead a set up TLS so that our connections are secure from prying eyes.
+
+```bash
+keytool -genkeypair -keystore /data/usr/local/nexus/nexus-3/etc/ssl/keystore.jks -deststoretype pkcs12 -storepass password -keypass password -alias jetty -keyalg RSA -keysize 4096 -validity 5000 -dname "CN=nexus.${LAB_DOMAIN}, OU=okd4-lab, O=okd4-lab, L=Roanoke, ST=Virginia, C=US" -ext "SAN=DNS:nexus.${LAB_DOMAIN},IP:${INSTALL_HOST}" -ext "BC=ca:true"
+keytool -importkeystore -srckeystore /data/usr/local/nexus/nexus-3/etc/ssl/keystore.jks -destkeystore /data/usr/local/nexus/nexus-3/etc/ssl/keystore.jks -deststoretype pkcs12
+rm -f /data/usr/local/nexus/nexus-3/etc/ssl/keystore.jks.old
+
+chown nexus:nexus /data/usr/local/nexus/nexus-3/etc/ssl/keystore.jks
+
+keytool -importcert -file /etc/ssl/certs/ca-certificates.crt -keystore
+ /data/usr/local/java-1.8-openjdk/jre/lib/security/cacerts -keypass changeit -storepass changeit
+```
+
+Modify the Nexus configuration for HTTPS:
+
+```bash
+mkdir /data/usr/local/nexus/sonatype-work/nexus3/etc
+cat <<EOF >> /data/usr/local/nexus/sonatype-work/nexus3/etc/nexus.properties
+nexus-args=\${jetty.etc}/jetty.xml,\${jetty.etc}/jetty-https.xml,\${jetty.etc}/jetty-requestlog.xml
+application-port-ssl=8443
+EOF
+chown -R nexus:nexus /data/usr/local/nexus/sonatype-work/nexus3/etc
+```
+
+Now we should be able to start Nexus:
+
+```bash
+systemctl enable nexus --now
 ```
