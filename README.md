@@ -1,3 +1,9 @@
+# This tutorial is being deprecated in favor of a new version:
+
+## [OKD Home Lab](https://upstreamwithoutapaddle.com/home-lab/lab-intro/)
+
+This repo will be Archived
+
 # Installing OKD4.X with User Provisioned Infrastructure.
 
 ### Or, more precisely...  How to build your own desktop datacenter from scratch.
