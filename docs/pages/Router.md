@@ -53,7 +53,7 @@ ln -s /mnt/sda1 /data        # This is not necessary for the GL-MV1000 or GL-MV1
 ## Install some additional packages on your router
 
 ```bash
-opkg update && opkg install procps-ng-ps wget git-http ca-bundle haproxy bind-server bind-tools bash fdisk rsync shadow
+opkg update && opkg install procps-ng-ps wget git-http ca-bundle haproxy bind-server bind-tools bash fdisk rsync shadow resize2fs
 ```
 
 ## Create an SSH Key Pair
@@ -73,6 +73,10 @@ LAB_DOMAIN=your.lab.domain # Replace with the domain that you want to use for th
 ```bash
 LAB_NET=$(ip -br addr show dev br-lan label br-lan | cut -d" " -f1)
 LAB_ROUTER=$(echo ${LAB_NET} | cut -d"/" -f1)
+IFS=. read -r i1 i2 i3 i4 << EOF
+${LAB_ROUTER}
+EOF
+BASTION_HOST=${i1}.${i2}.${i3}.$((${i4}+1))
 LAB_CIDR=$(echo ${LAB_NET} | cut -d"/" -f2)
 cidr2mask ()
 {
@@ -86,10 +90,11 @@ mkdir -p /root/bin
 cat << EOF > /root/bin/setLabEnv.sh
 export PATH=\$PATH:/root/bin
 export LAB_DOMAIN=${LAB_DOMAIN}
-export INSTALL_HOST=${LAB_ROUTER}
 export PXE_HOST=${LAB_ROUTER}
 export LAB_NAMESERVER=${LAB_ROUTER}
 export LAB_ROUTER=${LAB_ROUTER}
+export BASTION_HOST=${BASTION_HOST}
+export INSTALL_HOST=${BASTION_HOST}
 export LAB_NETMASK=${LAB_NETMASK}
 export HTML_ROOT=/www
 export INSTALL_ROOT=${HTML_ROOT}/install
@@ -311,7 +316,8 @@ cat << EOF > /etc/bind/db.${LAB_DOMAIN}
 router.${LAB_DOMAIN}.         IN      A      ${NET_PREFIX}.10
 
 ; ${LAB_NETWORK}/${LAB_CIDR} - A records
-nexus.${LAB_DOMAIN}.           IN      A      ${LAB_ROUTER}
+bastion.${LAB_DOMAIN}.           IN      A      ${BASTION_HOST}
+nexus.${LAB_DOMAIN}.           IN      A      ${BASTION_HOST}
 kvm-host01.${LAB_DOMAIN}.      IN      A      ${NET_PREFIX}.200
 kvm-host02.${LAB_DOMAIN}.      IN      A      ${NET_PREFIX}.201
 kvm-host03.${LAB_DOMAIN}.      IN      A      ${NET_PREFIX}.202
@@ -348,6 +354,7 @@ cat << EOF > /etc/bind/db.${NET_PREFIX_ARPA}
 
 ; PTR Records
 1.${NET_PREFIX_ARPA}    IN      PTR     router.${LAB_DOMAIN}.
+2.${NET_PREFIX_ARPA}    IN      PTR     bastion.${LAB_DOMAIN}.
 200.${NET_PREFIX_ARPA}   IN      PTR     kvm-host01.${LAB_DOMAIN}. 
 201.${NET_PREFIX_ARPA}   IN      PTR     kvm-host02.${LAB_DOMAIN}. 
 202.${NET_PREFIX_ARPA}   IN      PTR     kvm-host03.${LAB_DOMAIN}. 
