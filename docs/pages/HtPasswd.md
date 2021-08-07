@@ -4,13 +4,13 @@ These instructions will help you set up an Identity provider so that you can rem
 
 1. Create an htpasswd file with two users.  The `user` admin will be assigned the password that was created when you installed your cluster.  The user `devuser` will be assigned the password `devpwd`.  THe user `devuser` will have default permissions.
 
-       mkdir -p ${OKD4_LAB_PATH}/okd-creds
-       htpasswd -B -c -b ${OKD4_LAB_PATH}/okd-creds/htpasswd admin $(cat ${OKD4_LAB_PATH}/okd4-install-dir/auth/kubeadmin-password)
-       htpasswd -b ${OKD4_LAB_PATH}/okd-creds/htpasswd devuser devpwd
+       mkdir -p ${OKD_LAB_PATH}/okd-creds
+       htpasswd -B -c -b ${OKD_LAB_PATH}/okd-creds/htpasswd admin $(cat ${OKD_LAB_PATH}/okd4-install-dir/auth/kubeadmin-password)
+       htpasswd -b ${OKD_LAB_PATH}/okd-creds/htpasswd devuser devpwd
 
 1. Now, create a Secret with this htpasswd file:
 
-       oc create -n openshift-config secret generic htpasswd-secret --from-file=htpasswd=${OKD4_LAB_PATH}/okd-creds/htpasswd
+       oc create -n openshift-config secret generic htpasswd-secret --from-file=htpasswd=${OKD_LAB_PATH}/okd-creds/htpasswd
 
 1. Create the Htpasswd Identity Provider:
 
