@@ -720,4 +720,9 @@ gem install jekyll bundler
 jekyll new blog-name
 bundle add webrick
 bundle exec jekyll serve --livereload --drafts
+
+gem update --system
+gem update
+rm Gemfile.lock
+bundle update --all
 ```
