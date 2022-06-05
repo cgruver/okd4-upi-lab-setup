@@ -6,4 +6,6 @@ The archived main branch can be found in the `archive` branch of this project an
 
 I will not be doing any additional development on this project.
 
-New work can be found on my Blog: [Upstream - Without A Paddle](https://upstreamwithoutapaddle.com/)
+The replacement for this project is here: [Building a Portable Kubernetes Home Lab with OpenShift - OKD4](https://upstreamwithoutapaddle.com/home-lab/lab-intro/)
+
+Follow my Blog here: [Upstream - Without A Paddle](https://upstreamwithoutapaddle.com/)
