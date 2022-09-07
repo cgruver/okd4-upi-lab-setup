@@ -1,6 +1,6 @@
 # This tutorial is being deprecated in favor of a new version:
 
-## [OKD Home Lab](https://upstreamwithoutapaddle.com/home-lab/lab-intro/)
+## Link To New Tutorial: [https://upstreamwithoutapaddle.com/home-lab/lab-intro/](https://upstreamwithoutapaddle.com/home-lab/lab-intro/)
 
 This repo will be Archived
 
