@@ -1,6 +1,6 @@
 # This tutorial is being deprecated in favor of a new version:
 
-## [OKD Home Lab](https://upstreamwithoutapaddle.com/home-lab/lab-intro/)
+## [https://upstreamwithoutapaddle.com/home-lab/lab-intro/](https://upstreamwithoutapaddle.com/home-lab/lab-intro/)
 
 The archived main branch can be found in the `archive` branch of this project and the previous documentation can be found at: [https://cgruver.github.io/okd4-upi-lab-setup/](https://cgruver.github.io/okd4-upi-lab-setup/)
 
