@@ -1,5 +1,16 @@
 ## Building an OpenShift - OKD 4.X Lab, Soup to Nuts
 
+__Note: This tutorial is being deprecated in favor of a new version:__
+
+## Link To New Tutorial: [https://upstreamwithoutapaddle.com/home-lab/lab-intro/](https://upstreamwithoutapaddle.com/home-lab/lab-intro/)
+
+The archived main branch can be found in the `archive` branch of this project and the previous documentation can be found at: [Lab Intro](LabIntro.md)
+
+I will not be doing any additional development on this project.
+
+New work can be found on my Blog: [Upstream - Without A Paddle](https://upstreamwithoutapaddle.com/)
+
+
 ### Equipment for your lab
 
 You will need at least one physical server for your lab.  More is obviously better, but also more expensive.  I have built my lab around the small form-factor NUC systems that Intel builds.  My favorite is the [NUC10i7FNK](https://www.intel.com/content/www/us/en/products/boards-kits/nuc/kits/nuc10i7fnk.html).  This little machine sports a 6-core 10th Gen i7 processor at 25W TDP and supports 64GB of RAM.
