@@ -6,6 +6,8 @@ The archived main branch can be found in the `archive` branch of this project an
 
 I will not be doing any additional development on this project.
 
+The newest version of my helper scripts is here: [https://github.com/cgruver/kamarotos](https://github.com/cgruver/kamarotos)
+
 The replacement for this project is here: [Building a Portable Kubernetes Home Lab with OpenShift - OKD4](https://upstreamwithoutapaddle.com/home-lab/lab-intro/)
 
 Follow my Blog here: [Upstream - Without A Paddle](https://upstreamwithoutapaddle.com/)
