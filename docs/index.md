@@ -2,6 +2,8 @@
 
 ## Link To New Tutorial: [https://upstreamwithoutapaddle.com/home-lab/lab-intro/](https://upstreamwithoutapaddle.com/home-lab/lab-intro/)
 
+## The newest version of my helper scripts is here: [https://github.com/cgruver/kamarotos](https://github.com/cgruver/kamarotos)
+
 The archived main branch can be found in the `archive` branch of this project and the previous documentation can be found at: [Lab Intro](LabIntro.md)
 
 I will not be doing any additional development on this project.
